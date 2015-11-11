@@ -1,0 +1,17 @@
+{
+	"gameinfo": {
+		"game": {
+			"title": "Sea Ranger",
+			"model": "",
+			"manufacturer": "Mini Arcade",
+			"releasedate": "1981",
+			"type": "LCD"
+		},
+		"simulation": {
+			"program": "Bas de Reuver",
+			"photoedit": "Bas de Reuver",
+			"deviceprovided": "Bas de Reuver"
+		}
+	}
+
+}
