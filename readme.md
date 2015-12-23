@@ -6,8 +6,12 @@ game simulators that can run in any browser.
 Work in progress
 ----------------
 At this point the lcdgame.js library is very much a work-in-progress project. 
-Only one game "Highway" works and another game "Sea Ranger" only has a very 
-basic demo mode. It doesn't work properly on mobile or tablets yet. 
+Only one game "Highway" works and another game "Sea Ranger" has a very basic
+demo mode. It doesn't work properly on mobile or tablets yet. 
+
+![preview screenshot](https://raw.githubusercontent.com/BdR76/lcdgame.js/master/lcdgamejs_preview.png)
+
+[play Highway here](http://bdrgames.nl/lcdgames/highway)
 
 What are LCD games
 ------------------
@@ -41,7 +45,7 @@ Phaser.js etc.
 
 Shapes editor
 -------------
-The library read the shapes of a game from a compiled png file and a json files. 
+The library read the shapes of a game from a compiled png file and a json file. 
 The png file is similar to a sprite sheet, in that it contains the location and 
 size of each sprite in the sprite sheet. However, the sprites don't need to move 
 around the screen, so the shapes json file also contains the fixed on-screen 
