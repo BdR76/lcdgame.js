@@ -89,7 +89,7 @@ still missing features.
 
 History
 -------
-19-apr-2017 v0.2 Mario bros available, better compatibility, utilities and tools  
+19-apr-2017 v0.2 Mario bros available, better compatibility, utilities and tools   
 10-nov-2015 v0.1 first release of lcdgame.js and shape editor on github
 
 See also the [html5gamedevs forum](http://www.html5gamedevs.com/topic/8204-lcd-game-simulator-engine-using-html5js/)  
