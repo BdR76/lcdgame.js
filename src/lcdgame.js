@@ -4,10 +4,14 @@
 // namespace
 var LCDGame = LCDGame || {
 	gamedata: [],
-	test123: "This is a test value 123",
 	imageBackground: null,
 	imageShapes: null,
-	countimages: 0,
+	loadsounds: null,
+	countimages: 0,	
+	// general game variables
+	gametype: 0,
+	level: 0,
+	// events
 	onImageLoaded: null,
 	onImageError: null,
 	canvas: null,
@@ -17,7 +21,7 @@ var LCDGame = LCDGame || {
 // -------------------------------------
 // game object
 // -------------------------------------
-LCDGame.Game = function (jsonfilename, gameobj) {
+LCDGame.Game = function (gameobj, jsonfilename) {
 
 	// initialise object
 	this.countimages = 0;
@@ -104,17 +108,90 @@ LCDGame.Game.prototype = {
 	// start game
 	// -------------------------------------
 	onJSONsuccess: function(data) {
+		console.log('onJSONsuccess start');
 		// load all from JSON data
 		this.gamedata = data;
 
 		// set images locations will trigger event onImageLoaded
 		this.imageBackground.src = data.imgback;
 		this.imageShapes.src = data.imgshapes;
+	
+		// add custom lcdgame.js properties for use throughout the library
+		for (var i = 0; i < this.gamedata.frames.length; i++) {
+			//console.log('TEST frame ' + name);
+			//console.log('frame ' + name + ' -> x,y=' + this.gamedata.frames[i].frame.x + ',' + this.gamedata.frames[i].frame.y);
+
+			// add current/previous values to all shape objects
+			this.gamedata.frames[i].value = false;
+			this.gamedata.frames[i].valprev = false;
+			
+			// add type
+			this.gamedata.frames[i].type = "shape";
+		};
+
+		// prepare sequences
+		for (var s = 0; s < this.gamedata.sequences.length; s++) {
+			// shape indexes
+			this.gamedata.sequences[s].ids = [];
+
+			// find all frames indexes
+			for (var f = 0; f < this.gamedata.sequences[s].frames.length; f++) {
+				var filename = this.gamedata.sequences[s].frames[f];
+				var idx = this.shapeIndexByName(filename);
+				this.gamedata.sequences[s].ids.push(idx);
+			};
+		};
+
+		// prepare digits
+		for (var d = 0; d < this.gamedata.digits.length; d++) {
+			// shape indexes
+			this.gamedata.digits[d].ids = [];
+			this.gamedata.digits[d].locids = [];
+
+			// find all digit frames indexes
+			for (var f = 0; f < this.gamedata.digits[d].frames.length; f++) {
+				var filename = this.gamedata.digits[d].frames[f];
+				var idx = this.shapeIndexByName(filename);
+				this.gamedata.digits[d].ids.push(idx);
+				// set shape types
+				if (idx != -1) {
+					this.gamedata.frames[idx].type = "digit";
+				};
+			};
+
+			// find all digit locations
+			for (var l = 0; l < this.gamedata.digits[d].locations.length; l++) {
+				var filename = this.gamedata.digits[d].locations[l];
+				var idx = this.shapeIndexByName(filename);
+				this.gamedata.digits[d].locids.push(idx);
+			};
+			// set max
+			var str = this.gamedata.digits[d].max || "";
+			if (str == "") {
+				for (var c = 0; c < this.gamedata.digits[d].locids.length; c++) { str += "8"}; // for example "8888"
+				this.gamedata.digits[d].max = str;
+			}
+		};
 		
-		// add current/previous values to all shape objects
-		for (var i = 0; i < this.gamedata.shapes.length; i++) {
-			this.gamedata.shapes[i].value = false;
-			this.gamedata.shapes[i].valprev = false;
+		// prepare buttons keycodes
+		for (var b=0; b < this.gamedata.buttons.length; b++) {
+		
+			// shape indexes
+			this.gamedata.buttons[b].ids = [];
+
+			// find all digit frames indexes
+			for (var f = 0; f < this.gamedata.buttons[b].frames.length; f++) {
+				var filename = this.gamedata.buttons[b].frames[f];
+				var idx = this.shapeIndexByName(filename);
+				this.gamedata.buttons[b].ids.push(idx);
+			};
+
+			// default keycodes
+			var defkey = this.gamedata.buttons[b].name;
+			if (typeof this.gamedata.buttons[b].defaultkeys !== "undefined") {
+				defkey = this.gamedata.buttons[b].defaultkeys;
+			};
+			this.gamedata.buttons[b].keycodes = this.determineKeyCodes(defkey);
 		};
 	},
 
@@ -139,23 +216,16 @@ LCDGame.Game.prototype = {
 			this.gamedata.sounds[i].audio = new Audio(strfile);
 			this.gamedata.sounds[i].audio.load();
 		};
-
-		// add buttons keycodes
-		for (var i=0; i < this.gamedata.buttons.length; i++) {
-			var defkey = this.gamedata.buttons[i].name;
-			if (typeof this.gamedata.buttons[i].defaultkey !== "undefined") {
-				defkey = this.gamedata.buttons[i].defaultkey;
-			};
-			this.gamedata.buttons[i].keycode = this.determineKeyCode(defkey);
-		};
 		
 		// 
 		if (document.addEventListener) {
 			// chrome, firefox
 			document.addEventListener("keydown", this.onkeydown.bind(this), false);
+			document.addEventListener("keyup",   this.onkeyup.bind(this), false);
 		} else {
 			// IE8
 			document.attachEvent("keydown", this.onkeydown.bind(this));
+			document.attachEvent("keyup",   this.onkeyup.bind(this));
 		};
 
 		// initialise game specifics
@@ -199,14 +269,31 @@ LCDGame.Game.prototype = {
 	// -------------------------------------
 	// function for shapes and sequences
 	// -------------------------------------
-	setShapeValue: function(name, value) {
-		for (var i = 0; i < this.gamedata.shapes.length; i++) {
-			if (this.gamedata.shapes[i].name == name) {
-				this.gamedata.shapes[i].value = value;
+	shapeIndexByName: function(name) {
+		console.log('shapeIndexByName -- '+name);
+		for (var i = 0; i < this.gamedata.frames.length; i++) {
+			if (this.gamedata.frames[i].filename == name)
+				return i;
+		}
+		console.log("** ERROR ** shapeIndexByName('"+name+"') - filename not found.");
+		// if not found return -1
+		throw "lcdgames.js - "+arguments.callee.caller.toString()+", no frame with filename '" + name + "'";
+		return -1;
+	},
+
+	setShapeByName: function(filename, value) {
+		for (var i = 0; i < this.gamedata.frames.length; i++) {
+			if (this.gamedata.frames[i].filename == filename) {
+				this.gamedata.frames[i].value = value;
 				return true;
 			};
 		};
 		return false;
+	},
+	
+	setShapeByIdx: function(idx, value) {
+		this.gamedata.frames[idx].value = value;
+		return true;
 	},
 	
 	sequenceIndexByName: function(name) {
@@ -229,62 +316,77 @@ LCDGame.Game.prototype = {
 			// get shape index in this sequence
 			var shape = this.gamedata.sequences[seqidx].ids[i];
 			// clear all shapes in sequence
-			this.gamedata.shapes[shape].value = false;
+			this.gamedata.frames[shape].value = false;
 		};
 	},
 
-	sequenceShift: function(name) {
+	sequenceShift: function(name, max) {
+		// example start [0] [1] [.] [3] [.] (.=off)
+		//        result [.] [1] [2] [.] [4]
+		
 		// get sequence index of name
 		var seqidx = this.sequenceIndexByName(name);
 
+		// max position is optional
+		if (typeof max === "undefined") max = this.gamedata.sequences[seqidx].ids.length;
+
 		// shift shape values one place DOWN
 		var i;
-		for (i = this.gamedata.sequences[seqidx].ids.length-1; i > 0; i--) {
+		for (i = max-1; i > 0; i--) {
 			// get shape indexes of adjacent shapes in this sequence
 			var shape1 = this.gamedata.sequences[seqidx].ids[i-1];
 			var shape2 = this.gamedata.sequences[seqidx].ids[i];
 			// shift shape values DOWN one place in sequence
-			this.gamedata.shapes[shape2].value = this.gamedata.shapes[shape1].value;
+			this.gamedata.frames[shape2].value = this.gamedata.frames[shape1].value;
 		};
 		// set first value to blank; default value false
 		var shape1 = this.gamedata.sequences[seqidx].ids[0];
-		this.gamedata.shapes[shape1].value = false;
+		this.gamedata.frames[shape1].value = false;
 	},
 
-	sequenceShiftReverse: function(name) {
+	sequenceShiftReverse: function(name, min) {
+		// example start [.] [1] [.] [3] [4] (.=off)
+		//        result [0] [.] [2] [3] [.]
+
 		// get sequence index of name
 		var seqidx = this.sequenceIndexByName(name);
+		
+		// min position is optional
+		if (typeof min === "undefined") min = 0;
 
 		// shift shape values one place UP
 		var i;
-		for (i = 0; i < this.gamedata.sequences[seqidx].ids.length-1; i++) {
+		for (i = min; i < this.gamedata.sequences[seqidx].ids.length-1; i++) {
 			// get shape indexes of adjacent shapes in this sequence
 			var shape1 = this.gamedata.sequences[seqidx].ids[i];
 			var shape2 = this.gamedata.sequences[seqidx].ids[i+1];
 			// shift shape values UP one place in sequence
-			this.gamedata.shapes[shape1].value = this.gamedata.shapes[shape2].value;
+			this.gamedata.frames[shape1].value = this.gamedata.frames[shape2].value;
 		};
 		// set last value to blank; default value false
 		var shape1 = this.gamedata.sequences[seqidx].ids[i];
-		this.gamedata.shapes[shape1].value = false;
+		this.gamedata.frames[shape1].value = false;
 	},
 
-	sequencePush: function(name, value) {
+	sequenceSetFirst: function(name, value) {
 		// get sequence
 		var seqidx = this.sequenceIndexByName(name);
 
 		// set value for first shape in sequence
 		var shape1 = this.gamedata.sequences[seqidx].ids[0];
-		this.gamedata.shapes[shape1].value = value;
+		this.gamedata.frames[shape1].value = value;
 	},
 
-	sequencePosSetValue: function(name, pos, value) {
+	sequenceSetPos: function(name, pos, value) {
 		// get sequence
 		var seqidx = this.sequenceIndexByName(name);
 
+		// if pos is -1, then last last position
+		if (pos == -1) {pos = this.gamedata.sequences[seqidx].ids.length-1};
+
 		// set value for first shape in sequence
 		var shape1 = this.gamedata.sequences[seqidx].ids[pos];
-		this.gamedata.shapes[shape1].value = value;
+		this.gamedata.frames[shape1].value = value;
 	},
 	
 	sequenceShapeVisible: function(name, pos) {
@@ -293,18 +395,21 @@ LCDGame.Game.prototype = {
 
 		// single pos or any pos
 		if (typeof pos === "undefined") {
-			// no pos given, check any any
+			// no pos given, check if any shape visible
 			for (var i = 0; i < this.gamedata.sequences[seqidx].ids.length; i++) {
 				// check if any shape is visible (value==true)
 				var shape1 = this.gamedata.sequences[seqidx].ids[i];
-				if (this.gamedata.shapes[shape1].value == true) {
+				if (this.gamedata.frames[shape1].value == true) {
 					return true;
 				};
 			};
 		} else {
+			// if pos is -1, then last last position
+			if (pos == -1) {pos = this.gamedata.sequences[seqidx].ids.length-1};
+			
 			// check if shape is visible (value==true)
 			var shape1 = this.gamedata.sequences[seqidx].ids[pos];
-			if (this.gamedata.shapes[shape1].value == true) {
+			if (this.gamedata.frames[shape1].value == true) {
 				return true;
 			};
 		};
@@ -312,25 +417,19 @@ LCDGame.Game.prototype = {
 	},
 
 	shapesDisplayAll: function(value) {
-		//console.log("shapesDisplayAll: " + this.gamedata.shapes[index].x);
+		//console.log("shapesDisplayAll: " + this.gamedata.frames[index].frame.x);
 
 		// all shapes
-		for (var i = 0; i < this.gamedata.shapes.length; i++) {
+		for (var i = 0; i < this.gamedata.frames.length; i++) {
 			// print out current values of sequence
-			if ( (this.gamedata.shapes[i].type == "shape") || (this.gamedata.shapes[i].type == "digitpos") ) {
-				this.gamedata.shapes[i].value = value;
+			if ( (this.gamedata.frames[i].type == "shape") || (this.gamedata.frames[i].type == "digitpos") ) {
+				this.gamedata.frames[i].value = value;
 			};
 		};
 		// all digits
 		if (value == true) {
 			for (var i = 0; i < this.gamedata.digits.length; i++) {
-				var str = '';
-				if (typeof this.gamedata.digits[i].max === "undefined") {
-					for (var c = 0; c < this.gamedata.digits[i].placeids.length; c++) { str += "8"}; // for example "8888"
-				} else {
-					str = this.gamedata.digits[i].max;
-				};
-				this.digitsDisplay(this.gamedata.digits[i].name, str);
+				this.digitsDisplay(this.gamedata.digits[i].name, this.gamedata.digits[i].max);
 			};
 		};
 	},
@@ -358,7 +457,7 @@ LCDGame.Game.prototype = {
 			
 			// exception for right-align
 			if (rightalign == true) {
-				firstid = this.gamedata.digits[digidx].placeids.length - str.length;
+				firstid = this.gamedata.digits[digidx].locids.length - str.length;
 				// if too many digits
 				if (firstid < 0) {
 					chridx = Math.abs(firstid); // skip left-most digit(s) of str
@@ -374,14 +473,14 @@ LCDGame.Game.prototype = {
 			// firstid = index 1-^
 			
 			// adjust all shapes of digitplaceholders to display correct digits, and force them to refresh
-			for (var i=0; i < this.gamedata.digits[digidx].placeids.length; i++) {
+			for (var i=0; i < this.gamedata.digits[digidx].locids.length; i++) {
 				// shape of digitplaceholder
-				var placehold = this.gamedata.digits[digidx].placeids[i];
+				var locidx = this.gamedata.digits[digidx].locids[i];
 				
 				// make non-used digit placeholders invisible
 				if ( (i < firstid) || (chridx >= str.length) ) {
 					// make non-used digit placeholders invisible
-					this.gamedata.shapes[placehold].value = false;
+					this.gamedata.frames[locidx].value = false;
 				} else {
 					// 48 = ascii code for "0"
 					var digit = str.charCodeAt(chridx) - 48;
@@ -391,14 +490,14 @@ LCDGame.Game.prototype = {
 						var digitshape = this.gamedata.digits[digidx].ids[digit]; // shape of digit
 						
 						// change the "from" part of the placeholder so it will draw the desired digit shape
-						this.gamedata.shapes[placehold].x = this.gamedata.shapes[digitshape].x;
-						this.gamedata.shapes[placehold].y = this.gamedata.shapes[digitshape].y;
+						this.gamedata.frames[locidx].frame.x = this.gamedata.frames[digitshape].frame.x;
+						this.gamedata.frames[locidx].frame.y = this.gamedata.frames[digitshape].frame.y;
 
 						// make sure the placeholder (with new digit) gets re-drawn
-						this.gamedata.shapes[placehold].value = true;
+						this.gamedata.frames[locidx].value = true;
 					} else {
 						// non-digit, example space (' ')
-						this.gamedata.shapes[placehold].value = false;
+						this.gamedata.frames[locidx].value = false;
 					};
 					// next character in str
 					chridx = chridx + 1;
@@ -412,8 +511,7 @@ LCDGame.Game.prototype = {
 	// -------------------------------------
 	shapesRefresh: function() {
 		// TODO: implement dirty rectangles
-		
-		
+
 		// FOR NOW: simply redraw everything
 		
 		// redraw entire background (=inefficient)
@@ -421,64 +519,135 @@ LCDGame.Game.prototype = {
 		
 		//console.log("shapesRefresh called");
 		// add current/previous values to all shape objects
-		for (var i = 0; i < this.gamedata.shapes.length; i++) {
-			if (this.gamedata.shapes[i].value == true) {
+		for (var i = 0; i < this.gamedata.frames.length; i++) {
+			if (this.gamedata.frames[i].value == true) {
 				this.shapeDraw(i);
 			};
 		};
 	},
 
 	shapeDraw: function(index) {
-		//console.log("shapeDraw: " + this.gamedata.shapes[index].x);
+		//console.log("shapeDraw: " + this.gamedata.frames[index].x);
 
 		// draw shape
 		this.context2d.drawImage(
 			this.imageShapes,
-			this.gamedata.shapes[index].x, // from
-			this.gamedata.shapes[index].y,
-			this.gamedata.shapes[index].w,
-			this.gamedata.shapes[index].h,
-			this.gamedata.shapes[index].xpos, // to
-			this.gamedata.shapes[index].ypos,
-			this.gamedata.shapes[index].w,
-			this.gamedata.shapes[index].h
+			this.gamedata.frames[index].frame.x, // from
+			this.gamedata.frames[index].frame.y,
+			this.gamedata.frames[index].frame.w,
+			this.gamedata.frames[index].frame.h,
+			this.gamedata.frames[index].spriteSourceSize.x, // to
+			this.gamedata.frames[index].spriteSourceSize.y,
+			this.gamedata.frames[index].spriteSourceSize.w,
+			this.gamedata.frames[index].spriteSourceSize.h
 		);
 
 		// show shape index
 		//this.context2d.font = "bold 12px sans-serif";
 		//this.context2d.fillStyle = "#fff";
-		//this.context2d.fillText(index, this.gamedata.shapes[index].xpos, this.gamedata.shapes[index].ypos);
+		//this.context2d.fillText(index, this.gamedata.frames[index].xpos, this.gamedata.frames[index].ypos);
 	},
 
 	// -------------------------------------
 	// buttons input through keyboard
 	// -------------------------------------
-	determineKeyCode: function(keyname) {
-		keyname = keyname.toUpperCase();
-		if (keyname.indexOf("UP") > -1) {
-			return 38;
-		} else if (keyname.indexOf("DOWN") > -1) {
-			return 40;
-		} else if (keyname.indexOf("LEFT") > -1) {
-			return 37;
-		} else if (keyname.indexOf("RIGHT") > -1) {
-			return 39;
-		} else {
-			return keyname.charCodeAt(0);
+	buttonAdd: function(name, framenames, defaultkeys) {
+		// if no buttons yet
+		if (typeof this.buttons === 'undefined') {
+			this.buttons = [];
 		}
+		var maxidx = this.gamedata.buttons.length;
+
+		// add button keycodes
+		this.gamedata.buttons[maxidx] = {};
+		
+		// set values for button
+		this.gamedata.buttons[maxidx].name = name;
+		this.gamedata.buttons[maxidx].frames = framenames;
+		this.gamedata.buttons[maxidx].defaultkeys = defaultkeys;
+		
+		this.gamedata.buttons[maxidx].keycodes = this.determineKeyCodes(defaultkeys);
+	},
+		
+	determineKeyCodes: function(keyname) {
+		// variables
+		var result = [];
+		
+		// possibly more than 1 keyvariables
+		for (var i = 0; i < keyname.length; i++) {
+			var c = 0;
+			var k = keyname[i];
+			
+			// key code
+			k = k.toUpperCase();
+			if (k.indexOf("UP") > -1) {
+				c = 38;
+			} else if (k.indexOf("DOWN") > -1) {
+				c = 40;
+			} else if (k.indexOf("LEFT") > -1) {
+				c = 37;
+			} else if (k.indexOf("RIGHT") > -1) {
+				c = 39;
+			} else {
+				c = k.charCodeAt(0);
+			};
+			// add
+			result.push(c);
+		};
+
+		// return array of keycode(s)
+		return result;
 	},
 
 	onkeydown: function(e) {
 		// get keycode
 		var keyCode = e.keyCode;
+		//console.log('lcdgame.js onkeydown -- '+keyCode);
 
 		// check if keycode in defined buttons
 		for (var i=0; i < this.gamedata.buttons.length; i++) {
-			if (this.gamedata.buttons[i].keycode == keyCode) {
-				var name = this.gamedata.buttons[i].name;
-				this.GameObj.handleInput(name);
+			for (var j=0; j < this.gamedata.buttons[i].keycodes.length; j++) {
+				if (this.gamedata.buttons[i].keycodes[j] == keyCode) {
+					this.onButtonDown(i, j);
+				};
 			};
 		};
+	},
+	
+	onkeyup: function(e) {
+		// get keycode
+		var keyCode = e.keyCode;
+
+		// check if keycode in defined buttons
+		for (var i=0; i < this.gamedata.buttons.length; i++) {
+			for (var j=0; j < this.gamedata.buttons[i].keycodes.length; j++) {
+				if (this.gamedata.buttons[i].keycodes[j] == keyCode) {
+					this.onButtonUp(i);
+				};
+			};
+		};
+	},
+	
+	onButtonDown: function(btnidx, diridx) {
+		var name = this.gamedata.buttons[btnidx].name;
+		//console.log('onButtonDown -- name=' + name + ' btnidx=' + btnidx);
+		this.GameObj.handleInput(name, diridx);
+
+		var idx = this.gamedata.buttons[btnidx].ids[diridx];
+		this.setShapeByIdx(idx, true);
+		this.shapesRefresh();
+	
+	},
+	
+	onButtonUp: function(btnidx, diridx) {
+		//console.log('onButtonUp -- name=' + name + ' btnidx=' + btnidx);
+		// TODO: visually update frame so key is in neutral position
+		for (var s=0; s < this.gamedata.buttons[btnidx].ids.length; s++) {
+			var idx = this.gamedata.buttons[btnidx].ids[s];
+			this.setShapeByIdx(idx, false);
+		};
+		
+		this.shapesRefresh();
 	},
 
 	// -------------------------------------
@@ -494,6 +663,15 @@ LCDGame.Game.prototype = {
 		}
 	}
 };
+
+// -------------------------------------
+// beats per minute to milliseconds, static helper function
+// -------------------------------------
+LCDGame.BPMToMillSec = function (bpm) {
+	return (60000 / bpm);
+}
+// LCD game JavaScript library
+// Bas de Reuver (c)2015
 
 // -------------------------------------
 // pulse timer object
@@ -544,6 +722,7 @@ LCDGame.Timer = function (game, eventfunction, interval) {
 	{
 		// initialise variables
 		this.Enable = new Boolean(true);
+		this.Counter = 0;
 		this.Max = max;
 		
 		// bind callback function to gameobj, so not to LCDGame.Timer object
@@ -552,6 +731,12 @@ LCDGame.Timer = function (game, eventfunction, interval) {
 		// start interval
 		if (this.Enable)
 		{
+			// clear any previous
+			if (this.timerId) {
+				clearInterval(this.timerId);
+			};
+
+			// start interval
 			this.timerId = setInterval(
 				timerEvent,
 				this.Interval
@@ -566,9 +751,11 @@ LCDGame.Timer = function (game, eventfunction, interval) {
 		clearInterval(this.timerId);
 	}
 };
+// LCD game JavaScript library
+// Bas de Reuver (c)2015
 
 // -------------------------------------
-// pulse timer object
+// button object
 // -------------------------------------
 LCDGame.Button = function (lcdgame, name) {
 	// save reference to game object 
@@ -579,19 +766,13 @@ LCDGame.Button = function (lcdgame, name) {
 	// do a guess
 	// save reference to game object
 
-	//TODO: add support for buttons types normal dpad etc.
-//button type="normal" ids[1] defkeys["left"]
-//button type="dpad" ids[1, 2, 3, 4] defkeys["up", "down", "left", "right"]
-//button type="diagonal" ids[1, 2, 3, 4] defkeys["upleft", "upright", "downleft", "downright"]
-//button type="horizontal" ids[1, 2] defkeys["left", "right"]
-//button type="vertical" ids[1, 2] defkeys["up", "down"]
-//button type="switch" ids[1, 2] defkeys["on", "mute"]
+	//TODO: add support for buttons types
+//button type="button"		ok
+//button type="updown"		ok
+//button type="leftright"	TODO
+//button type="dpad"		TODO
+//button type="diagonal"	TODO
+//button type="switch"		TODO
 
 };
 
-// -------------------------------------
-// beats per minute to milliseconds, static helper function
-// -------------------------------------
-LCDGame.BPMToMillSec = function (bpm) {
-	return (60000 / bpm);
-}

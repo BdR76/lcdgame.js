@@ -1,5 +1,5 @@
 // Highway LCD game simulation
-// Bas de Reuver (c)2015
+// Bas de Reuver (c)2017
 
 var highway = {};
 
@@ -30,6 +30,7 @@ highway.MainGame = function(lcdgame) {
 	this.displayscore = 0;
 	this.misses = 0;
 	this.girlincar = false; // girl hitchhiker is in car
+	this.pushcountdown = 0; // push back on road
 	
 	this.roadcount = 0; // acts as a metronome
 
@@ -43,8 +44,8 @@ highway.MainGame = function(lcdgame) {
 	this.crashtimer = null; // for crash animation
 
 	// frequencies of the 3 bonus digits, as sampled from a 30fps video, example {"symbol": "1", "fps30": 8} means show digit "1" for (8/30)th of a second
-	// changed 3 the fps30 values, because the 3 digit cycles were exactly synched up (always same cycle)
-	// changed them slightly so they are now out of synch with each other, just like in the real game
+	// Note: 3 of the fps30 values were changed, because the digit cycles were exactly synched up, i.e. always same cycle
+	// changing them slightly so they are now out of synch with each other, just like in the real game
 	this.bonusfreqs = [
 		[ // left most digit placeholder
 			{"symbol": "1", "fps30": 12},
@@ -123,10 +124,10 @@ highway.MainGame.prototype = {
 		// update clock
 		if (this.demotimer.Counter % 2 == 0) {
 			// demo timer event fired every half second
-			this.lcdgame.setShapeValue("timecolon", false);
+			this.lcdgame.setShapeByName("timecolon", false);
 		} else {
 			// only update road every whole second
-			this.lcdgame.setShapeValue("timecolon", true);
+			this.lcdgame.setShapeByName("timecolon", true);
 			this.updateClock();
 			this.updateRoad();
 		};
@@ -169,6 +170,7 @@ highway.MainGame.prototype = {
 				this.lcdgame.sequenceShift("girl");
 				for (var i = 0; i < 5; i++) {this.lcdgame.sequenceShift("car")};
 				this.girlincar = true;
+				this.pushcountdown = 20;
 				// continue game
 				this.gamestate = STATE_GAMEPLAY;
 				this.roadtimer.Start();
@@ -176,7 +178,7 @@ highway.MainGame.prototype = {
 			case STATE_GAMEDROP:
 				console.log("onTimerWait - STATE_GAMEDROP");
 				// remove hitchhiker and drop off sign
-				this.lcdgame.setShapeValue("girl_dropoff", false);
+				this.lcdgame.setShapeByName("girl_dropoff", false);
 				this.lcdgame.sequenceShift("signdrop");
 				// bonus game or continue game
 				if (this.hitchhikers >= 3) {
@@ -200,8 +202,8 @@ highway.MainGame.prototype = {
 					this.lcdgame.playSoundEffect("bonusalarm");
 				} else {
 					// start or continue bonus game
-					this.lcdgame.setShapeValue("gas", true);
-					this.lcdgame.setShapeValue("gas_car", true);
+					this.lcdgame.setShapeByName("gas", true);
+					this.lcdgame.setShapeByName("gas_car", true);
 					// display previous bonus digits
 					var str = this.bonusvars[0].digit + this.bonusvars[1].digit + this.bonusvars[2].digit;
 					this.lcdgame.digitsDisplay("digitbonus", str);
@@ -216,8 +218,8 @@ highway.MainGame.prototype = {
 				} else {
 					// continue normal game
 					// not all the same, bonus game is over and continue normal game
-					this.lcdgame.setShapeValue("gas", false);
-					this.lcdgame.setShapeValue("gas_car", false);
+					this.lcdgame.setShapeByName("gas", false);
+					this.lcdgame.setShapeByName("gas_car", false);
 					this.lcdgame.digitsDisplay("digitbonus", "   "); // make digits invisible
 					this.initNextLevel();
 				};
@@ -250,7 +252,7 @@ highway.MainGame.prototype = {
 		var b = (this.crashtimer.Counter % 2 == 0);
 		var p = (this.carpos % 5) - 1;
 		console.log("onTimerCrash - this.crashtimer.Counter="+this.crashtimer.Counter+" ==> p="+p+" b="+b);
-		this.lcdgame.sequencePosSetValue("crash", p, b);
+		this.lcdgame.sequenceSetPos("crash", p, b);
 		// refresh shapes
 		this.lcdgame.shapesRefresh();
 	},
@@ -286,10 +288,10 @@ highway.MainGame.prototype = {
 			case STATE_GAMEPLAY:
 				// handle player input appropriately
 				if (buttonname == "left") {
-					if (this.playerMove(-1)) this.lcdgame.playSoundEffect("move");
+					this.playerMove(-1);
 				};
 				if (buttonname == "right") {
-					if (this.playerMove(+1)) this.lcdgame.playSoundEffect("move");
+					this.playerMove(+1);
 				};
 				break;
 			case STATE_BONUSPLAY:
@@ -323,7 +325,7 @@ highway.MainGame.prototype = {
 	toggleSound: function() {
 		// determine state of gameplay
 		this.sound_onoff = !(this.sound_onoff);
-		this.lcdgame.setShapeValue("alarm_onoff", this.sound_onoff);
+		this.lcdgame.setShapeByName("alarm_onoff", this.sound_onoff);
 	},
 
 	initDemoMode: function() {
@@ -353,13 +355,13 @@ highway.MainGame.prototype = {
 
 			// set road sides
 			for (var i=0; i<=4; i++) {
-				console.log("initNewGame, sequencePush road -> "+i+ " true/false="+(i<4));
-				this.lcdgame.sequencePosSetValue("road_left",  i, (i>0));
-				this.lcdgame.sequencePosSetValue("road_right", i, (i>0));
+				console.log("initNewGame, sequenceSetFirst road -> "+i+ " true/false="+(i<4));
+				this.lcdgame.sequenceSetPos("road_left",  i, (i>0));
+				this.lcdgame.sequenceSetPos("road_right", i, (i>0));
 			};
 
 			// game1
-			this.lcdgame.setShapeValue("game1", true);
+			this.lcdgame.setShapeByName("game1", true);
 
 			// refresh immediately
 			this.lcdgame.shapesRefresh();
@@ -368,8 +370,8 @@ highway.MainGame.prototype = {
 			if (this.difficulty == 1) {
 				// select difficulty 2
 				this.difficulty = 2;
-				this.lcdgame.setShapeValue("game1", false);
-				this.lcdgame.setShapeValue("game2", true);
+				this.lcdgame.setShapeByName("game1", false);
+				this.lcdgame.setShapeByName("game2", true);
 				// refresh immediately
 				this.lcdgame.shapesRefresh();
 			} else {
@@ -377,7 +379,7 @@ highway.MainGame.prototype = {
 				// NOTE: actually, after game1 and game2 the "mode" button switches to alarm clock,
 				// then press "set" button and it displays "setting" shape
 				// and you can set alarm time by left=hours+1, right=minutes+1
-				this.lcdgame.setShapeValue("game2", false);
+				this.lcdgame.setShapeByName("game2", false);
 				this.initDemoMode();
 				// refresh immediately
 				this.lcdgame.shapesRefresh();
@@ -391,11 +393,12 @@ highway.MainGame.prototype = {
 	initCarPos: function() {
 		// reset player to right-hand side
 		this.girlincar = false;
+		this.pushcountdown = 20;
 		this.carpos = 4; // car position on road, 0=left most, 4=right most
 		// clear any previous shapes
 		this.lcdgame.sequenceClear("car");
 		// set current shape
-		this.lcdgame.sequencePosSetValue("car", this.carpos, true);
+		this.lcdgame.sequenceSetPos("car", this.carpos, true);
 	},
 
 	initNewGame: function() {
@@ -405,28 +408,29 @@ highway.MainGame.prototype = {
 		this.displayscore = this.score;
 		this.misses = 0;
 		this.girlincar = false; // girl hitchhiker is in car
+		this.pushcountdown = 20;
 		this.roadcount = 0;
 
 		// clear screen
 		this.lcdgame.shapesDisplayAll(false);
 
 		// display game1 or game2
-		if (this.difficulty == 1) {this.lcdgame.setShapeValue("game1", true)};
-		if (this.difficulty == 2) {this.lcdgame.setShapeValue("game2", true)};
+		if (this.difficulty == 1) {this.lcdgame.setShapeByName("game1", true)};
+		if (this.difficulty == 2) {this.lcdgame.setShapeByName("game2", true)};
 
 		// reset player
 		this.initCarPos();
 
 		// every game begins with one sign at front, one dog in middle and one tree in back, always.
-		this.lcdgame.sequencePosSetValue("dog",  1, true);
-		this.lcdgame.sequencePosSetValue("sign", 3, true);
-		this.lcdgame.sequencePosSetValue("tree", 0, true);
+		this.lcdgame.sequenceSetPos("dog",  1, true);
+		this.lcdgame.sequenceSetPos("sign", 3, true);
+		this.lcdgame.sequenceSetPos("tree", 0, true);
 
 		// set road sides
 		for (var i=0; i<=4; i++) {
-			console.log("initNewGame, sequencePush road -> "+i+ " true/false="+(i<4));
-			this.lcdgame.sequencePosSetValue("road_left",  i, (i>0));
-			this.lcdgame.sequencePosSetValue("road_right", i, (i>0));
+			console.log("initNewGame, sequenceSetFirst road -> "+i+ " true/false="+(i<4));
+			this.lcdgame.sequenceSetPos("road_left",  i, (i>0));
+			this.lcdgame.sequenceSetPos("road_right", i, (i>0));
 		};
 
 		// show all shapes
@@ -456,9 +460,9 @@ highway.MainGame.prototype = {
 		this.gamestate = STATE_GAMECRASH;
 		// update misses display
 		this.lcdgame.sequenceShift("carlifes");
-		this.lcdgame.sequencePush("carlifes", true);
+		this.lcdgame.sequenceSetFirst("carlifes", true);
 		if (this.misses >= 3) {
-			this.lcdgame.setShapeValue("gameover", true);
+			this.lcdgame.setShapeByName("gameover", true);
 		};
 		// start timer
 		this.roadtimer.Stop();
@@ -544,10 +548,21 @@ highway.MainGame.prototype = {
 
 		// check if no collision and car is in middle lane
 		if ( (this.carpos > 0) && (this.carpos < 4) ) {
+			this.pushcountdown = 0;
 			// can only score points for passing objects when car is in middle lane
 			if (dog)  {this.addScore(10)};
 			if (sign) {this.addScore(10)};
 			if (tree) {this.addScore(10)};
+		} else {
+			if (this.pushcountdown > 0) {
+				this.pushcountdown--;
+				if (this.pushcountdown <= 0) {
+					// push back on road
+					var step = (this.carpos == 0 ? +1 : -1);
+					this.playerMove(step);
+				};
+			};
+
 		};
 
 		// shift all sequences
@@ -576,7 +591,8 @@ highway.MainGame.prototype = {
 			// girl get out
 			for (var i = 0; i < 5; i++) {this.lcdgame.sequenceShiftReverse("car")};
 			this.girlincar = false;
-			this.lcdgame.setShapeValue("girl_dropoff", true);
+			this.pushcountdown = 20;
+			this.lcdgame.setShapeByName("girl_dropoff", true);
 			// short pause
 			this.roadtimer.Stop();
 			this.gamestate = STATE_GAMEDROP;
@@ -593,8 +609,8 @@ highway.MainGame.prototype = {
 
 		// add new active shapes to the sequence
 		if (this.roadcount % 5 != 0) {
-			this.lcdgame.sequencePush("road_left", true);
-			this.lcdgame.sequencePush("road_right", true);
+			this.lcdgame.sequenceSetFirst("road_left", true);
+			this.lcdgame.sequenceSetFirst("road_right", true);
 		};
 
 		// change of new road objects appearing
@@ -613,13 +629,21 @@ highway.MainGame.prototype = {
 			var idx = Math.floor(Math.random() * 3) + 1; //1..3
 			this.objfreqs[idx] = 0; // erase one of the three
 		};
+		// girl appears not more than once at a time
+		if ( (this.objfreqs[0] == 1) && (this.lcdgame.sequenceShapeVisible("girl") == true) ) {
+			this.objfreqs[0] = 0;
+		};
+		// dropoffsign appears not more than once at a time
+		if ( (this.objfreqs[4] == 1) && (this.lcdgame.sequenceShapeVisible("signdrop") == true) ) {
+			this.objfreqs[4] = 0;
+		};
 
 		// make objects appear
-		if (this.objfreqs[0] == 1) this.lcdgame.sequencePush("girl", true);
-		if (this.objfreqs[1] == 1) this.lcdgame.sequencePush("dog", true);
-		if (this.objfreqs[2] == 1) this.lcdgame.sequencePush("sign", true);
-		if (this.objfreqs[3] == 1) this.lcdgame.sequencePush("tree", true);
-		if (this.objfreqs[4] == 1) this.lcdgame.sequencePush("signdrop", true);
+		if (this.objfreqs[0] == 1) this.lcdgame.sequenceSetFirst("girl", true);
+		if (this.objfreqs[1] == 1) this.lcdgame.sequenceSetFirst("dog", true);
+		if (this.objfreqs[2] == 1) this.lcdgame.sequenceSetFirst("sign", true);
+		if (this.objfreqs[3] == 1) this.lcdgame.sequenceSetFirst("tree", true);
+		if (this.objfreqs[4] == 1) this.lcdgame.sequenceSetFirst("signdrop", true);
 	},
 
 	playerMove: function(step) {
@@ -638,6 +662,8 @@ highway.MainGame.prototype = {
 			};
 
 			if (validmove == true) {
+				// play sound
+				this.lcdgame.playSoundEffect("move");
 				// move car
 				this.carpos = this.carpos + step;
 				if (step == -1) {
@@ -698,10 +724,10 @@ highway.MainGame.prototype = {
 		// adjust hour and set PM if needed
 		if (ihours >= 12) {
 			if (ihours > 12) ihours = ihours - 12;
-			this.lcdgame.setShapeValue("time_pm", true);
+			this.lcdgame.setShapeByName("time_pm", true);
 		} else {
 			if (ihours == 0) ihours = 12; // weird AM/PM time rule
-			this.lcdgame.setShapeValue("time_pm", false);
+			this.lcdgame.setShapeByName("time_pm", false);
 		}
 		// format hour and minute
 		var strtime = ("  "+ihours).substr(-2) + ("00"+imin).substr(-2);

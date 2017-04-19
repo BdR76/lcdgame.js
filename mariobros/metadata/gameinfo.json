@@ -1,0 +1,17 @@
+{
+	"gameinfo": {
+		"game": {
+			"title": "Mariobros",
+			"model": "MW-56",
+			"manufacturer": "Nintendo",
+			"releasedate": "1983",
+			"type": "LCD"
+		},
+		"simulation": {
+			"program": "Bas de Reuver",
+			"photoedit": "Bas de Reuver",
+			"deviceprovided": "Bas de Reuver"
+		}
+	}
+
+}

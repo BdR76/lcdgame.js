@@ -1,0 +1,976 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>lcdgame.js - Shapes Editor Tool v2</title>
+	</head>
+	<script type="text/javascript" src="bin-packing-master/js/packer.growing.js"></script>
+	
+	<script>
+		var cvsorg;
+		var cvsspr;
+		var ctxorg;
+		var ctxspr;
+		var imgorg = new Image();
+		var imgspr = new Image();
+		var sprjsondata;
+		var crdjsondata;
+
+		var imgFileUrl;
+		var shapeindex;
+		var shapesedit = [];
+
+		imgorg.onload = function() {
+			onbackgroundloaded();
+		};
+		imgspr.onload = function() {
+			onspritesloaded();
+		};
+
+		function LeftPadString(str, l, c) {
+			if (typeof c === "undefined") {c = " "};
+			if (typeof l === "undefined") {l = 5};
+			
+			while (str.length < l) {str = c + str};
+
+			return str;
+		};
+
+		function loadFiles(sender, files) {
+			file = files[0];
+			var ext = file.name.toLowerCase().substr(file.name.lastIndexOf('.') + 1);
+
+			if (ext == 'json') {
+				fr = new FileReader();
+				fr.onload = (sender.id == 'inputsprjson' ? receivedSprJsonFile : receivedCoordJsonFile);
+				fr.readAsText(file);
+			}
+			else if (ext == 'png') {
+				fr = new FileReader();
+				fr.onload = (sender.id == 'inputbackimg' ? receivedBackImgFile : receivedSprImgFile);
+				fr.readAsDataURL(files[0]);
+			} else {
+				alert('Editor can not handle .'+ext+' files, only .json or .png allowed.');
+			}
+		}
+		
+
+		function receivedBackImgFile(e) {
+			imgorg.src = e.target.result;
+		}
+
+		function receivedSprImgFile(e) {
+			imgspr.src = e.target.result;
+		}
+
+		function receivedSprJsonFile(e) {
+			lines = e.target.result;
+			sprjsondata = JSON.parse(lines);
+			if (crdjsondata) {
+				MergeOriginalCoords();
+			}
+			// refresh to show either sprjsondata coordinates, or merged crdjsondata coordinates
+			imagerefresh();
+		}
+
+		function receivedCoordJsonFile(e) {
+
+			lines = e.target.result;
+			crdjsondata = JSON.parse(lines); 
+			if (sprjsondata) {
+				MergeOriginalCoords();
+				imagerefresh(); // no need to refresh when no sprjsondata
+			}
+		}
+		
+		// -------------------------------------
+		// merge JSON files,
+		// take original coordinates from crdjsondata
+		// and put x,y values into sprjsondata
+		// -------------------------------------
+		function MergeOriginalCoords() {
+			var xoff = 0;
+			// iterate all shapes
+			for (var i = 0; i < sprjsondata.frames.length; i++) {
+				console.log('name = ' + sprjsondata.frames[i].filename);
+				for (var j = 0; j < crdjsondata.frames.length; j++) {
+					if (sprjsondata.frames[i].filename == crdjsondata.frames[j].filename) {
+						// copy original coords
+						sprjsondata.frames[i].spriteSourceSize.x = crdjsondata.frames[j].spriteSourceSize.x;
+						sprjsondata.frames[i].spriteSourceSize.y = crdjsondata.frames[j].spriteSourceSize.y;
+						break;
+					}
+				}
+				// if position is 0,0 give new offset position, so shapes are not overlapping each other
+				if ( (sprjsondata.frames[i].spriteSourceSize.x == 0) && (sprjsondata.frames[i].spriteSourceSize.y == 0) ) {
+					sprjsondata.frames[i].spriteSourceSize.x = xoff;
+					xoff = xoff + sprjsondata.frames[i].frame.w;
+				};
+			};
+			// output
+			prettyPrintJson(sprjsondata);
+		}
+
+		// -------------------------------------
+		// output JSON custom formatted
+		// -------------------------------------
+		function prettyPrintJson(jsondata) {
+		
+			var str = "{";
+
+			// NOTE: the order of properties in a JSON object are not *guaranteed* to be the same as loading time,
+			// however in practice all browsers do return them in order
+			for (var el in jsondata) {
+				if (jsondata.hasOwnProperty(el)) {
+					// array or not
+					console.log('el='+el+' typeof=' + (typeof jsondata[el]) + ' test123='+Object.prototype.toString.call( jsondata[el] ));
+					if( Object.prototype.toString.call( jsondata[el] ) === '[object Array]' ) {
+					// if ( jsondata[el].isArray) { // doesn't work
+						str = str + '\r\n\t"' + el + '": [';
+						for (var i=0; i < jsondata[el].length; i++) {
+							var test = jsondata[el][i]
+							str = str + '\r\n\t\t' + JSON.stringify(jsondata[el][i]) + ',';
+						};
+						str = str.substring(0, str.length-1); // remove last comma
+						str = str + '\r\n\t],';
+					} else {
+						str = str + '\r\n\t"' + el + '": ' + JSON.stringify(jsondata[el]) + ',';
+					}
+				};
+			};
+
+			// remove last comma
+			str = str.substring(0, str.length-1) + '\r\n}';
+			
+			// slightly more prettify?
+			//str = str.replace(/\",\"/g, '", "');
+
+			// output
+			document.getElementById("jsonastext").value = str;
+		}
+
+		// -------------------------------------
+		// get offset position of element within document
+		// -------------------------------------
+		function findPos(el) {
+
+			var curleft = 0, curtop = 0;
+			if (el.offsetParent) {
+				do {
+					curleft += el.offsetLeft;
+					curtop += el.offsetTop;
+				} while (el = el.offsetParent); // assign (not compare!) parent element
+				return { x: curleft, y: curtop };
+			}
+			return undefined;
+		}
+		
+		function initlcdgametool() {
+			cvsorg = document.getElementById('imgorginal');
+			cvsspr = document.getElementById('imgspritesheet');
+			ctxorg = cvsorg.getContext('2d');
+			ctxspr = cvsspr.getContext('2d');
+			
+			// add event handlers
+			cvsorg.addEventListener("mousedown", imageonmousedown, false);
+			cvsorg.addEventListener("mousemove", imageonmousemove, false);
+			cvsorg.addEventListener("mouseup",   imageonmouseup,   false);
+			window.addEventListener("keydown",   imageonkeydown,   false);
+
+		}
+
+		function changeimagefile(imgFileUrl) {
+			// set selected photo index
+			document.getElementById("txtimgorg").value = imgFileUrl;
+
+			// clear JSON text
+			document.getElementById("jsonastext").value = "";
+
+			// load both org/edit images
+			imgorg.src = imgFileUrl; // <- will trigger onload event
+		}
+		
+		function onbackgroundloaded() {
+			shapeindex = -1;
+			
+			// testing
+			console.log('imgorg.width='+imgorg.width+' imgorg.height='+imgorg.height);
+			// adjust canvas size
+			cvsorg.width = imgorg.width;
+			cvsorg.height = imgorg.height;
+			
+			// refresh shapes canvas
+			imagerefresh();
+		}
+		
+		function onspritesloaded() {
+			shapeindex = -1;
+			
+			// refresh shapes canvas
+			imagerefresh();
+		}
+
+		//
+		function imagerefresh() {
+			// clear and draw original image
+			ctxorg.clearRect(0, 0, imgorg.width, imgorg.height);
+			ctxorg.drawImage(imgorg, 0, 0);
+			
+			// assume no useful coordinates available yet
+			var coords = false;
+			if (sprjsondata) {
+				// check all shapes
+				for (var i = 0; i < sprjsondata.frames.length; i++) {
+					if ( (sprjsondata.frames[i].spriteSourceSize.x != 0) || (sprjsondata.frames[i].spriteSourceSize.y != 0) ) {
+						coords = true;
+						break;
+					}
+				}
+			}
+			
+			if (!coords) {
+				console.log('imagerefresh -- sprite coordinates not available yet');
+				var w, h;
+				
+				w = ctxspr.canvas.width;
+				h = ctxspr.canvas.height;
+				// compare and adjust
+				ctxorg.drawImage(
+					imgspr,
+					0, // from
+					0,
+					w,
+					h,
+					
+					0, // to
+					0,
+					w,
+					h
+				);
+			} else {
+				console.log('imagerefresh -- sprite is loaded');
+				
+				// draw rectangles around all shapes
+				for (var i = 0; i < sprjsondata.frames.length; i++) {
+					var x, y, w, h, xpos, ypos;
+				
+					x = sprjsondata.frames[i].frame.x;
+					y = sprjsondata.frames[i].frame.y;
+					w = sprjsondata.frames[i].frame.w;
+					h = sprjsondata.frames[i].frame.h;
+					
+					xpos = sprjsondata.frames[i].spriteSourceSize.x;
+					ypos = sprjsondata.frames[i].spriteSourceSize.y;
+					
+					// compare and adjust
+					ctxorg.drawImage(
+						imgspr,
+						x, // from
+						y,
+						w,
+						h,
+						
+						xpos, // to
+						ypos,
+						w,
+						h
+					);
+					
+					// color for shapes
+					linecolor = "#0ff";
+					if (shapeindex != -1) {
+						if (i == shapeindex) {
+							linecolor = "#ff0";
+						} else {
+							if (sprjsondata.frames[i].filename == sprjsondata.frames[shapeindex].filename) {
+								linecolor = "#f80";
+							};
+						};
+					};
+
+					// highlight a shape
+					ctxorg.beginPath();
+					ctxorg.rect(xpos, ypos, w, h);
+					ctxorg.lineWidth = "1";
+					ctxorg.strokeStyle = linecolor;
+					ctxorg.stroke();
+
+					// draw line to indicate "is copy of"
+					//if ( (sprjsondata.frames[i].iscopy == true) && (typeof sprjsondata.frames[i].spriteSourceSize.x !== 'undefined') ) {
+					//	// draw line
+					//	ctxorg.beginPath();
+					//	ctxorg.lineWidth = "1";
+					//	ctxorg.strokeStyle = "#f0f";
+					//	ctxorg.moveTo((xpos+w), (ypos+h));
+					//	ctxorg.lineTo(sprjsondata.frames[i].xcopy, sprjsondata.frames[i].ycopy);
+					//	ctxorg.stroke();
+					//};
+
+					// test index order
+					ctxorg.font = "bold 12px sans-serif";
+					ctxorg.fillStyle = "#f0f";
+					ctxorg.fillText((i+1), xpos, ypos);
+				}
+			};
+		}
+
+		//
+		function getshapeindex(px, py) {
+			// check all shapes
+			for (var i = 0; i < sprjsondata.frames.length; i++) {
+				var x, y, w, h;
+			
+				x = sprjsondata.frames[i].spriteSourceSize.x;
+				y = sprjsondata.frames[i].spriteSourceSize.y;
+				w = sprjsondata.frames[i].frame.w;
+				h = sprjsondata.frames[i].frame.h;
+				if ( (py >= y) && (py <= y+h) ) {
+					if ( (px >= x) && (px <= x+w) ) {
+						return i;
+					}
+				}
+			}
+			// no index found
+			return -1;
+		}
+
+		//
+		function imageonmousedown(e) {
+			// determine click of existing shape, or create a new one
+
+			// determine x,y position within entire document
+			var xt = e.pageX;
+			var yt = e.pageY;
+
+			// determine x,y position in canvas image
+			var pos = findPos(cvsorg);
+			xt = (xt - pos.x)
+			yt = (yt - pos.y)
+			
+			// determine if clicked on existing shape or create a new one
+			shapeindex = getshapeindex(xt, yt);
+			
+			// select shape
+			if (shapeindex != -1) {
+				console.log('imageonmousedown -> select existing shape');
+				// different shape selected, refresh canvas
+				imagerefresh();
+				setshapeproperties();
+			};
+
+			// refresh canvas
+			imagerefresh();
+		}
+
+		function imageonmousemove(e) {
+			if (shapeindex != -1) {
+				// expand/resize a newly added shape
+				if (e.which == 1) {
+					//alert('imageonmousemove + button');
+					// determine x,y position within entire document
+					var xt = e.pageX;
+					var yt = e.pageY;
+					
+					console.log('imageonmousemove -> shapeindex='+shapeindex+' xt,yt='+xt+','+yt);
+
+					// determine x,y position in canvas image
+					//var pos = findPos(cvsorg);
+					//xt = (xt - pos.x) - sprjsondata.frames[shapeindex].spriteSourceSize.x;
+					//yt = (yt - pos.y) - sprjsondata.frames[shapeindex].spriteSourceSize.y;
+                    //
+					//sprjsondata.frames[shapeindex].frame.w = xt;
+					//sprjsondata.frames[shapeindex].frame.h = yt;		
+                    //
+					//// refresh canvas
+					//imagerefresh();
+				};
+			};
+		}
+
+		function imageonmouseup() {
+			if (shapeindex != -1) {
+				// correction for negative width or height (when adding shape with mouse, swipe bottom-right to upper-left)
+				//var w = sprjsondata.frames[shapeindex].frame.w;
+				//var h = sprjsondata.frames[shapeindex].frame.h;
+				//
+				//if (w < 0) {
+				//	sprjsondata.frames[shapeindex].spriteSourceSize.x += w;
+				//	sprjsondata.frames[shapeindex].frame.w = Math.abs(w);
+				//};
+				//if (h < 0) {
+				//	sprjsondata.frames[shapeindex].spriteSourceSize.y += h;
+				//	sprjsondata.frames[shapeindex].frame.h = Math.abs(h);
+				//};
+			};
+		}
+
+		function imageonkeydown(e) {
+		    e = e || window.event;
+			// press 'n' to tab through all shapes
+			if ((e.keyCode == 66) || (e.keyCode == 78) ) {
+				if (e.keyCode == 66) {shapeindex--;} else {shapeindex++;};
+				if (shapeindex >= shapesedit.length) {
+					shapeindex = 0;
+				};
+				if (shapeindex < 0) {
+					shapeindex = shapesedit.length-1;
+				};
+				setshapeproperties();
+				imagerefresh();
+				return true;
+			};
+
+			if (shapeindex != -1) {
+				var shiftPressed = e.shiftKey ? true : false;
+
+				switch(e.keyCode) {
+					case 37: // left arrow
+						if (shiftPressed) {
+							sprjsondata.frames[shapeindex].w -= 1;
+						} else {
+							sprjsondata.frames[shapeindex].spriteSourceSize.x -= 1;
+						}
+						break;
+					case 38: // up arrow
+						if (shiftPressed) {
+							sprjsondata.frames[shapeindex].frame.h -= 1;
+						} else {
+							sprjsondata.frames[shapeindex].spriteSourceSize.y -= 1;
+						}
+						break;
+					case 39: // right arrow
+						if (shiftPressed) {
+							sprjsondata.frames[shapeindex].w += 1;
+						} else {
+							sprjsondata.frames[shapeindex].spriteSourceSize.x += 1;
+						}
+						break;
+					case 40: // down arrow
+						if (shiftPressed) {
+							sprjsondata.frames[shapeindex].frame.h += 1;
+						} else {
+							sprjsondata.frames[shapeindex].spriteSourceSize.y += 1;
+						}
+						break;
+					case 46: // delete key
+						shapesedit.splice(shapeindex, 1);
+						shapeindex = -1;
+						break;
+					default:
+						return false;
+				};
+				// refresh canvas
+				imagerefresh();
+			};
+		}
+		
+		function setshapeproperties() {
+			setshapepropertyoremtpy("txtshapename", sprjsondata.frames[shapeindex].filename);
+			setshapepropertyoremtpy("txtshapex", sprjsondata.frames[shapeindex].spriteSourceSize.x);
+			setshapepropertyoremtpy("txtshapey", sprjsondata.frames[shapeindex].spriteSourceSize.y);
+
+			document.getElementById("checkshapecopy").checked = (sprjsondata.frames[shapeindex].iscopy == true);
+			setshapepropertyoremtpy("txtshapexcopy", sprjsondata.frames[shapeindex].xcopy);
+			setshapepropertyoremtpy("txtshapeycopy", sprjsondata.frames[shapeindex].ycopy);
+			
+			setshapepropertyoremtpy("txtshapexoffset", sprjsondata.frames[shapeindex].xoff);
+			setshapepropertyoremtpy("txtshapeyoffset", sprjsondata.frames[shapeindex].yoff);
+		}
+
+		function setshapepropertyoremtpy(id, value) {
+			if ( (typeof value == 'undefined') || (value == "") || (value == null) ) {
+				document.getElementById(id).value = null;
+			} else {
+				document.getElementById(id).value = value;
+			}
+		}
+
+		function propertyonchange(el) {
+			// get input value
+			var inputvalue = document.getElementById(el.id).value;
+			// which input box or list was it
+			switch (el.id) {
+				case "txtshapename":
+					sprjsondata.frames[shapeindex].filename = inputvalue;
+					break;
+				case "txtshapex":
+					sprjsondata.frames[shapeindex].spriteSourceSize.x = parseInt(inputvalue);
+					break;
+				case "txtshapey":
+					sprjsondata.frames[shapeindex].spriteSourceSize.y = parseInt(inputvalue);
+					break;
+				case "txtshapew":
+					sprjsondata.frames[shapeindex].frame.w = parseInt(inputvalue);
+					break;
+				case "txtshapeh":
+					sprjsondata.frames[shapeindex].frame.h = parseInt(inputvalue);
+					break;
+				case "txtshapeorder":
+					if ( isNaN( parseInt(inputvalue) ) ) {
+						delete sprjsondata.frames[shapeindex].order;
+					} else {
+						sprjsondata.frames[shapeindex].order = parseInt(inputvalue);
+					};
+					break;
+				case "checkshapecopy":
+					if (document.getElementById(el.id).checked == true) {
+						sprjsondata.frames[shapeindex].iscopy = true;
+					} else {
+						delete sprjsondata.frames[shapeindex].iscopy; // make 'iscopy' be undefined
+					};
+					break;
+				case "txtshapexcopy":
+					sprjsondata.frames[shapeindex].xcopy = parseInt(inputvalue);
+					break;
+				case "txtshapeycopy":
+					sprjsondata.frames[shapeindex].ycopy = parseInt(inputvalue);
+					break;
+				case "txtshapexoffset":
+					if ( isNaN(inputvalue) ) {
+						delete sprjsondata.frames[shapeindex].xoff;
+					} else {
+						sprjsondata.frames[shapeindex].xoff = parseInt(inputvalue);
+					};
+					break;
+				case "txtshapeyoffset":
+					if ( isNaN(inputvalue) ) {
+						delete sprjsondata.frames[shapeindex].yoff;
+					} else {
+						sprjsondata.frames[shapeindex].yoff = parseInt(inputvalue);
+					};
+					break;
+			};
+			// refresh canvas
+			imagerefresh();
+		}
+
+		function changeshapetype() {
+			var stlist = document.getElementById("listshapetype");
+			sprjsondata.frames[shapeindex].type = stlist.options[stlist.selectedIndex].text;
+			imagerefresh();
+		}
+
+		function addnewshape() {
+			console.log('imageonmousedown -> add new shape');
+			// create new shape
+			var name = document.getElementById("txtshapename").value;
+			var shapetype = document.getElementById("listshapetype").value;
+			var shapeorder = parseInt(document.getElementById("txtshapeorder").value);
+			
+			// add to ordernr
+			if (isNaN(shapeorder)) {shapeorder = 1} else {shapeorder++};
+			setshapepropertyoremtpy("txtshapeorder", shapeorder);
+		
+			var newshape = {"name": name, "type": shapetype, "order": shapeorder, "xpos": xt, "ypos": yt, "w": 1, "h": 1};
+			var i = shapesedit.length;
+			shapesedit.splice(i, 0, newshape);
+			shapeindex = shapesedit.length-1;
+		}
+
+		// -------------------------------------
+		// json loading functions
+		// -------------------------------------
+		function loadJSON(path) {
+
+			var xhrCallback = function()
+			{
+				if (xhr.readyState === XMLHttpRequest.DONE) {
+					if ((xhr.status === 200) || (xhr.status === 0)) {
+						this.onJSONsuccess(JSON.parse(xhr.responseText));
+					} else {
+						this.onJSONerror(xhr);
+					}
+				}
+			};
+		
+			var xhr = new XMLHttpRequest();
+			xhr.onreadystatechange = xhrCallback.bind(this);
+
+			xhr.open("GET", path, true);
+			xhr.send();
+		}
+
+		function onJSONsuccess(data) {
+			// load all from JSON data
+			sprjsondata = data;
+
+			// reset edit shapes
+			shapesedit = [];
+			
+			// add current/previous values to all shape objects
+			for (var i = 0; i < sprjsondata.shapes.length; i++) {
+				var shape = {"name": sprjsondata.shapes[i].filename,
+							"type": sprjsondata.shapes[i].type,
+							"x": sprjsondata.shapes[i].x,
+							"y": sprjsondata.shapes[i].y,
+							"w": sprjsondata.shapes[i].w,
+							"h": sprjsondata.shapes[i].h,
+							"xpos": sprjsondata.shapes[i].spriteSourceSize.x, // keep original x-position
+							"ypos": sprjsondata.shapes[i].spriteSourceSize.y  // keep original y-position
+							};
+				// reconstruct editor offset position
+				if (typeof sprjsondata.shapes[i].xedit !== 'undefined') {
+					shape.xoff = shape.spriteSourceSize.x;
+					shape.spriteSourceSize.x = sprjsondata.shapes[i].xedit;
+				};
+				if (typeof sprjsondata.shapes[i].yedit !== 'undefined') {
+					shape.yoff = shape.spriteSourceSize.y;
+					shape.spriteSourceSize.y = sprjsondata.shapes[i].yedit;
+				};
+
+				// add edit shape
+				shapesedit.splice(shapesedit.length, 0, shape);				
+			};
+
+			// reconstruct sequence numbers
+			if (typeof sprjsondata.sequences !== 'undefined') {
+				for (var s = 0; s < sprjsondata.sequences.length; s++) {
+					var sequencename = sprjsondata.sequences[s].name;
+					for (var i = 0; i < sprjsondata.sequences[s].ids.length; i++) {
+						var idx = sprjsondata.sequences[s].ids[i];
+						reconstructNameAndOrder(idx, sequencename);
+					};
+				};
+			};
+			
+			if (typeof sprjsondata.digits !== 'undefined') {
+				for (var d = 0; d < sprjsondata.digits.length; d++) {
+					var digitsname = sprjsondata.digits[d].name;
+					for (var i = 0; i < sprjsondata.digits[d].ids.length; i++) {
+						var idx = sprjsondata.digits[d].ids[i];
+						reconstructNameAndOrder(idx, digitsname);
+					};
+					for (var i = 0; i < sprjsondata.digits[d].placeids.length; i++) {
+						var idx = sprjsondata.digits[d].placeids[i];
+						reconstructNameAndOrder(idx, digitsname);
+					};
+				};
+			};
+
+			// reconstruct is-copy-of values
+			for (var i = 0; i < shapesedit.length-1; i++) {
+				for (var j = i+1; j < shapesedit.length; j++) {
+					if ( (typeof sprjsondata.frames[j].iscopy == 'undefined') && (sprjsondata.frames[j].type != 'digitpos') && (sprjsondata.frames[j].filename == sprjsondata.frames[i].filename) && (sprjsondata.frames[j].x == sprjsondata.frames[i].spriteSourceSize.x) && (sprjsondata.frames[j].y == sprjsondata.frames[i].spriteSourceSize.y) ) {
+						// [j] is a copy of [i]
+						sprjsondata.frames[j].iscopy = true;
+						sprjsondata.frames[j].xcopy = sprjsondata.frames[i].spriteSourceSize.x;
+						sprjsondata.frames[j].ycopy = sprjsondata.frames[i].spriteSourceSize.y;
+					};
+				};
+			};
+
+			//sprjsondata.frames[i].iscopy
+		}
+
+		function reconstructNameAndOrder(idx, sequencename) {
+			var getname = sprjsondata.frames[idx].filename;
+			var ordernr = getname.replace(sequencename, '');
+			if (isNaN(ordernr)) {ordernr = idx}; // fail safe
+
+			// set corrected values
+			sprjsondata.frames[idx].filename = sequencename;
+			sprjsondata.frames[idx].order = ordernr;
+		}
+
+		function onJSONerror(xhr) {
+			console.log("** ERROR ** lcdgame.js - onJSONerror: error loading json file");
+			console.error(xhr);
+		}
+
+		function printrealjson(ary) {
+			document.getElementById("jsonastext").value = JSON.stringify(ary);
+		}
+
+		function printjson() {
+			
+			// build output string
+			var str = '{\r\n';
+			str = str + '\t"imgback": "' + sprjsondata.imgback + '",\r\n';
+			str = str + '\t"imgshapes": "' + sprjsondata.imgshapes + '",\r\n';
+			// sequences
+			var maxnameseq = 0; // determine maximum sequence name length
+			var maxnameshp = 0; // determine maximum shape name length
+			for (var i = 0; i < shapesedit.length; i++) {
+				sprjsondata.frames[i].edittag = false; // add temporary helper property
+				if (sprjsondata.frames[i].filename.length > maxnameseq) {maxnameseq = sprjsondata.frames[i].filename.length};
+				var testname = sprjsondata.frames[i].filename;
+				if (typeof sprjsondata.frames[i].order !== 'undefined') {testname = testname + sprjsondata.frames[i].order};
+				if (testname.length > maxnameshp) {maxnameshp = testname.length};
+			};
+
+			// export all shapes data
+			str = str + '\t"shapes": [';
+			var digitname = '';
+			var digx, digy;
+			for (var i = 0; i < shapesedit.length; i++) {
+				var name, type, x, y, w, h, xpos, ypos;
+
+				// exception for digitpositions, make digitposition point to first digit in sprite sheet
+				if (sprjsondata.frames[i].type == 'digit') {
+					// check if switch to another digit name
+					if (sprjsondata.frames[i].filename != digitname) {
+						digitname = sprjsondata.frames[i].filename;
+						digx = sprjsondata.frames[i].x;
+						digy = sprjsondata.frames[i].y;
+					};
+				};
+				
+				// shape properties
+				name = sprjsondata.frames[i].filename;
+				if (sprjsondata.frames[i].type == 'digitpos') {
+					name = name+'_';
+				} else {
+					if (typeof sprjsondata.frames[i].order !== 'undefined') {
+						name = name + sprjsondata.frames[i].order;
+					}
+				};
+
+				// output line for json
+				name = ('"'+name+'"'+'                    ').substr(0, (maxnameshp+2)); // +2 for two quotes (") +2 to fit order nr into name
+				type = ('"'+sprjsondata.frames[i].type+'"'+'                    ').substr(0, 8+2); // max is 8 ("digitpos") and +2 for two quotes (")
+				x    = ("    " + sprjsondata.frames[i].x).substr(-4);
+				y    = ("    " + sprjsondata.frames[i].y).substr(-4);
+				w    = ("   "  + sprjsondata.frames[i].w).substr(-3);
+				h    = ("   "  + sprjsondata.frames[i].h).substr(-3);
+				xpos = ("   "  + sprjsondata.frames[i].spriteSourceSize.x).substr(-4);
+				ypos = ("   "  + sprjsondata.frames[i].spriteSourceSize.y).substr(-4);
+				
+				// exception for digitpositions, make digitposition display the first digit of this name (usually the zero)
+				if (sprjsondata.frames[i].type == 'digitpos') {
+					x = ("    " + digx).substr(-4);
+					y = ("    " + digy).substr(-4);
+				};
+
+				// exception for iscopy, make copy shaped point to its original shape in the sprite sheet
+				if ( (sprjsondata.frames[i].iscopy == true) && (typeof sprjsondata.frames[i].spriteSourceSize.x !== 'undefined') ) {
+					var orgidx = findoriginalshape(i);
+					// use x,y sprite sheet coordinates from original shape instead
+					if (orgidx != -1) {
+						x    = ("    " + sprjsondata.frames[orgidx].x).substr(-4);
+						y    = ("    " + sprjsondata.frames[orgidx].y).substr(-4);
+						w    = ("   "  + sprjsondata.frames[orgidx].w).substr(-3);
+						h    = ("   "  + sprjsondata.frames[orgidx].h).substr(-3);
+					};
+				};
+
+				// exception for offset, actual in-game position is different than in original editor image
+				var editorgpos = '';
+				if (typeof sprjsondata.frames[i].xoff !== 'undefined') {
+					xpos = ("    " + sprjsondata.frames[i].xoff).substr(-4);
+					editorgpos = ', "xedit":' + sprjsondata.frames[i].spriteSourceSize.x;
+				};
+				if (typeof sprjsondata.frames[i].yoff !== 'undefined') {
+					ypos = ("    " + sprjsondata.frames[i].yoff).substr(-4);
+					editorgpos = editorgpos + ', "yedit":' + sprjsondata.frames[i].spriteSourceSize.y;
+				};
+				
+				str = str + '\r\n\t\t' + '{"name":' + name + ', "type":' + type + ', "x":' + x + ', "y":' + y + ', "w":' + w + ', "h":' + h + ', "xpos":'+ xpos + ', "ypos":'+ ypos + editorgpos + '},';
+				
+			};
+			// remove last ','
+			str = str.substr(0, str.length-1);
+			str = str + '\r\n\t],\r\n'; // close shapes part
+
+			// export all sequences and digits
+			var strseq = ''; // sequences
+			var strdig = ''; // digits
+			var strbtn = ''; // buttons
+
+			for (var i = 0; i < shapesedit.length; i++) {
+				if (sprjsondata.frames[i].edittag == false) {
+					var strtmp = sprjsondata.frames[i].filename;
+					var ids = '';
+					var place = '';
+					var strmax = '';
+					var strtype = '';
+					// export sequences with same name
+					for (j = 0; j < shapesedit.length; j++) {
+						if ( (sprjsondata.frames[j].filename == strtmp) && (sprjsondata.frames[j].edittag == false) ) {
+							// exported once, do not export again
+							sprjsondata.frames[j].edittag = true;
+							strtype = sprjsondata.frames[j].type;
+
+							// check which type of shape
+							if (sprjsondata.frames[j].type == 'digitpos') {
+								place = place + j + ', ';
+							} else {
+								ids = ids + j + ', ';
+							};
+						};
+					};
+					// format align names 
+					strtmp = '"' + strtmp + '"';
+					strtmp = (strtmp+"                    ").substr(0, (maxnameseq+2)); // +2 for two quotes (")
+					// write to output
+					strtmp = '\t\t{"name": ' + strtmp
+					if (ids != '') {
+						// remove last ', '
+						ids = ids.substr(0, ids.length-2);
+						// write to output
+						strtmp = strtmp + ', "ids": [' + ids + ']';
+					};
+					if (place != '') {
+						// remove last ', '
+						place = place.substr(0, place.length-2);
+						// write to output
+						strtmp = strtmp + ', "placeids": [' + place + ']';
+					};
+					// search maxstring in original data, only for digits
+					if (typeof sprjsondata.digits !== 'undefined') {
+						for (j = 0; j < sprjsondata.digits.length; j++) {
+							if ( (jsondata.digits[j].name == sprjsondata.frames[i].filename) && (typeof sprjsondata.digits[j].max !== 'undefined') ) {
+								strtmp = strtmp + ', "max": "' + sprjsondata.digits[j].max + '" ';
+							};
+						};
+					};
+					// search defaultkey in original data, only for buttons
+					if (typeof sprjsondata.buttons !== 'undefined') {
+						for (j = 0; j < sprjsondata.buttons.length; j++) {
+							if ( (jsondata.buttons[j].name == sprjsondata.frames[i].filename) && (typeof sprjsondata.buttons[j].defaultkey !== 'undefined') ) {
+								strtmp = strtmp + ', "defaultkey": "' + sprjsondata.buttons[j].defaultkey + '" ';
+							};
+						};
+					};
+
+					strtmp = strtmp + '},\r\n';
+					// add to sequences or digits
+					if ( (strtype == 'digit') || (strtype == 'digitpos') ) {
+						strdig = strdig + strtmp;
+					} else if (strtype == 'button') {
+						strbtn = strbtn + strtmp;
+					} else {
+						strseq = strseq + strtmp;
+					};
+				};
+			};
+			// add all sequences to final output
+			if (strseq != '') {
+				str = str + '\t"sequences": [\r\n' + strseq.substr(0, strseq.length-3) + '\r\n\t],\r\n';
+			};
+			// add digits to final output
+			if (strdig != '') {
+				str = str + '\t"digits": [\r\n' + strdig.substr(0, strdig.length-3) + '\r\n\t],\r\n';
+			};
+			// add buttons to final output
+			if (strbtn != '') {
+				str = str + '\t"buttons": [\r\n' + strbtn.substr(0, strbtn.length-3) + '\r\n\t],\r\n';
+			};
+
+			// add sounds from original data (unchanged)
+			var strsnd = '';
+			if (typeof sprjsondata.buttons !== 'undefined') {
+				for (j = 0; j < sprjsondata.sounds.length; j++) {
+					var strtemp = '"' + sprjsondata.sounds[j].name + '"';
+					strtemp = (strtemp+"                    ").substr(0, (maxnameseq+2)); // +2 for two quotes (")
+					strsnd = strsnd + '\t\t{"name": ' + strtemp + ', "filename": "' + sprjsondata.sounds[j].filename + '"},\r\n';
+				};
+			};
+			if (strsnd != '') {
+				str = str + '\t"sounds": [\r\n' + strsnd.substr(0, strsnd.length-3) + '\r\n\t]\r\n}';
+			};
+
+			document.getElementById("jsonastext").value = str;
+		};
+		
+		function findoriginalshape(index) {
+			var filename = sprjsondata.frames[index].filename;
+			var xcopy = sprjsondata.frames[index].xcopy;
+			var ycopy = sprjsondata.frames[index].ycopy;
+			
+			// find original shape by name and position
+			for (var i = 0; i < shapesedit.length; i++) {
+				if (i != index) {
+					if ( (typeof sprjsondata.frames[i].iscopy == 'undefined') && (sprjsondata.frames[i].filename == filename) && (sprjsondata.frames[i].spriteSourceSize.x == xcopy) && (sprjsondata.frames[i].spriteSourceSize.y == ycopy) ) {
+						return i; // found it!
+					};
+				};
+			};
+			
+			// couldn't find original shape
+			return -1;
+		};
+
+		function calculateBPM(btn) {
+			var beats =   parseFloat(document.getElementById("txtbeats").value);
+			var beatsec = parseFloat(document.getElementById("txtbeatsec").value);
+			var bpm =     parseFloat(document.getElementById("txtbpm").value);
+			var msec =    parseFloat(document.getElementById("txtmsec").value);
+
+			switch(btn.id) {
+				case "btnbeatsec":
+					// X beats per X seconds, calculate other values
+					bpm =     (beats / beatsec) * 60;
+					msec =    1000 / (beats / beatsec);
+					break;
+				case "btnbpm":
+					// beats per minute, calculate other values
+					msec =    (60 / bpm) * 1000;
+					beats =   1;
+					beatsec = (60 / bpm);
+					break;
+				case "btnmsec":
+					// milliseconds, calculate other values
+					bpm =     (1000 / msec) * 60;
+					beats =   1;
+					beatsec = (msec / 1000);
+					break;
+			};
+			// display others
+			document.getElementById("txtbeats").value = beats.toFixed(2);
+			document.getElementById("txtbeatsec").value = beatsec.toFixed(3);
+			document.getElementById("txtbpm").value = bpm.toFixed(2);
+			document.getElementById("txtmsec").value = msec.toFixed(2);
+
+			// write as log line
+			var logline = document.getElementById("txtbpmdesc").value + ": " + LeftPadString(""+bpm.toFixed(2), 6) + " bpm (" + LeftPadString(""+msec.toFixed(2), 6) + " msec)\n";
+			document.getElementById("jsonastext").value = document.getElementById("jsonastext").value + logline;			
+		};
+
+
+	</script>
+
+	<body onload="initlcdgametool()">
+
+		<strong>lcdgame.js - Shapes Editor Tool v2</strong><br/>
+		Load background .png <input id="inputbackimg"   type="file" onchange="loadFiles(this,this.files)" /><br/>
+		Load sprites .png    <input id="inputsprimg"    type="file" onchange="loadFiles(this,this.files)" /><br/>
+		Load sprites .json   <input id="inputsprjson"   type="file" onchange="loadFiles(this,this.files)" /><br/>
+		Load orgcoords .json <input id="inputcoordjson" type="file" onchange="loadFiles(this,this.files)" /><br/>
+		<br/>
+		<div class="photocontainer" style="float:left;margin-right:12px">
+			<canvas id="imgorginal" class="photocanvas" width="480" height="512"></canvas>
+		</div>
+		Shape name: <input id="txtshapename" size="10" onchange="propertyonchange(this)"><br/>
+		Shape type: <select id="listshapetype" onchange="changeshapetype()">
+			<option selected>shape</option>
+			<option>digit</option>
+			<option>digitpos</option>
+			<option>button</option>
+		</select><br/>
+		x: <input id="txtshapex" size="3" onchange="propertyonchange(this)">
+		y: <input id="txtshapey" size="3" onchange="propertyonchange(this)"><br/>
+		<input id="checkshapecopy" type="checkbox" onclick="propertyonchange(this)" />Shape is copy of
+		x: <input id="txtshapexcopy" size="3" onchange="propertyonchange(this)">
+		y: <input id="txtshapeycopy" size="3" onchange="propertyonchange(this)"><br/>
+		Actual in-game position x: <input id="txtshapexoffset" size="3" onchange="propertyonchange(this)">
+		y: <input id="txtshapeyoffset" size="3" onchange="propertyonchange(this)"><br/>
+		<hr>
+		Beats per minute helper tool<br/>
+		description <input id="txtbpmdesc" size="15" value="Game A level 1"><br/>
+		<input id="txtbeats" size="3" value="4">beats per <input id="txtbeatsec" size="3" value="2.5">sec.<input id="btnbeatsec" type="button" value="=" onclick="javascript:calculateBPM(this);"><br/>
+		BPM <input id="txtbpm" size="3"><input id="btnbpm" type="button" value="=" onclick="javascript:calculateBPM(this);"><br/>
+		msec <input id="txtmsec" size="3"><input id="btnmsec" type="button" value="=" onclick="javascript:calculateBPM(this);"><br/>
+		<hr>
+		mouse=new shape/select shape<br/>
+		cursor/shift=move/resize shape<br/>
+		del=delete shape<br/>
+		N=next shape, B=prev.shape<br/>
+		<input id="displayindex" type="checkbox" onclick="imagerefresh()" />display indexes<br/>
+		<input type="button" value="Output JSON data" onclick="javascript:prettyPrintJson(sprjsondata);">
+		<br/>
+		copy/paste into shapes.js<br/>
+		<textarea id="jsonastext" rows="16" cols="96"></textarea><br/>
+		<div class="photocontainer" style="float:left;">
+			<canvas id="imgspritesheet" class="photocanvas" width="512" height="512"></canvas>
+		</div>
+	</body>
+</html>
