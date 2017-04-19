@@ -34,7 +34,7 @@ This plug-in can export paths to separate PNG files, along with a JSON file
 containing all the original coordinates of each image. The JSON file can be
 used in the editor to merge the coordinates with the spritesheet JSON file.
 
-![GIMP 2.8 with export_paths_to_png plug-in](/utils/gimp_export_paths.png?raw=true "preview")
+![GIMP 2.8 with export_paths_to_png plug-in](/utils/export_paths_to_png.png.png?raw=true "preview")
 
 set_paths_visibility.py
 -----------------------
