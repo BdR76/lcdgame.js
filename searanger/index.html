@@ -8,12 +8,15 @@
 	<script type="text/javascript" src="js/searanger.js"></script>
 
 <body>
-	Sea Ranger lcdgame.js (work-in-progress) BdR Games 2015<br/>
-	Game doesn't work yet, just a demo of shape animation<br/>
+	Sea Ranger lcdgame.js (work-in-progress) BdR Games 2017<br/>
+	Press [1] then [2] for pro1/pro2 and then [3] to start, [LEFT] and [RIGHT] to move<br/>
 	<script>
 		(function() {
 			// initialize the framework
-			var game = new LCDGame.Game('js/searanger.json', searanger.MainGame);
+			var game = new LCDGame.Game(
+				searanger.MainGame,
+				'js/searanger.json'
+			);
 		})();
 	</script>
 </body>

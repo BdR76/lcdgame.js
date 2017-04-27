@@ -1,43 +1,83 @@
 Utilities for lcdgame.js
 ========================
 
+Creating photos
+---------------
+Note that taking high resolution photos of a LCD device will require some work
+and effort. It is recommended to use a tripod instead of by hand. This makes
+editing and aligning the different photos much easier. It's also recommended
+to use something like 100mm lens or a macro lens. Don't use a wide angle lens,
+or you'll get a cuved surface.
+
+![create photos using tripod and macro lens](/utils/createphoto.jpg?raw=true "preview")
+
+If possible also photograph the buttons in all possible positions, using a
+paperclip or tooth pick to press the buttons. The tooth pick can easily be
+erased by editing the final photo.
+
+![photo of buttons pressed down](/utils/buttonpress.jpg?raw=true "preview")
+
 Recommended workflow
 --------------------
-The recommended workflow to get from high-resolution photographs to a working lcdgame.js game.
+The recommended workflow to get from high-resolution photographs to a working
+lcdgame.js game is as follows.
 
-1. Take high resolution photos
-2. Edit and arrange in GIMP
-3. mark segments as paths
-4. scale down (keep backup of original hires!)
-5. export pngs and json
+1. Edit and arrange high resolution photos in GIMP
+2. Export pngs and json
+3. Create sprite sheet
+4. Merge coordinate.json in shapeseditor
 
-Note; taking high resolution photos of a LCD device will require some work and
-effort. Recommended to use something like 100mm lens or a macro lens. Don't
-use a wide angle lens, or you'll get a cuved surface. If possible also
-photograph the buttons in up and down positions, using a paperclip or tooth
-pick to press the buttons. The tooth pick can easily be erased by editing the
-final photo.
+![recommended workflow](/utils/workflow.png?raw=true "preview")
 
-After photos are created, import them into [GIMP v2](https://www.gimp.org/),
-which is a free and open-source image editor. GIMP can use plug-ins in the
-form of Python scripts. See `export_paths_to_png.py` and `export_paths_to_png.py`
-which are are two plug-in to process the photos for use in the lcdgmae.js library.
+Create photos and import them into [GIMP v2](https://www.gimp.org/), which is
+a free and open-source image editor. Create one layer with the device turned
+off, so no segments are visible. Create another layer with all segments
+visible. Arrange the layers so that they overlap and align perfectly.
+Select each individual shape and save the selection as a "path" in GIMP.
+Give the path a useful name, like "boatguy_1", "boatguy_2", "coconut_1" etc.
+
+Export all paths to .png files, using the plug-in explained below.
+
+Pack all .png into a spritesheet in the JSON-array format,
+using [Leshy SpriteSheet Tool](https://www.leshylabs.com/apps/sstool/)
+or another tool like [TexturePacker](https://www.codeandweb.com/texturepacker)
+or [Phaser Editor](http://phasereditor.boniatillo.com/).
+
+Use the lcdgames.js Shapeeditor to merge the orgcoords.json created in step 2
+with the .json file created in step 3. This will add the original x/y
+positions of each shape into the spritesheet JSON file, so that the lcdgame.js
+library knows where each segment should be located on screen.
+
+The shapes png and json file can be previewed using the editor. The editor is
+still a bit crude and clunky, but it's main use is merging the orgcoords.json
+file with the spritesheet file.
+
+LCD games are relatively static, therefor all of the game specific
+configuration is put neatly into one single JSON file. Next to the sprites,
+the .json file also contains configuration for the sequences, digits, buttons
+and sounds. Some of this must still be edited by hand using notepad or a text
+editor.
+
+GIMP plug-ins
+-------------
+GIMP can use plug-ins in the form of Python scripts. See
+`export_paths_to_png.py` and `export_paths_to_png.py` which are are two
+plug-in to process the photos for use in the lcdgmae.js library.
 Install GIMP and place the Python files in the following directory:
 
 	.\GIMP 2\lib\gimp\2.0\plug-ins\
 
 After you've put the file in this directory, open GIMP and the plug-ins are available as menu items.
 
-export_paths_to_png.py
-----------------------
+### export_paths_to_png.py ###
+
 This plug-in can export paths to separate PNG files, along with a JSON file
 containing all the original coordinates of each image. The JSON file can be
 used in the editor to merge the coordinates with the spritesheet JSON file.
 
 ![GIMP 2.8 with export_paths_to_png plug-in](/utils/export_paths_to_png.png?raw=true "preview")
 
-set_paths_visibility.py
------------------------
+### set_paths_visibility.py ###
 Because the LCD photos will typically have a large amount of paths, managing
 these paths in GIMP is difficult. By default GIMP doesn't have an option to
 make all paths visible or invisible in one click. Use this plug-in to easily

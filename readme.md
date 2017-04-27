@@ -6,13 +6,14 @@ game simulators that can run in any browser.
 Work in progress
 ----------------
 At this point the lcdgame.js library is very much a work-in-progress project. 
-The games "Highway" and "Mario Bros" work and another game "Sea Ranger" has a
-very basic demo mode. It doesn't work properly on mobile or tablets yet. 
+The games "Highway", "Mario Bros" and "Sea Ranger" are playable in browsers on
+pc's and laptops. It doesn't work properly yet on mobile or tablets. 
 
-![preview screenshot](https://raw.githubusercontent.com/BdR76/lcdgame.js/master/lcdgamejs_preview.png)
+![preview screenshot](/lcdgamejs_preview.png?raw=true "preview")
 
 [play Highway here](http://bdrgames.nl/lcdgames/highway)  
-[play Mario Bros here](http://bdrgames.nl/lcdgames/mariobros)
+[play Mario Bros here](http://bdrgames.nl/lcdgames/mariobros)  
+[play Sea Ranger here](http://bdrgames.nl/lcdgames/searanger/)
 
 What are LCD games
 ------------------
@@ -30,8 +31,8 @@ Tandy, Radio Shack, Sunwing, Tiger, Tomy started creating their own lcd games
 What is lcdgames.js
 --------------------
 lcdgame.js is a JavaScript library for creating LCD game simulators. It works 
-based on a shapes.png and a JSON file which can be created with the 
-shapes_editor.html. 
+based on a spritesheet compatible wth json array format, which can be created with a photo editor like GIMP, and the 
+shapes_editor.html which is part of this library, for more info [see here](/utils/).
 
 Direct inspiration is a very cool site called 
 [pica-pic](http://www.pica-pic.com/) by 
@@ -40,33 +41,11 @@ simulations of lcd games. The simulators on pica-pic work great but it is based
 on Flash, making the games unplayable on tablets and some browsers. 
 
 The goal of lcdgame.js is to create high quality LCD game simulators that can 
-run in any browser using html5 and JavaScript. Lcd games are relatively easy, 
+run in any browser using html5 and JavaScript. LCD games are relatively easy, 
 they don't require fancy sprite animations or scaling and fading effects, or 
 html DOM-manipulation. So the goal is to develop lcdgame.js as a stand-alone 
-library, so without the use of external libraries like jQuery, Angular.js, 
+library, without the use of external libraries like jQuery, Angular.js, 
 Phaser.js etc. 
-
-GIMP photo editor
------------------
-Use the GIMP editor to arrange photos and select all the segments and buttons as paths.
-
-See example: [high resolution GIMP images](https://drive.google.com/drive/folders/0B414aIL7Bhz-aFlLNDVhUWVrNVE?usp=sharing)
-
-The library read the shapes of a game from a compiled png file and a json file.
-The sprite sheet is compatible with the JSON-array format. It has some extra
-data also put into it so that it's all in one JSON file. Because the segments
-(sprites) in LCD games typically do not move around the screen, they stay
-statically in one place, so the shapes json file also contains the fixed
-on-screen position for each shape. 
-
-The shapes png and json file can be previewed using the editor. The editor 
-is still a bit crude and clunky, but it get's the job done. 
-
-The idea is to create two separate images in GIMP and then export all segments
-using paths, then create a JSON arry sprite sheet (for example using [Leshy SpriteSheet Tool](https://www.leshylabs.com/apps/sstool/).
-Note that taking a good picture of the game and editing the photo's into a 
-usable photo for a simlator takes a lot of time. See the files of the existing 2 
-games to see how it works. 
  
 Roadmap/goals
 -------------
@@ -89,7 +68,7 @@ still missing features.
 
 History
 -------
-19-apr-2017 v0.2 Mario bros available, better compatibility, utilities and tools   
+27-apr-2017 v0.2 Mario bros and Sea Ranger playable, better compatibility, utilities and tools   
 10-nov-2015 v0.1 first release of lcdgame.js and shape editor on github
 
 See also the [html5gamedevs forum](http://www.html5gamedevs.com/topic/8204-lcd-game-simulator-engine-using-html5js/)  
