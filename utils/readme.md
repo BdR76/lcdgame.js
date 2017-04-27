@@ -3,11 +3,13 @@ Utilities for lcdgame.js
 
 Creating photos
 ---------------
-Note that taking high resolution photos of a LCD device will require some work
-and effort. It is recommended to use a tripod instead of by hand. This makes
-editing and aligning the different photos much easier. It's also recommended
-to use something like 100mm lens or a macro lens. Don't use a wide angle lens,
-or you'll get a cuved surface.
+See some example photos here: [high resolution GIMP images](https://drive.google.com/drive/folders/0B414aIL7Bhz-aFlLNDVhUWVrNVE?usp=sharing)
+
+Note that taking high-resolution photos of an LCD device will require some work
+and effort. It is recommended to use a tripod instead of holding the camera in
+your hand. Using a tripod will make editing and aligning the different photos
+much easier. It's also recommended to use something like a 100mm lens or a macro
+lens. Don't use a wide angle lens, or you'll get a cuved surface.
 
 ![create photos using tripod and macro lens](/utils/createphoto.jpg?raw=true "preview")
 
