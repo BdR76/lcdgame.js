@@ -245,7 +245,7 @@ searanger.MainGame.prototype = {
 
 		// check if player hit
 		if (hit) {
-			// lose a live
+			// lose a life
 			this.updateLives(-1);
 			// main guy in water
 			this.lcdgame.sequenceClear("mainguy");
@@ -255,7 +255,7 @@ searanger.MainGame.prototype = {
 			this.gametimer.Stop();
 			this.hittimer.Start(12);
 		} else {
-			// pusle tick sound effect when any hazard in play or added to play
+			// pulse tick sound effect when any hazard in play or added to play
 			if (pulse == 1) this.lcdgame.playSoundEffect("pulse");
 		};
 
@@ -264,12 +264,12 @@ searanger.MainGame.prototype = {
 	},
 	
 	onTimerBuoy: function() {
-		// lifesafer appears exactly every 8 seconds
-		// 0.0s = life safer first throw position
-		// 0.5s = life safer second throw position
-		// 1.0s = life safer lowest position
-		// 4.5s = life safer disappears
-		// 8.0s = life safer first throw position 
+		// lifesaver appears exactly every 8 seconds
+		// 0.0s = lifesaver first throw position
+		// 0.5s = lifesaver second throw position
+		// 1.0s = lifesaver lowest position
+		// 4.5s = lifesaver disappears
+		// 8.0s = lifesaver first throw position 
 		// etc.
 		var frame = this.buoytimer.Counter % 16;
 		
@@ -340,7 +340,7 @@ searanger.MainGame.prototype = {
 			if (this.guypos > 4) {
 				valid = false;
 			} else if (this.guypos == 4) {
-				// onto ship, only whwn lifesaver
+				// onto ship, only when lifesaver
 				valid = this.lifebuoy;
 			};
 		};
@@ -398,6 +398,7 @@ searanger.MainGame.prototype = {
 	
 	updateLives: function(a) {
 		this.lives = this.lives + a;
+		if (this.lives > 9) this.lives = 9; // limit to max 9 lives
 		this.lcdgame.digitsDisplay("digitsmall", ""+this.lives, true);
 	},
 
