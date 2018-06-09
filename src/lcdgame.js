@@ -4,10 +4,13 @@
 // namespace
 var LCDGame = LCDGame || {
 	gamedata: [],
+	test123: "This is a test value 123",
 	imageBackground: null,
 	imageShapes: null,
 	loadsounds: null,
 	countimages: 0,	
+	// scale factor
+	scaleFactor: 1.0,
 	// general game variables
 	gametype: 0,
 	level: 0,
@@ -23,8 +26,13 @@ var LCDGame = LCDGame || {
 // -------------------------------------
 LCDGame.Game = function (gameobj, jsonfilename) {
 
+	// no scrollbars
+	document.body.scrollTop = 0;
+	document.body.style.overflow = 'hidden';
+
 	// initialise object
 	this.countimages = 0;
+	this.scaleFactor = 1.0;
 
 	this.imageBackground = new Image();
 	this.imageShapes = new Image();
@@ -178,13 +186,36 @@ LCDGame.Game.prototype = {
 		
 			// shape indexes
 			this.gamedata.buttons[b].ids = [];
+			
+			// button area
+			var xmin = 1e4;
+			var ymin = 1e4;
+			var xmax = 0;
+			var ymax = 0;
 
-			// find all digit frames indexes
+			// find all button frames indexes
 			for (var f = 0; f < this.gamedata.buttons[b].frames.length; f++) {
 				var filename = this.gamedata.buttons[b].frames[f];
 				var idx = this.shapeIndexByName(filename);
 				this.gamedata.buttons[b].ids.push(idx);
+				// keep track of potision and width/height
+				var spr = this.gamedata.frames[idx].spriteSourceSize;
+				if (spr.x < xmin)         xmin = spr.x;
+				if (spr.y < ymin)         ymin = spr.y;
+				if (spr.x + spr.w > xmax) xmax = spr.x + spr.w;
+				if (spr.y + spr.h > ymax) ymax = spr.y + spr.h;
 			};
+
+			// button are small, make size of touch area twice as big
+			var wh = (xmax - xmin);// / 2.0; // halve of width
+			var hh = (ymax - ymin);// / 2.0; // halve of height
+			var xmin = xmin - wh;
+			var ymin = ymin - hh;
+			var xmax = xmax + wh;
+			var ymax = ymax + hh;
+
+			// button touch area
+			this.gamedata.buttons[b].area = {"x1":xmin, "y1":ymin, "x2":xmax, "y2":ymax};
 
 			// default keycodes
 			var defkey = this.gamedata.buttons[b].name;
@@ -193,11 +224,83 @@ LCDGame.Game.prototype = {
 			};
 			this.gamedata.buttons[b].keycodes = this.determineKeyCodes(defkey);
 		};
+		
+		// fix overlaps in button touch areas
+		for (var b1=0; b1 < this.gamedata.buttons.length-1; b1++) {
+			for (var b2=b1+1; b2 < this.gamedata.buttons.length; b2++) {
+				// check if overlap
+				if (
+					   (this.gamedata.buttons[b1].area.x1 < this.gamedata.buttons[b2].area.x2) // horizontal overlap
+					&& (this.gamedata.buttons[b1].area.x2 > this.gamedata.buttons[b2].area.x1)
+					&& (this.gamedata.buttons[b1].area.y1 < this.gamedata.buttons[b2].area.y2) // vertical overlap
+					&& (this.gamedata.buttons[b1].area.y2 > this.gamedata.buttons[b2].area.y1)
+				) {
+					// determine the center points of each area
+					var xc1 = (this.gamedata.buttons[b1].area.x1 + this.gamedata.buttons[b1].area.x2) / 2.0;
+					var yc1 = (this.gamedata.buttons[b1].area.y1 + this.gamedata.buttons[b1].area.y2) / 2.0;
+					var xc2 = (this.gamedata.buttons[b2].area.x1 + this.gamedata.buttons[b2].area.x2) / 2.0;
+					var yc2 = (this.gamedata.buttons[b2].area.y1 + this.gamedata.buttons[b2].area.y2) / 2.0;
+					
+					// rectract to left, right, up, down
+					if ( Math.abs(xc1 - xc2) > Math.abs(yc1 - yc2) ) {
+						if (xc1 > xc2) { // b1 is to the right of b2
+							var dif = (this.gamedata.buttons[b1].area.x1 - this.gamedata.buttons[b2].area.x2) / 2;
+							this.gamedata.buttons[b1].area.x1 += dif;
+							this.gamedata.buttons[b2].area.x2 -= dif;
+						} else { // b1 is to the left of b2
+							var dif = (this.gamedata.buttons[b1].area.x2 - this.gamedata.buttons[b2].area.x1) / 2;
+							this.gamedata.buttons[b1].area.x2 -= dif;
+							this.gamedata.buttons[b2].area.x1 += dif;
+						}
+					} else {
+						if (yc1 > yc2) { // b1 is below b2
+							var dif = (this.gamedata.buttons[b1].area.y1 - this.gamedata.buttons[b2].area.y2) / 2;
+							this.gamedata.buttons[b1].area.y1 += dif;
+							this.gamedata.buttons[b2].area.y2 -= dif;
+						} else { // b1 is above b2
+							var dif = (this.gamedata.buttons[b1].area.y2 - this.gamedata.buttons[b2].area.y1) / 2;
+							this.gamedata.buttons[b1].area.y2 -= dif;
+							this.gamedata.buttons[b2].area.y1 += dif;
+						}
+					}
+				}
+			};
+		};
 	},
 
 	onJSONerror: function(xhr) {
 		console.log("** ERROR ** lcdgame.js - onJSONerror: error loading json file");
 		console.error(xhr);
+	},
+
+	resizeCanvas: function() {
+	
+		// testing
+		console.log('window.innerWidth=' + window.innerWidth);
+
+		// determine which is limiting factor for current window/frame size; width or height
+		var scrratio = window.innerWidth / window.innerHeight;
+		var imgratio = this.canvas.width / this.canvas.height;
+		
+		// determine screen/frame size
+		var w = this.canvas.width;
+		var h = this.canvas.height;
+
+		if (imgratio > scrratio) {
+			// width of image should take entire width of screen
+			w = window.innerWidth;
+			this.scaleFactor = w / this.canvas.width;
+			h = this.canvas.height * this.scaleFactor;
+		} else {
+			// height of image should take entire height of screen
+			h = window.innerHeight;
+			this.scaleFactor = h / this.canvas.height;
+			w = this.canvas.width * this.scaleFactor;
+		}
+		
+		// set canvas size
+		this.canvas.style.width = w+"px";
+		this.canvas.style.height = h+"px";
 	},
 
 	// -------------------------------------
@@ -207,6 +310,9 @@ LCDGame.Game.prototype = {
 		// initialise canvas
 		this.canvas.width = this.imageBackground.width;
 		this.canvas.height = this.imageBackground.height;
+		
+		// testing
+		this.resizeCanvas();
 
 		this.context2d.drawImage(this.imageBackground, 0, 0);
 		
@@ -216,14 +322,20 @@ LCDGame.Game.prototype = {
 			this.gamedata.sounds[i].audio = new Audio(strfile);
 			this.gamedata.sounds[i].audio.load();
 		};
-		
-		// 
-		if (document.addEventListener) {
-			// chrome, firefox
+
+		// bind input
+		if (document.addEventListener) { // chrome, firefox
+			// mouse/touch
+			this.canvas.addEventListener("mousedown", this.ontouchdown.bind(this), false);
+			this.canvas.addEventListener("mouseup",   this.ontouchup.bind(this), false);
+			// keyboard
 			document.addEventListener("keydown", this.onkeydown.bind(this), false);
 			document.addEventListener("keyup",   this.onkeyup.bind(this), false);
-		} else {
-			// IE8
+		} else { // IE8
+			// mouse/touch
+			this.canvas.attachEvent("mousedown", this.ontouchdown.bind(this));
+			this.canvas.attachEvent("mouseup",   this.ontouchup.bind(this));
+			// keyboard
 			document.attachEvent("keydown", this.onkeydown.bind(this));
 			document.attachEvent("keyup",   this.onkeyup.bind(this));
 		};
@@ -524,6 +636,16 @@ LCDGame.Game.prototype = {
 				this.shapeDraw(i);
 			};
 		};
+		
+		// debugging show button areas
+		//for (var i=0; i < this.gamedata.buttons.length; i++) {
+		//	var x1 = this.gamedata.buttons[i].area.x1;
+		//	var y1 = this.gamedata.buttons[i].area.y1;
+		//	var x2 = this.gamedata.buttons[i].area.x2;
+		//	var y2 = this.gamedata.buttons[i].area.y2;
+		//	this.debugRectangle(x1, y1, (x2-x1), (y2-y1));
+		//};
+		
 	},
 
 	shapeDraw: function(index) {
@@ -599,6 +721,86 @@ LCDGame.Game.prototype = {
 		return result;
 	},
 
+	ontouchdown: function(evt) {
+		//var x = evt.layerX;
+		//var y = evt.layerY;
+		var x = evt.offsetX / this.scaleFactor;
+		var y = evt.offsetY / this.scaleFactor;
+
+		// check if pressed in defined buttons
+		for (var i=0; i < this.gamedata.buttons.length; i++) {
+			// inside button touch area
+			if (   (x > this.gamedata.buttons[i].area.x1)
+				&& (x < this.gamedata.buttons[i].area.x2)
+				&& (y > this.gamedata.buttons[i].area.y1)
+				&& (y < this.gamedata.buttons[i].area.y2)
+			) {
+				var btnidx = 0;
+				// which type of device button
+				switch(this.gamedata.buttons[i].type) {
+					case "updown":
+						// two direction button up/down
+						var half = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
+						// up or down
+						btnidx = (y < this.gamedata.buttons[i].area.y1 + half ? 0 : 1);
+						break;
+					case "leftright":
+						// two direction button left/right
+						var half = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
+						// left or right
+						btnidx = (x < this.gamedata.buttons[i].area.x1 + half ? 0 : 1);
+						break;
+					//default: // case "button":
+					//	// simple button
+					//	btnidx = 0;
+					//	break;
+				};
+				// button press down
+				this.onButtonDown(i, btnidx);
+			};
+		};
+	},
+	
+	ontouchup: function(evt) {
+		//var x = evt.layerX;
+		//var y = evt.layerY;
+		var x = evt.offsetX / this.scaleFactor;
+		var y = evt.offsetY / this.scaleFactor;
+
+		// check if pressed in defined buttons
+		for (var i=0; i < this.gamedata.buttons.length; i++) {
+			// inside button touch area
+			if (   (x > this.gamedata.buttons[i].area.x1)
+				&& (x < this.gamedata.buttons[i].area.x2)
+				&& (y > this.gamedata.buttons[i].area.y1)
+				&& (y < this.gamedata.buttons[i].area.y2)
+			) {
+				var btnidx = 0;
+				// which type of device button
+				switch(this.gamedata.buttons[i].type) {
+					case "updown":
+						// two direction button up/down
+						var half = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
+						// up or down
+						btnidx = (y < this.gamedata.buttons[i].area.y1 + half ? 0 : 1);
+						break;
+					case "leftright":
+						// two direction button left/right
+						var half = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
+						// left or right
+						btnidx = (x < this.gamedata.buttons[i].area.x1 + half ? 0 : 1);
+						break;
+					//default: // case "button":
+					//	// simple button
+					//	btnidx = 0;
+					//	break;
+				};
+				// button release
+				this.onButtonUp(i, btnidx);
+			};
+		};
+	},
+
 	onkeydown: function(e) {
 		// get keycode
 		var keyCode = e.keyCode;
@@ -650,6 +852,17 @@ LCDGame.Game.prototype = {
 		this.shapesRefresh();
 	},
 
+	debugRectangle: function(xpos, ypos, w, h) {
+		var color = "#f0f";
+		// highlight a shape
+		this.context2d.beginPath();
+		this.context2d.lineWidth = "1";
+		this.context2d.strokeStyle = color;
+		this.context2d.fillStyle = color;
+		this.context2d.rect(xpos, ypos, w, h);
+		this.context2d.stroke();
+	},
+
 	// -------------------------------------
 	// check if touch device
 	// -------------------------------------
@@ -669,8 +882,7 @@ LCDGame.Game.prototype = {
 // -------------------------------------
 LCDGame.BPMToMillSec = function (bpm) {
 	return (60000 / bpm);
-}
-// LCD game JavaScript library
+}// LCD game JavaScript library
 // Bas de Reuver (c)2015
 
 // -------------------------------------
