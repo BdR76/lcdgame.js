@@ -17,11 +17,12 @@ pc's and laptops. It doesn't work properly yet on mobile or tablets.
 
 What are LCD games
 ------------------
-Nintendo released its Game & Watch series in 1980, which were electronic
-handheld toys that used LCD crystals to display flickering shapes. The shapes
-could only be turned on or off, creating a crude form of interactive animation
-to form games. These were some of the earliest handheld gaming devices, years
-before the release of the GameBoy.
+LCD games are electronic toys introduced in the 1980s. Nintendo first released
+its Game & Watch series in 1980, which were electronic handheld toys that used
+LCD crystals to display flickering shapes. The shapes could only be turned on
+or off, creating a crude form of interactive animation to form games. These
+were some of the earliest handheld gaming devices, years before the release of
+the GameBoy.
 
 Followed the success of Game & Watch, many other companies incl. Gakken,
 Tandy, Radio Shack, Sunwing, Tiger, Tomy started creating their own lcd games
@@ -72,7 +73,7 @@ still missing features (~~strikethrough~~ is done).
 
 History
 -------
-10-jun-2018 v0.3 added preliminary touch and scale
+10-jun-2018 v0.3 added preliminary touch and scale   
 27-apr-2017 v0.2 Mario bros and Sea Ranger playable, better compatibility, utilities and tools   
 10-nov-2015 v0.1 first release of lcdgame.js and shape editor on github
 
