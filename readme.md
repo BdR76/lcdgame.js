@@ -50,11 +50,15 @@ Phaser.js etc.
 Roadmap/goals
 -------------
 The lcdgame.js is work-in-progress, here is a goals checklist/roadmap of
-still missing features.
+still missing features (~~strikethrough~~ is done).
 
-* add touch support for buttons
-* scale to fit screen
-* playable on any device (win, mac, ipad etc.)
+* ~~Open source~~
+* ~~Standardised interface and file structure~~
+* ~~Re-use code and editor~~
+* ~~Easily add new games~~ (needs improvements)
+* ~~add touch support for buttons~~
+* ~~scale to fit screen~~ (needs improvements)
+* ~~playable on any device~~
 * add a better state manager (demo, game)
 * sound mp3/wav based on browsertype
 * Shapes editor, allow shapes change position, mouse drag/move
@@ -68,6 +72,7 @@ still missing features.
 
 History
 -------
+10-jun-2018 v0.3 added preliminary touch and scale
 27-apr-2017 v0.2 Mario bros and Sea Ranger playable, better compatibility, utilities and tools   
 10-nov-2015 v0.1 first release of lcdgame.js and shape editor on github
 
