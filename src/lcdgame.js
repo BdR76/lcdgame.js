@@ -4,7 +4,6 @@
 // namespace
 var LCDGame = LCDGame || {
 	gamedata: [],
-	test123: "This is a test value 123",
 	imageBackground: null,
 	imageShapes: null,
 	loadsounds: null,
@@ -198,7 +197,7 @@ LCDGame.Game.prototype = {
 				var filename = this.gamedata.buttons[b].frames[f];
 				var idx = this.shapeIndexByName(filename);
 				this.gamedata.buttons[b].ids.push(idx);
-				// keep track of potision and width/height
+				// keep track of position and width/height
 				var spr = this.gamedata.frames[idx].spriteSourceSize;
 				if (spr.x < xmin)         xmin = spr.x;
 				if (spr.y < ymin)         ymin = spr.y;
@@ -206,9 +205,9 @@ LCDGame.Game.prototype = {
 				if (spr.y + spr.h > ymax) ymax = spr.y + spr.h;
 			};
 
-			// button are small, make size of touch area twice as big
-			var wh = (xmax - xmin);// / 2.0; // halve of width
-			var hh = (ymax - ymin);// / 2.0; // halve of height
+			// typically buttons are small, so make size of touch area 3x as big
+			var wh = (xmax - xmin);
+			var hh = (ymax - ymin);
 			var xmin = xmin - wh;
 			var ymin = ymin - hh;
 			var xmax = xmax + wh;
@@ -274,9 +273,6 @@ LCDGame.Game.prototype = {
 	},
 
 	resizeCanvas: function() {
-	
-		// testing
-		console.log('window.innerWidth=' + window.innerWidth);
 
 		// determine which is limiting factor for current window/frame size; width or height
 		var scrratio = window.innerWidth / window.innerHeight;
@@ -310,8 +306,6 @@ LCDGame.Game.prototype = {
 		// initialise canvas
 		this.canvas.width = this.imageBackground.width;
 		this.canvas.height = this.imageBackground.height;
-		
-		// testing
 		this.resizeCanvas();
 
 		this.context2d.drawImage(this.imageBackground, 0, 0);
@@ -981,7 +975,7 @@ LCDGame.Button = function (lcdgame, name) {
 	//TODO: add support for buttons types
 //button type="button"		ok
 //button type="updown"		ok
-//button type="leftright"	TODO
+//button type="leftright"	ok
 //button type="dpad"		TODO
 //button type="diagonal"	TODO
 //button type="switch"		TODO
