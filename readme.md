@@ -60,12 +60,15 @@ still missing features (~~strikethrough~~ is done).
 * ~~add touch support for buttons~~
 * ~~scale to fit screen~~ (needs improvements)
 * ~~playable on any device~~
-* add a better state manager (demo, game)
+* responsive resizing/scaling and display centered
+* refactor code into separate JavaScript objects
+* add state manager (to separate time/demo, maingame, bonusgame code)
 * sound mp3/wav based on browsertype
 * Shapes editor, allow shapes change position, mouse drag/move
 * Shapes editor, support/preview/edit types (normal shape, digit, digit position, button)
 * Shapes editor, copy shape (for digit positions)
-* add menu, overlay in separate dom-element (sound off, buttons reset etc.)
+* add menu, overlay in separate dom-element (sound off, info, buttons reset etc.)
+* add gameplay info popup, explanation for each game (+multilanguage?)
 * add high scores list (both local and shared)
 * add key hints (separate dom-elements?)
 * allow button/keys re-mapping
