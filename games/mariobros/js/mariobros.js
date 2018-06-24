@@ -1,5 +1,5 @@
 // Mario Bros LCD game simulation
-// Bas de Reuver (c)2017
+// Bas de Reuver (c)2018
 
 var mariobros = {};
 
@@ -11,10 +11,81 @@ var STATE_GAMEDROP = 11;
 var STATE_GAMEWIN = 12;
 var STATE_GAMEOVER = 13;
 
-mariobros.MainGame = function(lcdgame) {
+mariobros = function(lcdgame) {
 	// save reference to lcdgame object
 	this.lcdgame = lcdgame;
+}
 
+// =============================================================================
+// clock state
+// =============================================================================
+mariobros.ClockMode = function(lcdgame) {
+	this.lcdgame = lcdgame;
+}
+mariobros.ClockMode.prototype = {
+	init: function(){
+		// startup show all
+		this.lcdgame.shapesDisplayAll(true);
+		this.lcdgame.shapesRefresh();
+		this.lcdgame.shapesDisplayAll(false);
+
+		this.demotimer = new LCDGame.Timer(this, this.onTimerDemo, 500);
+
+		// start demo mode
+		this.demotimer.Start();
+	},
+
+	update: function() {
+	},
+	
+	input: function(btn) {
+		if ( (btn == "gamea") || (btn == "gameb") ) {
+			this.lcdgame.level = 0; // new game
+			this.lcdgame.gametype = (btn == "gamea" ? 1 : 2); // 1=game a, 2=game b
+			this.demotimer.Stop();
+			this.lcdgame.state.start("maingame");
+		};
+	},
+		
+	close: function() {
+	},
+
+	onTimerDemo: function() {
+		// get time as 12h clock with PM
+		var datenow = new Date();
+		//var str = datenow.toLocaleTimeString();
+		//var strtime = "" + str.substring(0, 2) + str.substring(3, 5); // example "2359"
+		var ihours = datenow.getHours();
+		var imin = datenow.getMinutes();
+
+		// adjust hour and set PM if needed
+		if (ihours >= 12) {
+			if (ihours > 12) ihours = ihours - 12;
+			this.lcdgame.setShapeByName("time_am", false);
+		} else {
+			if (ihours == 0) ihours = 12; // weird AM/PM time rule
+			this.lcdgame.setShapeByName("time_am", true);
+		}
+		// format hour and minute
+		var strtime = ("  "+ihours).substr(-2) + ("00"+imin).substr(-2);
+		
+		// clock time colon
+		this.lcdgame.setShapeByName("time_colon", (this.demotimer.Counter % 2 == 0));
+
+		// display time
+		this.lcdgame.digitsDisplay("digits", strtime, false);
+		
+		// refresh shapes
+		this.lcdgame.shapesRefresh();
+	}
+}
+
+// =============================================================================
+// main game state
+// =============================================================================
+mariobros.MainGame = function(lcdgame) {
+	this.lcdgame = lcdgame;
+	
 	// game specific variables
 	this.gamestate = 0;
 	this.score = 0;
@@ -35,57 +106,43 @@ mariobros.MainGame = function(lcdgame) {
 	
 	this.belttimer = null; // also drives the grab/move and dust animations
 	this.misstimer = null;
-	this.animatetimer = null;
 	
+	// global game variables
 	this.holdcase = [];
 	this.dropcase = [];
+
+	// initialise variable only once
+	for (var c = 1; c < 11; c++) {
+		this.holdcase[c] = false;
+	};
+	// 2 stacks of 4 cases on the truck, for dropped animation
+	for (var c = 0; c < 8; c++) {
+		var seq = (c%2==0 ? "case12" : "case13");
+		var max = (c%2==0 ? 5 : 4) - Math.floor(c / 2);
+		this.dropcase[c] = {"case":c,"seq":seq,"max":max,"dropped":0,"falling":false,"frame":0,"fallsync":0};
+	};
 }
-
 mariobros.MainGame.prototype = {
-	initialise: function(){
-
-		// initialise variable
-		for (var c = 1; c < 11; c++) {
-			this.holdcase[c] = false;
-		};
-		for (var c = 0; c < 8; c++) {
-			var seq = (c%2==0 ? "case12" : "case13");
-			var max = (c%2==0 ? 5 : 4) - Math.floor(c / 2);
-			this.dropcase[c] = {"case":c,"seq":seq,"max":max,"dropped":0,"falling":false,"frame":0,"fallsync":0};
-		};
-
-		// startup show all
-		this.lcdgame.shapesDisplayAll(true);
-		this.lcdgame.shapesRefresh();
-		this.lcdgame.shapesDisplayAll(false);
-		
-		
-		this.demotimer = new LCDGame.Timer(this, this.onTimerDemo, 500);
+	init: function(){
+	
+		// add timers
 		this.belttimer = new LCDGame.Timer(this, this.onTimerBelt, 210);
 		this.misstimer = new LCDGame.Timer(this, this.onTimerMiss, 200);
-		this.animatetimer = new LCDGame.Timer(this, this.onTimerAnimate, 187); // 320bpm = 0.1875s
 
-		this.startDemo();
+		// new game or continue after cutscene
+		if (this.lcdgame.level == 0) {
+			this.newGame();
+		} else {
+			this.nextLevel();
+		};
 	},
 	
-	startDemo: function() {
-		this.gamestate = STATE_DEMO;
-		this.demotimer.Start();
-	},
-	
-	onTimerDemo: function() {
-		this.updateClock();
-		this.lcdgame.shapesRefresh();
-	},
-
-	startgame: function(gametype) {
-	
+	// start a new game, reset score level etc.
+	newGame: function() {
 		// stop any other start
-		this.demotimer.Stop();
 		this.lcdgame.shapesDisplayAll(false);
 
 		// game specific variables
-		this.lcdgame.gametype = gametype; // 1=a, 2=b
 		this.lcdgame.level = 0; // level up after every truck completed
 		
 		// show "game b" or "game b"
@@ -106,12 +163,26 @@ mariobros.MainGame.prototype = {
 		this.lcdgame.setShapeByName("truck", true);
 	
 		this.nextLevel();
+		
+		// TESTING! start with cases in truck and on top belt
+		//this.lcdgame.sequenceSetPos("case10", 1, true);
+		//this.lcdgame.sequenceSetPos("case10", 3, true);
+		//this.lcdgame.sequenceSetPos("case11", 0, true);
+		//this.lcdgame.sequenceSetPos("case11", 2, true);
+		//
+		//// testing
+		//this.truckcases = 0;
+		//for (var c = 0; c < 6; c++) {
+		//	this.dropcase[c].dropped = 1;
+		//	this.dropcase[c].falling = false;
+		//	this.lcdgame.sequenceSetPos(this.dropcase[c].seq, this.dropcase[c].max, true);
+		//	this.truckcases++;
+		//};
+		// TESTING!!
 	},
 	
+	// go to next level, possibly after cutscene
 	nextLevel: function() {
-	
-		// count next level
-		this.lcdgame.level++;
 
 		// clear drop animations
 		this.truckcases = 0;
@@ -124,21 +195,10 @@ mariobros.MainGame.prototype = {
 		this.continueGame();
 	},
 		
+	// continue game after a miss (dropped crate)
 	continueGame: function() {
 		this.gamestate = STATE_GAMEPLAY;
-
-		// TESTING! start with cases on top belt
-		//this.lcdgame.sequenceSetPos("case7", 0, true);
-		//this.lcdgame.sequenceSetPos("case7", 2, true);
-		//this.lcdgame.sequenceSetPos("case8", 1, true);
-		//this.lcdgame.sequenceSetPos("case8", 3, true);
-		//this.lcdgame.sequenceSetPos("case9", 1, true);
-		//
-		//this.lcdgame.sequenceSetPos("case10", 1, true);
-		//this.lcdgame.sequenceSetPos("case10", 3, true);
-		//this.lcdgame.sequenceSetPos("case11", 0, true);
-		//this.lcdgame.sequenceSetPos("case11", 2, true);
-		// TESTING!!
+	
 		
 		// refresh luigi
 		this.lcdgame.sequenceClear("luigi_body");
@@ -164,28 +224,18 @@ mariobros.MainGame.prototype = {
 
 		this.belttimer.Interval = msecs;
 		this.belttimer.Start();
-		//this.animatetimer.Start(); // TESTING!!
-		//
-		//this.lcdgame.sequenceSetPos("case12", 1, true);
-		//this.lcdgame.sequenceSetPos("case12", 2, true);
-		//this.lcdgame.sequenceSetPos("case12", 3, true);
-		//this.lcdgame.sequenceSetPos("case12", 4, true);
-		//this.lcdgame.sequenceSetPos("case13", 1, true);
-		//this.lcdgame.sequenceSetPos("case13", 2, true);
-		//this.lcdgame.sequenceSetPos("case13", 3, true);
-		//this.lcdgame.sequenceSetPos("case13", 4, true);
 
 	},
 
 	onTimerBelt: function() {
-		// belt timer is as follows
+		// belt timer works as follows
 		//    ## ->
 		// B ------
 		//   <- ## 
 		// A ------
 		//
 		// All left moving belts move in sync
-		// First belt a moves, then belt b moves (exactly out of sync).
+		// First belt A moves, then belt B moves (exactly out of sync).
 		// When player moves case from belt A to the next belt B,
 		// belt B moves but case stays in place,
 		// when belt B moves again only then case also moves
@@ -209,20 +259,11 @@ mariobros.MainGame.prototype = {
 
 		// truck smoke animation, only when almost ready locading cases
 		if (this.truckcases >= 6) {
-			switch(this.belttimer.Counter % 4) {
-				case 0:
-					this.lcdgame.setShapeByName("truck_s3", true);
-					break;
-				case 1:
-					this.lcdgame.setShapeByName("truck_s4", true);
-					break;
-				case 2:
-					this.lcdgame.setShapeByName("truck_s3", false);
-					break;
-				default:
-					this.lcdgame.setShapeByName("truck_s4", false);
-					break;
-			};
+			var smoke = (this.belttimer.Counter % 4); // 0..3
+			if (smoke == 0) this.lcdgame.setShapeByName("truck_s3", true);
+			if (smoke == 1) this.lcdgame.setShapeByName("truck_s4", true);
+			if (smoke == 2) this.lcdgame.setShapeByName("truck_s3", false);
+			if (smoke == 3) this.lcdgame.setShapeByName("truck_s4", false);
 		};
 		
 		// check for falling cases
@@ -299,7 +340,7 @@ mariobros.MainGame.prototype = {
 				this.caseadd = 0;
 			};
 
-			// TODO: random add cases like original game
+			// TODO: random generator unknown, add cases more like the original game device
 			if (moveleft) {
 				this.caseadd--;
 				console.log("move belt -- count down to next" + this.caseadd);
@@ -326,6 +367,7 @@ mariobros.MainGame.prototype = {
 			};
 			//if (this.gamestate == STATE_GAMEPLAY) {
 			//	if (this.belttimer.Counter % 24 == 0) {
+			//		this.lcdgame.sequenceSetFirst("case1", true);
 			//		this.lcdgame.sequenceSetFirst("case1", true);
 			//	};
 			//};
@@ -458,7 +500,9 @@ mariobros.MainGame.prototype = {
 							if (this.truckcases == 8) {
 								this.gamestate = STATE_GAMEWIN;
 								this.belttimer.Stop();
-								this.animatetimer.Start();
+								this.lcdgame.state.start("cutscene");
+								// keep smoke animation in cutscene in-sync with smoke during game
+								this.lcdgame.currentState().smokeframe = this.belttimer.Counter;
 							};
 						};
 					};
@@ -571,12 +615,102 @@ mariobros.MainGame.prototype = {
 		// refresh shapes
 		if (refresh) this.lcdgame.shapesRefresh();
 	},
-		
+
+	// -------------------------------------
+	// player input
+	// -------------------------------------
+	input: function(btn, idx) {
+		// determine state of gameplay
+		console.log("mario bros -- handleInput " + btn + ", idx=" + idx + " this.gamestate="+this.gamestate);
+
+		// button press sounds		
+		//if ( (btn == "luigi") || (btn == "mario") ) {
+		//	if (idx == 0) {
+		//		this.lcdgame.playSoundEffect("btn_moveup");
+		//	} else {
+		//		this.lcdgame.playSoundEffect("btn_movedown");
+		//	};
+		//} else {
+		//	this.lcdgame.playSoundEffect("btn_small");
+		//};
+		if (this.gamestate == STATE_GAMEOVER) {
+			// button to start game
+			if ( (btn == "gamea") || (btn == "gameb") ) {
+				this.lcdgame.gametype = (btn == "gamea" ? 1 : 2); // 1=game a, 2=game b
+				this.newGame();
+			};
+		} else { //if (this.gamestate == STATE_GAMEPLAY) {
+			// which button, up or down
+			if (btn == "luigi") {
+				var update = false;
+				// move up
+				if ( (idx == 0) && (this.luigipos < 2) ) {
+					this.luigipos++;
+					update = true;
+				};
+				// move down
+				if ( (idx == 1) && (this.luigipos > 0) ) {
+					this.luigipos--;
+					update = true;
+				}
+				// move
+				if (update) {
+					// move sound
+					this.lcdgame.playSoundEffect("move");
+					// refresh shapes
+					this.lcdgame.sequenceClear("luigi_body");
+					this.lcdgame.sequenceClear("luigi_arms");
+					this.lcdgame.sequenceSetPos("luigi_body", this.luigipos, true);
+					this.lcdgame.sequenceSetPos("luigi_arms", (this.luigipos*2), true);
+				};
+			};
+			if (btn == "mario") {
+				var update = false;
+				// move up
+				if ( (idx == 0) && (this.mariopos < 2) ) {
+					this.mariopos++;
+					update = true;
+				}
+				// move down
+				if ( (idx == 1) && (this.mariopos > 0) ) {
+					this.mariopos--;
+					update = true;
+				}
+				// move
+				if (update) {
+					// move sound
+					this.lcdgame.playSoundEffect("move");
+					// refresh shapes
+					this.lcdgame.sequenceClear("mario_body");
+					this.lcdgame.sequenceClear("mario_arms");
+					this.lcdgame.sequenceSetPos("mario_body", this.mariopos, true);
+					this.lcdgame.sequenceSetPos("mario_arms", (this.mariopos*2), true);
+				};
+			};
+		};
+	}
+}
+
+// =============================================================================
+// cut scene between levels, truck full and drive away
+// =============================================================================
+mariobros.CutScene = function(lcdgame) {
+	this.lcdgame = lcdgame;
+	this.animatetimer;
+	this.smokeframe=0;
+}
+mariobros.CutScene.prototype = {
+	init: function(){
+		this.animatetimer = new LCDGame.Timer(this, this.onTimerAnimate, 187); // 320bpm = 0.1875s
+		this.animatetimer.Start();
+	},
+	input: function(btn) {
+	},
+
 	// -------------------------------------
 	// level finish animations
 	// -------------------------------------
 	onTimerAnimate: function() {
-	
 		var refresh = false;
 
 		var frame = this.animatetimer.Counter;
@@ -590,7 +724,7 @@ mariobros.MainGame.prototype = {
 			refresh = true;
 		
 			// smoke animation in sync with smoke during game
-			var smoke = frame + this.belttimer.Counter;
+			var smoke = frame + this.smokeframe;
 			var smoke = (frame > 21 ? ((smoke >> 1) % 4) : (smoke % 4) );
 			
 			// smoke on/off
@@ -612,7 +746,7 @@ mariobros.MainGame.prototype = {
 		
 		if (frame <= 10) {
 			// score 10 points, beep sound for each point
-			this.scorePoints(1);
+			this.lcdgame.state.states["maingame"].scorePoints(1);
 			refresh = true;
 			// bonus points sound
 			this.lcdgame.playSoundEffect("bonuspoint");
@@ -707,121 +841,14 @@ mariobros.MainGame.prototype = {
 			this.lcdgame.setShapeByName("mario_foreman", false);
 			this.lcdgame.setShapeByName("mario_foreman_a1", false);
 			
+			// continue game state, and count next level
 			this.animatetimer.Stop();
-			
-			this.nextLevel();
+			this.lcdgame.level++; // next level
+			this.lcdgame.state.start("maingame");
 			refresh = true;
 		};
-		
+
 		// refresh shapes
 		if (refresh) this.lcdgame.shapesRefresh();
 	},
-
-
-	// -------------------------------------
-	// player input
-	// -------------------------------------
-	handleInput: function(buttonname, partidx) {
-		// determine state of gameplay
-		console.log("mario bros -- handleInput " + buttonname + ", partidx=" + partidx + " this.gamestate="+this.gamestate);
-
-		// button press sounds		
-		//if ( (buttonname == "luigi") || (buttonname == "mario") ) {
-		//	if (partidx == 0) {
-		//		this.lcdgame.playSoundEffect("btn_moveup");
-		//	} else {
-		//		this.lcdgame.playSoundEffect("btn_movedown");
-		//	};
-		//} else {
-		//	this.lcdgame.playSoundEffect("btn_small");
-		//};
-		if ( (this.gamestate == STATE_DEMO) || (this.gamestate == STATE_GAMEOVER) ) {
-			// button to start game
-			if (buttonname == "gamea") this.startgame(1);
-			if (buttonname == "gameb") this.startgame(2);
-
-		} else if (this.gamestate == STATE_GAMEPLAY) {
-			// which button, up or down
-			if (buttonname == "luigi") {
-				var update = false;
-				// move up
-				if ( (partidx == 0) && (this.luigipos < 2) ) {
-					this.luigipos++;
-					update = true;
-				};
-				// move down
-				if ( (partidx == 1) && (this.luigipos > 0) ) {
-					this.luigipos--;
-					update = true;
-				}
-				// move
-				if (update) {
-					// move sound
-					this.lcdgame.playSoundEffect("move");
-					// refresh shapes
-					this.lcdgame.sequenceClear("luigi_body");
-					this.lcdgame.sequenceClear("luigi_arms");
-					this.lcdgame.sequenceSetPos("luigi_body", this.luigipos, true);
-					this.lcdgame.sequenceSetPos("luigi_arms", (this.luigipos*2), true);
-				};
-			};
-			if (buttonname == "mario") {
-				var update = false;
-				// move up
-				if ( (partidx == 0) && (this.mariopos < 2) ) {
-					this.mariopos++;
-					update = true;
-				}
-				// move down
-				if ( (partidx == 1) && (this.mariopos > 0) ) {
-					this.mariopos--;
-					update = true;
-				}
-				// move
-				if (update) {
-					// move sound
-					this.lcdgame.playSoundEffect("move");
-					// refresh shapes
-					this.lcdgame.sequenceClear("mario_body");
-					this.lcdgame.sequenceClear("mario_arms");
-					this.lcdgame.sequenceSetPos("mario_body", this.mariopos, true);
-					this.lcdgame.sequenceSetPos("mario_arms", (this.mariopos*2), true);
-				};
-			};
-		};
-	
-	},
-	
-	// -------------------------------------
-	// clock and demo
-	// -------------------------------------
-	updateClock: function() {
-		// get time as 12h clock with PM
-		var datenow = new Date();
-		//var str = datenow.toLocaleTimeString();
-		//var strtime = "" + str.substring(0, 2) + str.substring(3, 5); // example "2359"
-		var ihours = datenow.getHours();
-		var imin = datenow.getMinutes();
-
-		// adjust hour and set PM if needed
-		if (ihours >= 12) {
-			if (ihours > 12) ihours = ihours - 12;
-			this.lcdgame.setShapeByName("time_am", false);
-		} else {
-			if (ihours == 0) ihours = 12; // weird AM/PM time rule
-			this.lcdgame.setShapeByName("time_am", true);
-		}
-		// format hour and minute
-		var strtime = ("  "+ihours).substr(-2) + ("00"+imin).substr(-2);
-		
-		// clock time colon
-		this.lcdgame.setShapeByName("time_colon", (this.demotimer.Counter % 2 == 0));
-
-		// display time
-		this.lcdgame.digitsDisplay("digits", strtime, false);
-		
-		// refresh shapes
-		this.lcdgame.shapesRefresh();
-	}
-	
 }

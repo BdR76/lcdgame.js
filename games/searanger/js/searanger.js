@@ -1,22 +1,19 @@
-// Highway LCD game simulation
-// Bas de Reuver (c)2015
+// Searanger LCD game simulation
+// Bas de Reuver (c)2018
 
 var searanger = {};
 
 // constants
-var STATE_DEMO = 1;
-var STATE_MODESELECT = 2;
-var STATE_GAMEPLAY = 10;
-var STATE_GAMEHIT = 11;
-var STATE_GAMEBONUS = 12;
+var STATE_GAMEPLAY = 0;
+var STATE_GAMEHIT = 1;
+var STATE_GAMEBONUS = 2;
 
 
-searanger.MainGame = function(lcdgame) {
+searanger = function(lcdgame) {
 	// save reference to lcdgame object
 	this.lcdgame = lcdgame;
 
 	// game specific variables
-	this.gamestate = 0;
 	this.score = 0;
 	this.lives = 0;
 	this.guypos = 0; // 0=onisland..4=at bird, 5=on ship
@@ -35,31 +32,33 @@ searanger.MainGame = function(lcdgame) {
 	this.hittimer = null;
 }
 
-searanger.MainGame.prototype = {
-	initialise: function(){
-
-		// startup show all
-		this.lcdgame.shapesDisplayAll(true);
-		this.lcdgame.shapesRefresh();
-		this.lcdgame.shapesDisplayAll(false);
-
+// =====================================
+// clock state
+// =====================================
+searanger.ClockMode = function(lcdgame) {
+	this.lcdgame = lcdgame;
+}
+searanger.ClockMode.prototype = {
+	init: function(){
 		// initialise all timers
 		this.demotimer = new LCDGame.Timer(this, this.onTimerDemo, 500);
-		this.gametimer = new LCDGame.Timer(this, this.onTimerGame, 250);
-		this.buoytimer = new LCDGame.Timer(this, this.onTimerBuoy, 500);
-		this.hittimer  = new LCDGame.Timer(this, this.onTimerHit,  250);
 
 		// start demo mode
-		this.initDemo();
-	},
-
-	// -------------------------------------
-	// timer events
-	// -------------------------------------
-	initDemo: function() {
-		this.gamestate = STATE_DEMO;
 		this.lcdgame.sequenceSetPos("mainguy", 0, true);
 		this.demotimer.Start();
+	},
+
+	update: function() {
+	},
+	
+	input: function(buttonname) {
+		if (buttonname == "mode") {
+			this.demotimer.Stop();
+			this.lcdgame.state.start("select");
+		};
+	},
+		
+	close: function() {
 	},
 
 	onTimerDemo: function() {
@@ -101,25 +100,97 @@ searanger.MainGame.prototype = {
 		// refresh shapes
 		this.lcdgame.shapesRefresh();
 	},
-	
-	toggleMode: function(toggle) {
+
+	updateClock: function() {
+		// get time as 12h clock with PM
+		var datenow = new Date();
+		//var str = datenow.toLocaleTimeString();
+		//var strtime = "" + str.substring(0, 2) + str.substring(3, 5); // example "2359"
+		var ihours = datenow.getHours();
+		var imin = datenow.getMinutes();
+		var isec = datenow.getSeconds();
+
+		// format hours and minutes and seconds
+		var strtime = ("  "+ihours).substr(-2) + ("00"+imin).substr(-2);
+		var strsec  = ("00"+isec).substr(-2);
+
+		// display time
+		this.lcdgame.digitsDisplay("digits",     strtime, false);
+		this.lcdgame.digitsDisplay("digitsmall", strsec,  false);
+	}
+}
+
+// =====================================
+// Selection state
+// =====================================
+searanger.SelectMode = function(lcdgame) {
+	this.lcdgame = lcdgame;
+	this.gamepro;
+}
+searanger.SelectMode.prototype = {
+	init: function(){
+		// refresh display
+		this.lcdgame.shapesDisplayAll(false);
+		this.lcdgame.setShapeByName("mainguy1", true);
+		this.lcdgame.setShapeByName("waves", true);
+		this.lcdgame.setShapeByName("lifeguard", true);
+		this.lcdgame.setShapeByName("rock", true);
 		
-		this.gamestate = STATE_MODESELECT;
-
-		if (toggle) {
-			this.gamepro = 3 - this.gamepro; // 1..2
-		};
-
-		// refresh shapes
-		this.lcdgame.setShapeByName("pro1", (this.gamepro==1));
-		this.lcdgame.setShapeByName("pro2", (this.gamepro==2));
-		this.lcdgame.shapesRefresh();
+		// refresh display
+		this.lcdgame.digitsDisplay("digits", "000", true);
+		this.lcdgame.digitsDisplay("digitsmall", "4", true);
+		
+		// initialise
+		this.lcdgame.setShapeByName("pro1", true);
+		this.gamepro = 1;
+		
 	},
 
-	// -------------------------------------
-	// player input
-	// -------------------------------------
-	startGame: function() {
+	update: function() {
+	},
+	
+	input: function(buttonname) {
+		if (buttonname == "mode") {
+			this.lcdgame.setShapeByName("pro1", false);
+			this.lcdgame.setShapeByName("pro2", false);
+			this.lcdgame.state.start("clock");
+		};
+		if (buttonname == "game") {
+			this.gamepro = 3 - this.gamepro; // 1..2
+
+			// refresh shapes
+			this.lcdgame.setShapeByName("pro1", (this.gamepro==1));
+			this.lcdgame.setShapeByName("pro2", (this.gamepro==2));
+			this.lcdgame.shapesRefresh();
+		};
+		if (buttonname == "start") {
+			this.lcdgame.state.states["maingame"].gamepro = this.gamepro;
+			this.lcdgame.state.start("maingame");
+		};
+	},
+
+	close: function() {
+	},
+}
+
+// =====================================
+// main game state
+// =====================================
+searanger.MainGame = function(lcdgame) {
+	this.lcdgame = lcdgame;
+	this.score = 0;
+	this.gamestate = 0;
+	this.gamepro;
+}
+searanger.MainGame.prototype = {
+	init: function(){
+
+		// initialise all timers
+		this.gametimer = new LCDGame.Timer(this, this.onTimerGame, 250);
+		this.buoytimer = new LCDGame.Timer(this, this.onTimerBuoy, 500);
+		this.hittimer  = new LCDGame.Timer(this, this.onTimerHit,  250);
+
+		// start demo mode
 		this.lcdgame.shapesDisplayAll(false);
 		this.lcdgame.setShapeByName("lifeguard", true);
 		this.lcdgame.setShapeByName("rock", true);
@@ -148,10 +219,22 @@ searanger.MainGame.prototype = {
 		this.buoytimer.Start();
 	},
 
+	update: function() {
+	},
+		
+	close: function() {
+	},
+	
+	input: function(buttonname) {
+		if (this.gamestate == STATE_GAMEPLAY) {
+			if (buttonname == "left") this.moveGuy(-1);
+			if (buttonname == "right") this.moveGuy(+1);
+		}
+	},
+	
 	onTimerGame: function() {
 
 		// random shapes
-
 		if (this.guypos == 0) {
 			// when guy on island, push off island after 5 seconds
 			this.pushguy++;
@@ -182,7 +265,6 @@ searanger.MainGame.prototype = {
 		if (waves == 5) this.lcdgame.setShapeByName("sharkaway2", false);
 		if (waves == 5) this.lcdgame.setShapeByName("monkey", false);
 		
-
 		// each timer update a different hazard
 		var frame = this.gametimer.Counter % 4;
 
@@ -320,7 +402,7 @@ searanger.MainGame.prototype = {
 				} else {
 					// game over
 					this.buoytimer.Stop();
-					this.gamestate = STATE_MODESELECT;
+					this.lcdgame.state.start("select");
 				};
 				break;
 		};
@@ -390,7 +472,6 @@ searanger.MainGame.prototype = {
 		// wait bonus sounds
 		if (wait) {
 			// switch to wait 3 seconds
-			this.gamestate = STATE_GAMEBONUS;
 			this.gametimer.Stop();
 			this.hittimer.Start(12);
 		};
@@ -400,71 +481,5 @@ searanger.MainGame.prototype = {
 		this.lives = this.lives + a;
 		if (this.lives > 9) this.lives = 9; // limit to max 9 lives
 		this.lcdgame.digitsDisplay("digitsmall", ""+this.lives, true);
-	},
-
-	// -------------------------------------
-	// player input
-	// -------------------------------------
-	handleInput: function(buttonname) {
-		// determine state of gameplay
-		switch (this.gamestate) {
-			case STATE_DEMO:
-				if (buttonname == "mode") {
-					this.demotimer.Stop();
-				
-					// refresh display
-					this.lcdgame.shapesDisplayAll(false);
-					this.lcdgame.setShapeByName("mainguy1", true);
-					this.lcdgame.setShapeByName("waves", true);
-					this.lcdgame.setShapeByName("lifeguard", true);
-					this.lcdgame.setShapeByName("rock", true);
-					
-					// refresh display
-					this.lcdgame.digitsDisplay("digits", "000", true);
-					this.lcdgame.digitsDisplay("digitsmall", "4", true);
-					
-					this.toggleMode(false);
-				};
-				break;
-			case STATE_MODESELECT:
-				if (buttonname == "mode") {
-					this.initDemo();
-				};
-				if (buttonname == "game") {
-					this.toggleMode(true);
-				};
-				if (buttonname == "start") {
-					this.startGame();
-				};
-				break;
-			case STATE_GAMEPLAY:
-				if (buttonname == "left") {
-					this.moveGuy(-1);
-				};
-				if (buttonname == "right") {
-					this.moveGuy(+1);
-				};
-				break;
-			case STATE_GAMEHIT:
-				break;
-		};
-	},
-
-	updateClock: function() {
-		// get time as 12h clock with PM
-		var datenow = new Date();
-		//var str = datenow.toLocaleTimeString();
-		//var strtime = "" + str.substring(0, 2) + str.substring(3, 5); // example "2359"
-		var ihours = datenow.getHours();
-		var imin = datenow.getMinutes();
-		var isec = datenow.getSeconds();
-
-		// format hours and minutes and seconds
-		var strtime = ("  "+ihours).substr(-2) + ("00"+imin).substr(-2);
-		var strsec  = ("00"+isec).substr(-2);
-
-		// display time
-		this.lcdgame.digitsDisplay("digits",     strtime, false);
-		this.lcdgame.digitsDisplay("digitsmall", strsec,  false);
 	}
 }

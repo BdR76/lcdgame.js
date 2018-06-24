@@ -4,7 +4,13 @@
 // -------------------------------------
 // game object
 // -------------------------------------
-LCDGame.Game = function (gameobj, configfile) {
+LCDGame.Game = function (configfile) {
+
+	this.gamedata = [];
+	this.imageBackground = null;
+	this.imageShapes = null;
+	this.gametype = 0;
+	this.level = 0;
 
 	// initialise object
 	this.countimages = 0;
@@ -39,8 +45,8 @@ LCDGame.Game = function (gameobj, configfile) {
 	// get context of canvas element
 	this.context2d = this.canvas.getContext("2d");
 		
-	// initialise specific game
-	this.GameObj = new gameobj(this);
+	// state manager
+	this.state = new LCDGame.StateManager(this);
 
 	return this;
 }
@@ -313,9 +319,6 @@ LCDGame.Game.prototype = {
 			document.attachEvent("keydown", this.onkeydown.bind(this));
 			document.attachEvent("keyup",   this.onkeyup.bind(this));
 		};
-
-		// initialise game specifics
-		this.GameObj.initialise();
 	},
 
 	// -------------------------------------
@@ -356,7 +359,6 @@ LCDGame.Game.prototype = {
 	// function for shapes and sequences
 	// -------------------------------------
 	shapeIndexByName: function(name) {
-		console.log('shapeIndexByName -- '+name);
 		for (var i = 0; i < this.gamedata.frames.length; i++) {
 			if (this.gamedata.frames[i].filename == name)
 				return i;
@@ -368,6 +370,7 @@ LCDGame.Game.prototype = {
 	},
 
 	setShapeByName: function(filename, value) {
+		// find shape 
 		for (var i = 0; i < this.gamedata.frames.length; i++) {
 			if (this.gamedata.frames[i].filename == filename) {
 				this.gamedata.frames[i].value = value;
@@ -383,13 +386,15 @@ LCDGame.Game.prototype = {
 	},
 	
 	sequenceIndexByName: function(name) {
-		for (var i = 0; i < this.gamedata.sequences.length; i++) {
-			if (this.gamedata.sequences[i].name == name)
-				return i;
-		}
-		console.log("** ERROR ** sequenceIndexByName('"+name+"') - sequence name not found.");
-		// if not found return -1
-		throw "lcdgames.js - "+arguments.callee.caller.toString()+", no sequence with name '" + name + "'";
+		if (this.gamedata.sequences) {
+			for (var i = 0; i < this.gamedata.sequences.length; i++) {
+				if (this.gamedata.sequences[i].name == name)
+					return i;
+			}
+			console.log("** ERROR ** sequenceIndexByName('"+name+"') - sequence name not found.");
+			// if not found return -1
+			throw "lcdgames.js - "+arguments.callee.caller.toString()+", no sequence with name '" + name + "'";
+		};
 		return -1;
 	},
 
@@ -464,15 +469,17 @@ LCDGame.Game.prototype = {
 	},
 
 	sequenceSetPos: function(name, pos, value) {
-		// get sequence
-		var seqidx = this.sequenceIndexByName(name);
+		if (this.gamedata.sequences) {
+			// get sequence
+			var seqidx = this.sequenceIndexByName(name);
 
-		// if pos is -1, then last last position
-		if (pos == -1) {pos = this.gamedata.sequences[seqidx].ids.length-1};
+			// if pos is -1, then last last position
+			if (pos == -1) {pos = this.gamedata.sequences[seqidx].ids.length-1};
 
-		// set value for first shape in sequence
-		var shape1 = this.gamedata.sequences[seqidx].ids[pos];
-		this.gamedata.frames[shape1].value = value;
+			// set value for first shape in sequence
+			var shape1 = this.gamedata.sequences[seqidx].ids[pos];
+			this.gamedata.frames[shape1].value = value;
+		}
 	},
 	
 	sequenceShapeVisible: function(name, pos) {
@@ -505,17 +512,19 @@ LCDGame.Game.prototype = {
 	shapesDisplayAll: function(value) {
 		//console.log("shapesDisplayAll: " + this.gamedata.frames[index].frame.x);
 
-		// all shapes
-		for (var i = 0; i < this.gamedata.frames.length; i++) {
-			// print out current values of sequence
-			if ( (this.gamedata.frames[i].type == "shape") || (this.gamedata.frames[i].type == "digitpos") ) {
-				this.gamedata.frames[i].value = value;
+		if (this.gamedata.frames) {
+			// all shapes
+			for (var i = 0; i < this.gamedata.frames.length; i++) {
+				// print out current values of sequence
+				if ( (this.gamedata.frames[i].type == "shape") || (this.gamedata.frames[i].type == "digitpos") ) {
+					this.gamedata.frames[i].value = value;
+				};
 			};
-		};
-		// all digits
-		if (value == true) {
-			for (var i = 0; i < this.gamedata.digits.length; i++) {
-				this.digitsDisplay(this.gamedata.digits[i].name, this.gamedata.digits[i].max);
+			// all digits
+			if (value == true) {
+				for (var i = 0; i < this.gamedata.digits.length; i++) {
+					this.digitsDisplay(this.gamedata.digits[i].name, this.gamedata.digits[i].max);
+				};
 			};
 		};
 	},
@@ -599,26 +608,28 @@ LCDGame.Game.prototype = {
 		// TODO: implement dirty rectangles
 
 		// FOR NOW: simply redraw everything
-		
-		// redraw entire background (=inefficient)
-		this.context2d.drawImage(this.imageBackground, 0, 0);
-		
-		//console.log("shapesRefresh called");
-		// add current/previous values to all shape objects
-		for (var i = 0; i < this.gamedata.frames.length; i++) {
-			if (this.gamedata.frames[i].value == true) {
-				this.shapeDraw(i);
+	
+		if (this.gamedata.frames) {
+			// redraw entire background (=inefficient)
+			this.context2d.drawImage(this.imageBackground, 0, 0);
+			
+			//console.log("shapesRefresh called");
+			// add current/previous values to all shape objects
+			for (var i = 0; i < this.gamedata.frames.length; i++) {
+				if (this.gamedata.frames[i].value == true) {
+					this.shapeDraw(i);
+				};
 			};
+			
+			// debugging show button areas
+			//for (var i=0; i < this.gamedata.buttons.length; i++) {
+			//	var x1 = this.gamedata.buttons[i].area.x1;
+			//	var y1 = this.gamedata.buttons[i].area.y1;
+			//	var x2 = this.gamedata.buttons[i].area.x2;
+			//	var y2 = this.gamedata.buttons[i].area.y2;
+			//	this.debugRectangle(x1, y1, (x2-x1), (y2-y1));
+			//};
 		};
-		
-		// debugging show button areas
-		//for (var i=0; i < this.gamedata.buttons.length; i++) {
-		//	var x1 = this.gamedata.buttons[i].area.x1;
-		//	var y1 = this.gamedata.buttons[i].area.y1;
-		//	var x2 = this.gamedata.buttons[i].area.x2;
-		//	var y2 = this.gamedata.buttons[i].area.y2;
-		//	this.debugRectangle(x1, y1, (x2-x1), (y2-y1));
-		//};
 		
 	},
 
@@ -807,7 +818,7 @@ LCDGame.Game.prototype = {
 	onButtonDown: function(btnidx, diridx) {
 		var name = this.gamedata.buttons[btnidx].name;
 		//console.log('onButtonDown -- name=' + name + ' btnidx=' + btnidx);
-		this.GameObj.handleInput(name, diridx);
+		this.state.currentState().input(name, diridx);
 
 		var idx = this.gamedata.buttons[btnidx].ids[diridx];
 		this.setShapeByIdx(idx, true);

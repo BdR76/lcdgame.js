@@ -8,15 +8,21 @@
 	<script type="text/javascript" src="js/searanger.js"></script>
 
 <body>
-	Sea Ranger lcdgame.js (work-in-progress) BdR Games 2017<br/>
+	Sea Ranger lcdgame.js (work-in-progress) BdR Games 2018<br/>
 	Press [1] then [2] for pro1/pro2 and then [3] to start, [LEFT] and [RIGHT] to move<br/>
 	<script>
 		(function() {
 			// initialize the framework
-			var game = new LCDGame.Game(
-				searanger.MainGame,
-				'js/searanger.json'
-			);
+			var game = new LCDGame.Game('js/searanger.json');
+
+			// add game states
+			game.state.add('clock', searanger.ClockMode);
+			game.state.add('select', searanger.SelectMode);
+			game.state.add('maingame', searanger.MainGame);
+
+			// start the clock state
+			game.state.start('clock');
+	
 		})();
 	</script>
 </body>

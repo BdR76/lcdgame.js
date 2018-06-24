@@ -8,15 +8,22 @@
 	<script type="text/javascript" src="js/highway.js"></script>
 
 <body>
-	Highway lcdgame.js (work-in-progress) BdR Games 2017<br/>
+	Highway lcdgame.js (work-in-progress) BdR Games 2018<br/>
 	Press [1] to select game mode, LEFT or RIGHT cursor to start<br/>
 	<script>
 		(function() {
 			// initialize the framework
-			var game = new LCDGame.Game(
-				highway.MainGame,
-				'js/highway.json'
-			);
+			var game = new LCDGame.Game('js/highway.json');
+
+			// add game states
+			game.state.add('clock', highway.ClockMode);
+			game.state.add('select', highway.SelectMode);
+			game.state.add('maingame', highway.MainGame);
+			game.state.add('bonusgame', highway.BonusGame);
+
+			// start the clock state
+			game.state.start('clock');
+	
 		})();
 	</script>
 </body>

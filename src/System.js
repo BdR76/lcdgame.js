@@ -3,9 +3,6 @@
 
 // namespace
 var LCDGame = LCDGame || {
-	gamedata: [],
-	imageBackground: null,
-	imageShapes: null,
 	loadsounds: null,
 	countimages: 0,	
 	// scale factor

@@ -8,15 +8,21 @@
 	<script type="text/javascript" src="js/mariobros.js"></script>
 
 <body>
-	Mario Bros lcdgame.js (work-in-progress) BdR Games 2017<br/>
+	Mario Bros lcdgame.js (work-in-progress) BdR Games 2018<br/>
 	Press [1] or [2] to start, [Q] and [A] to move Luigi, [P] and [L] to move Mario<br/>
 	<script>
 		(function() {
 			// initialize the framework
-			var game = new LCDGame.Game(
-				mariobros.MainGame,
-				'js/mariobros.json'
-			);
+			var game = new LCDGame.Game('js/mariobros.json');
+
+			// add game states
+			game.state.add('clock', mariobros.ClockMode);
+			game.state.add('maingame', mariobros.MainGame);
+			game.state.add('cutscene', mariobros.CutScene);
+
+			// start the clock state
+			game.state.start('clock');
+	
 		})();
 	</script>
 </body>
