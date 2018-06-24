@@ -383,16 +383,34 @@ LCDGame.Game.prototype = {
 			w = window.innerWidth;
 			this.scaleFactor = w / this.canvas.width;
 			h = this.canvas.height * this.scaleFactor;
+
+			// set margins for full height
+			var ymargin = (window.innerHeight - h) / 2;
+			this.canvas.style["margin-top"] = ymargin+"px";
+			this.canvas.style["margin-bottom"] = -ymargin+"px";
+			this.canvas.style["margin-left"] = "0px";
 		} else {
 			// height of image should take entire height of screen
 			h = window.innerHeight;
 			this.scaleFactor = h / this.canvas.height;
 			w = this.canvas.width * this.scaleFactor;
+
+			// set margins for full height
+			var xmargin = (window.innerWidth - w) / 2;
+			this.canvas.style["margin-left"] = xmargin+"px";
+			this.canvas.style["margin-right"] = -xmargin+"px";
+			this.canvas.style["margin-top"] = "0px";
 		}
 		
 		// set canvas size
 		this.canvas.style.width = w+"px";
 		this.canvas.style.height = h+"px";
+
+		// set canvas properties
+		this.canvas.style.display = "block";
+		this.canvas.style["touch-action"] = "none"; // no text select on touch
+		this.canvas.style["user-select"] = "none"; // no text select on touch
+		this.canvas.style["-webkit-tap-highlight-color"] = "rgba(0, 0, 0, 0)"; // not sure what this does 
 	},
 
 	// -------------------------------------
