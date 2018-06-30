@@ -420,14 +420,6 @@ LCDGame.Game.prototype = {
 		this.canvas.width = this.imageBackground.width;
 		this.canvas.height = this.imageBackground.height;
 
-		// center position
-		this.resizeCanvas();
-		this.resizeInfobox(this.infobox);
-		this.resizeInfobox(this.scorebox);
-		
-		hideInfobox();
-		hideScorebox();
-
 		this.context2d.drawImage(this.imageBackground, 0, 0);
 		
 		// prepare sounds
@@ -453,6 +445,14 @@ LCDGame.Game.prototype = {
 			document.attachEvent("keydown", this.onkeydown.bind(this));
 			document.attachEvent("keyup",   this.onkeyup.bind(this));
 		};
+
+		// center position
+		this.resizeCanvas();
+		this.resizeInfobox(this.infobox);
+		this.resizeInfobox(this.scorebox);
+		
+		hideInfobox();
+		hideScorebox();
 	},
 
 	gameReset: function(gametype) {

@@ -16,11 +16,11 @@ function displayScorebox() {
 }
 
 function hideScorebox() {
-	var target = event.target || event.srcElement;
+	//var target = event.target || event.srcElement;
 	// filter event handling when the event bubbles
-	if (event.currentTarget == target) {
+	//if (event.currentTarget == target) {
 		document.getElementById("scorebox").style.display = "none";
-	}
+	//}
 }
 
 // -------------------------------------
