@@ -62,21 +62,22 @@ still missing features (~~strikethrough~~ is done).
 * ~~playable on any device~~
 * ~~refactor code into separate JavaScript objects~~
 * ~~add state manager (to separate time/demo, maingame, bonusgame code)~~
+* ~~add gameplay info popup, explanation for each game~~
+* ~~add high scores list (local storage)~~
+* ~~add menu overlay in separate dom-elements~~
+* add high scores list (shared online)
 * responsive resizing/scaling and display centered
-* add gameplay info popup, explanation for each game (+multilanguage?)
-* add high scores list (both local and shared)
 * sound mp3/wav based on browsertype
 * Shapes editor, allow shapes change position, mouse drag/move
 * Shapes editor, support/preview/edit types (normal shape, digit, digit position, button)
 * Shapes editor, copy shape (for digit positions)
-* add menu, overlay in separate dom-element (sound off, info, buttons reset etc.)
 * add key hints (separate dom-elements?)
 * allow button/keys re-mapping
 * and of course, add more games ;)
 
 History
 -------
-29-jun-2018 v0.3.1 menu, infobox, highscores   
+30-jun-2018 v0.3.1 menu, infobox, local highscores   
 23-jun-2018 v0.3 added statemanager, preliminary touch and scale   
 27-apr-2017 v0.2 Mario bros and Sea Ranger playable, better compatibility, utilities and tools   
 10-nov-2015 v0.1 first release of lcdgame.js and shape editor on github

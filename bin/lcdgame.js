@@ -402,6 +402,8 @@ LCDGame.Game = function (configfile, metadatafile) {
 	document.write(str);
 
 	this.canvas = document.getElementById("mycanvas");
+	this.infobox = document.getElementById("infobox");
+	this.scorebox = document.getElementById("scorebox");
 	this.infocontent = document.getElementById("infocontent");
 	this.scorecontent = document.getElementById("scorecontent");
 	
@@ -715,6 +717,27 @@ LCDGame.Game.prototype = {
 		this.canvas.style["user-select"] = "none"; // no text select on touch
 		this.canvas.style["-webkit-tap-highlight-color"] = "rgba(0, 0, 0, 0)"; // not sure what this does 
 	},
+	
+	resizeInfobox: function(box) {
+
+		// determine screen/frame size
+		var w = box.offsetWidth;
+		var h = box.offsetHeight;
+		var rect = box.getBoundingClientRect();
+		if (rect) {
+			w = rect.width;
+			h = rect.height;
+		};
+
+		var xmargin = (window.innerWidth - w) / 2;
+		var ymargin = (window.innerHeight - h) / 2;
+
+		// set margins for full height
+		box.style["margin-left"] = xmargin+"px";
+		box.style["margin-right"] = -xmargin+"px";
+		box.style["margin-top"] = ymargin+"px";
+		box.style["margin-bottom"] = -ymargin+"px";
+	},
 
 	// -------------------------------------
 	// start the specific game
@@ -727,7 +750,14 @@ LCDGame.Game.prototype = {
 		// initialise canvas
 		this.canvas.width = this.imageBackground.width;
 		this.canvas.height = this.imageBackground.height;
+
+		// center position
 		this.resizeCanvas();
+		this.resizeInfobox(this.infobox);
+		this.resizeInfobox(this.scorebox);
+		
+		hideInfobox();
+		hideScorebox();
 
 		this.context2d.drawImage(this.imageBackground, 0, 0);
 		
