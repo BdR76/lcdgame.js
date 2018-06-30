@@ -1,0 +1,79 @@
+body {
+	font-family: Arial;
+}
+table{
+	width: 100%;
+	border-collapse: collapse; 
+}
+
+tr:nth-child(1) {
+    font-weight: bold;
+	border-bottom:1pt solid black;
+}
+
+td:nth-child(1) {
+    width: 10%;
+}
+td:nth-child(2) {
+    width: 50%;
+}
+td:nth-child(3) {
+    width: 40%;
+    text-align: right;
+}
+
+.container {
+}
+
+.gamecvs {
+    position: absolute;
+}
+
+.infobox{
+	display: none; /* infobox is hidden at startup */
+	position: absolute;
+	background: #fff;
+	color: #000;
+	width: 480px;
+	
+	margin: 50px -200px -50px 200px;
+	padding: 15px 15px 15px 15px;
+	box-sizing: border-box;
+
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.mybutton {
+	float: right;
+	display: block;
+
+	color: #FFF;
+	background: #5DC8CD;
+
+	width: 120px;
+	font-weight: 600;
+	text-align: center;
+	line-height: 40px;
+	border-radius: 5px;
+	transition: all 0.2s;
+}
+
+.mybutton:hover {
+	background: #01939A;
+}
+
+.btnmenu {
+  position: relative;
+}
+
+.btnpop {
+  position: relative;
+  float: right;
+}
+
+.btnselect {
+  position: relative;
+  float: right;
+	width: 80px;
+  line-height: 30px;
+}

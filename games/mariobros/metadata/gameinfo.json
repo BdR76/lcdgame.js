@@ -1,6 +1,6 @@
 {
 	"gameinfo": {
-		"game": {
+		"device": {
 			"title": "Mariobros",
 			"model": "MW-56",
 			"manufacturer": "Nintendo",
@@ -11,7 +11,12 @@
 			"program": "Bas de Reuver",
 			"photoedit": "Bas de Reuver",
 			"deviceprovided": "Bas de Reuver"
+		},
+		"gametypes": [
+			"game A", "game B"
+		],
+		"instructions": {
+			"en": "Move Mario and Luigi up and down the bottling factory to safely get the crates into the truck. Fill the truck with 8 crates to complete the level."
 		}
 	}
-
 }

@@ -1,6 +1,6 @@
 {
 	"gameinfo": {
-		"game": {
+		"device": {
 			"title": "Highway",
 			"model": "737",
 			"manufacturer": "Mini Arcade",
@@ -11,7 +11,12 @@
 			"program": "Bas de Reuver",
 			"photoedit": "Bas de Reuver",
 			"deviceprovided": "r.vdveen"
+		},
+		"gametypes": [
+			"game 1", "game 2"
+		],
+		"instructions": {
+			"en": "Avoid obstacles, pick up hitchhiker on the left and drop them off at sign on the right. Drop off 3 hitchhikers for a bonus game, get 3 identical numers for bonus."
 		}
 	}
-
 }

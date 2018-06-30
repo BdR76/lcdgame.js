@@ -14,7 +14,6 @@ searanger = function(lcdgame) {
 	this.lcdgame = lcdgame;
 
 	// game specific variables
-	this.score = 0;
 	this.lives = 0;
 	this.guypos = 0; // 0=onisland..4=at bird, 5=on ship
 	this.pushguy = 0;
@@ -178,7 +177,6 @@ searanger.SelectMode.prototype = {
 // =====================================
 searanger.MainGame = function(lcdgame) {
 	this.lcdgame = lcdgame;
-	this.score = 0;
 	this.gamestate = 0;
 	this.gamepro;
 }
@@ -198,12 +196,14 @@ searanger.MainGame.prototype = {
 		this.lcdgame.setShapeByName("pro1", (this.gamepro==1));
 		this.lcdgame.setShapeByName("pro2", (this.gamepro==2));
 
+		// reset game specific variables
+		this.lcdgame.gameReset(this.gamepro);
+
 		// game specific variables
 		this.lifebuoy = false;
 		this.waveoffset = 1;
 
 		// refresh display
-		this.score = 0;
 		this.lives = 4;
 		this.scorePoints(0);
 		this.updateLives(0);
@@ -312,10 +312,10 @@ searanger.MainGame.prototype = {
 
 		// new random event, based on description of Plane & Tank -> http://handheldempire.com/game.jsp?game=2158
 		if (frame == 0) this.randevt = Math.floor(Math.random() * 15); //0..14
-		if (this.score < 100) {
+		if (this.lcdgame.score < 100) {
 			if (this.randevt <= 4) this.randevt = 0;
 		};
-		if (this.score < 600) {
+		if (this.lcdgame.score < 600) {
 			if ( (this.randevt == 7) || (this.randevt >= 12) ) this.randevt = 0;
 		};
 
@@ -400,8 +400,9 @@ searanger.MainGame.prototype = {
 					this.lcdgame.shapesRefresh();
 					this.gametimer.Start();
 				} else {
-					// game over
+					// game over, check for highscore
 					this.buoytimer.Stop();
+					this.lcdgame.highscores.checkScore();
 					this.lcdgame.state.start("select");
 				};
 				break;
@@ -447,8 +448,8 @@ searanger.MainGame.prototype = {
 
 	scorePoints: function(pts) {
 		// keep old and new score
-		var sc1 = (this.score % 1000);
-		var sc2 = ((this.score + pts) % 1000);
+		var sc1 = (this.lcdgame.score % 1000);
+		var sc2 = ((this.lcdgame.score + pts) % 1000);
 		var wait = false;
 		// pass 200 points, bonus life
 		if ( (sc1 < 200) && (sc2 >= 200) ) {
@@ -465,9 +466,9 @@ searanger.MainGame.prototype = {
 		if (sc1 > sc2) {
 			this.gametimer.Interval = (this.gamepro==1 ? 250 : 125);
 		};
-		this.score = this.score + pts;
+		this.lcdgame.score += pts;
 		// display score
-		var str = ("000"+this.score).slice(-3);
+		var str = ("000"+this.lcdgame.score).slice(-3);
 		this.lcdgame.digitsDisplay("digits", str, true);
 		// wait bonus sounds
 		if (wait) {

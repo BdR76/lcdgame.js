@@ -88,7 +88,6 @@ mariobros.MainGame = function(lcdgame) {
 	
 	// game specific variables
 	this.gamestate = 0;
-	this.score = 0;
 	this.misscount = 0;
 	this.truckcases = 0;
 	this.caseadd = 0;
@@ -142,8 +141,8 @@ mariobros.MainGame.prototype = {
 		// stop any other start
 		this.lcdgame.shapesDisplayAll(false);
 
-		// game specific variables
-		this.lcdgame.level = 0; // level up after every truck completed
+		// reset game specific variables
+		this.lcdgame.gameReset(this.lcdgame.gametype);
 		
 		// show "game b" or "game b"
 		var gametxt = (this.lcdgame.gametype == 1 ? "game_a" : "game_b");
@@ -152,7 +151,6 @@ mariobros.MainGame.prototype = {
 		// reset score, positions etc.
 		this.luigipos = 0;
 		this.mariopos = 1;
-		this.score = 0;
 		this.scorePoints(0);
 		this.misscount = 0;
 
@@ -512,9 +510,9 @@ mariobros.MainGame.prototype = {
 	},
 
 	scorePoints: function(pts) {
-		this.score = this.score + pts;
+		this.lcdgame.score = this.lcdgame.score + pts;
 		// display score
-		this.lcdgame.digitsDisplay("digits", ""+this.score, true);
+		this.lcdgame.digitsDisplay("digits", ""+this.lcdgame.score, true);
 	},
 
 	// -------------------------------------
@@ -601,11 +599,16 @@ mariobros.MainGame.prototype = {
 
 			// game over or continue
 			if (this.misscount >= 3) {
-				// game over
+				// game over, check for highscore
+				this.lcdgame.highscores.checkScore();
 				this.gamestate = STATE_GAMEOVER;
 			} else {
 				// continue
-			if (this.misswho == "luigi") {this.luigipos = 0} else {this.mariopos = 1}; // resets positions
+				if (this.misswho == "luigi") {
+					this.luigipos = 0
+				} else {
+					this.mariopos = 1
+				}; // resets positions
 				this.continueGame();
 			};
 

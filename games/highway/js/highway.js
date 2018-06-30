@@ -122,11 +122,11 @@ highway.ClockMode.prototype = {
 // =============================================================================
 highway.SelectMode = function(lcdgame) {
 	this.lcdgame = lcdgame;
-	this.difficulty = 1;
+	this.selectdiff = 1;
 }
 highway.SelectMode.prototype = {
 	init: function(){
-		this.difficulty = 1;
+		this.selectdiff = 1;
 
 		// clear screen
 		this.lcdgame.shapesDisplayAll(false);
@@ -154,9 +154,9 @@ highway.SelectMode.prototype = {
 	input: function(btn) {
 		// select difficulty 1 or 2 or back to demo mode
 		if (btn == "mode") {
-			if (this.difficulty == 1) {
+			if (this.selectdiff == 1) {
 				// select difficulty 2
-				this.difficulty = 2;
+				this.selectdiff = 2;
 				this.lcdgame.setShapeByName("game1", false);
 				this.lcdgame.setShapeByName("game2", true);
 				// refresh immediately
@@ -171,7 +171,8 @@ highway.SelectMode.prototype = {
 		};
 		// start game
 		if ( (btn == "left") || (btn == "right") ) {
-			this.lcdgame.level = 0;
+			// reset game specific variables
+			this.lcdgame.gameReset(this.selectdiff);
 			this.lcdgame.state.start("maingame");
 		};
 
@@ -187,10 +188,8 @@ highway.MainGame = function(lcdgame) {
 
 	// game specific variables
 	this.gamestate = 0;
-	this.difficulty = 1; // difficulty game1 or game2
 	this.hitchhikers = 0; // nr of hitchhikers dropped off in current level
 	this.carpos = 0; // car position on road, 0=left most, 4=right most
-	this.score = 0; // actual score
 	this.displayscore = 0;
 	this.misses = 0;
 	this.girlincar = false; // girl hitchhiker is in car
@@ -241,10 +240,21 @@ highway.MainGame.prototype = {
 				break;
 			case STATE_GAMEOVER:
 				if (btn == "mode") {
-					this.initModeSelect();
+					if (this.lcdgame.gametype == 1) {
+						// select difficulty 2
+						this.lcdgame.gametype = 2;
+						this.lcdgame.setShapeByName("game1", false);
+						this.lcdgame.setShapeByName("game2", true);
+						// refresh immediately
+						this.lcdgame.shapesRefresh();
+					} else {
+						// back to demo mode
+						this.lcdgame.state.start("clock");
+					};
 				};
 				// start game
 				if ( (btn == "left") || (btn == "right") ) {
+					this.lcdgame.gameReset(this.lcdgame.gametype);
 					this.initNewGame();
 				};
 		};
@@ -307,7 +317,8 @@ highway.MainGame.prototype = {
 						this.gamestate = STATE_GAMEPLAY;
 						this.roadtimer.Start();
 					} else {
-						// TODO: check for highscore
+						// check for highscore
+						this.lcdgame.highscores.checkScore();
 						this.gamestate = STATE_GAMEOVER;
 					};
 				};
@@ -352,8 +363,7 @@ highway.MainGame.prototype = {
 
 	initNewGame: function() {
 		// reset game specific variables
-		this.score = 0;
-		this.displayscore = this.score;
+		this.displayscore = this.lcdgame.score;
 		this.misses = 0;
 		this.girlincar = false; // girl hitchhiker is in car
 		this.pushcountdown = 20;
@@ -363,8 +373,8 @@ highway.MainGame.prototype = {
 		this.lcdgame.shapesDisplayAll(false);
 
 		// display game1 or game2
-		if (this.difficulty == 1) {this.lcdgame.setShapeByName("game1", true)};
-		if (this.difficulty == 2) {this.lcdgame.setShapeByName("game2", true)};
+		if (this.lcdgame.gametype == 1) {this.lcdgame.setShapeByName("game1", true)};
+		if (this.lcdgame.gametype == 2) {this.lcdgame.setShapeByName("game2", true)};
 
 		// every game begins with one sign at front, one dog in middle and one tree in back, always.
 		this.lcdgame.sequenceSetPos("dog",  1, true);
@@ -425,12 +435,12 @@ highway.MainGame.prototype = {
 
 		// set road speed according to level
 		var msecs = 750; // game1
-		if (this.difficulty == 1) {msecs = 750 - (this.lcdgame.level-1) * 62.5}; // game1
-		if (this.difficulty == 2) {msecs = 500 - (this.lcdgame.level-1) * 62.5}; // game2
+		if (this.lcdgame.gametype == 1) {msecs = 750 - (this.lcdgame.level-1) * 62.5}; // game1
+		if (this.lcdgame.gametype == 2) {msecs = 500 - (this.lcdgame.level-1) * 62.5}; // game2
 		// limit max.speed. NOTE: not verified so not sure that this limit was also on actual device
 		if (msecs < 62.5) {msecs = 62.5};
 
-		//console.log("initNextLevel, difficulty="+this.difficulty+" level="+this.lcdgame.level+" tick millisecs="+msecs);
+		//console.log("initNextLevel, lcdgame.gametype="+this.lcdgame.gametype+" level="+this.lcdgame.level+" tick millisecs="+msecs);
 
 		// reset player
 		this.initCarPos();
@@ -596,9 +606,9 @@ highway.MainGame.prototype = {
 
 	addScore: function(points) {
 		// check if valid move
-		this.score += points;
+		this.lcdgame.score += points;
 		// score display can overflow, example when score=20790, display as "790"
-		this.displayscore = (this.score % 20000);
+		this.displayscore = (this.lcdgame.score % 20000);
 	}
 }
 

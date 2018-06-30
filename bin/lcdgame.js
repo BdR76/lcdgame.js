@@ -9,6 +9,13 @@ var LCDGame = LCDGame || {
 	countimages: 0,	
 	// scale factor
 	scaleFactor: 1.0,
+	/**
+	* Keep score on global variable for highscore
+	*
+    * @property {score} integer - The game current score
+    * @default
+    */
+	score: 0,
     /**
 	* Which game type or difficulty, for high score purposes to be added later.
 	* Has to implemented as seen fit for each individual game.
@@ -115,14 +122,225 @@ LCDGame.State.prototype.constructor = LCDGame.State;
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
+var MENU_HTML = 
+		'<div class="container">' +
+		'  <canvas id="mycanvas" class="gamecvs" width="400" height="300"></canvas>' +
+		'  <a class="mybutton btnmenu">info</a>' +
+		'  <a class="mybutton btnmenu" onclick="displayInfobox();">help</a>' +
+		'  <div class="infobox" id="infobox">' +
+		'    <div>' +
+		'      <h1>test123</h1>' +
+		'      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.' +
+		'    </div>' +
+		'    <a class="mybutton btnpop" onclick="hideInfobox();">Ok</a>' +
+		'  </div>' +
+		'</div>';;
+
+
+function displayInfobox() {
+	hideScorebox();
+	document.getElementById("infobox").style.display = "inherit";
+	//event.stopPropagation(); // stop propagation on button click event
+}
+
+function hideInfobox() {
+	var target = event.target || event.srcElement;
+	// filter event handling when the event bubbles
+	if (event.currentTarget == target) {
+		document.getElementById("infobox").style.display = "none";
+	}
+}
+
+// -------------------------------------
+// menu overlay object
+// -------------------------------------
+LCDGame.Menu = function (lcdgame, name) {
+	// save reference to game object 
+	this.lcdgame = lcdgame;
+};
+
+// LCD game JavaScript library
+// Bas de Reuver (c)2018
+
+var SCORE_HTML = 
+		'<div class="infobox" id="scorebox">' +
+		'  <div id="scorecontent">' +
+		'    high-scores'
+		'  </div>' +
+		'  <a class="mybutton btnpop" onclick="hideScorebox();">Ok</a>' +
+		'</div>';
+
+function displayScorebox() {
+	hideInfobox();
+	document.getElementById("scorebox").style.display = "inherit";
+	//event.stopPropagation(); // stop propagation on button click event
+}
+
+function hideScorebox() {
+	var target = event.target || event.srcElement;
+	// filter event handling when the event bubbles
+	if (event.currentTarget == target) {
+		document.getElementById("scorebox").style.display = "none";
+	}
+}
+
+// -------------------------------------
+// highscores object
+// -------------------------------------
+LCDGame.HighScores = function (lcdgame, gametitle, gametypes) {
+	// save reference to game objects
+	this.lcdgame = lcdgame;
+
+	// display variables
+	this.gametitle = gametitle;
+	this.gametypes = gametypes;
+
+	// highscore variables
+	this._scorecache = [];
+	this._scoretype = 0;
+	this._namecache = "";
+};
+
+LCDGame.HighScores.prototype = {
+
+    getGametype: function () {
+		var res = "";
+		if (this.gametypes) {
+			this.lcdgame.gametype-1
+			res = this.gametypes[this.lcdgame.gametype-1];
+		};
+		return res;
+	},
+
+	loadHighscores: function (typ) {
+
+		// clear variables
+		this._scorecache = [];
+		this._scoretype = typ;
+		this._namecache = "lcdgame_"+this.gametitle+"_hs"+typ;
+
+		// load from localstorage
+		var sc = window.localStorage.getItem(this._namecache);
+
+		// error checking, localstorage might not exist yet at first time start up
+		try {
+			this._scorecache = JSON.parse(sc);
+		} catch (e) {
+			this._scorecache = []; //error in the above string(in this case,yes)!
+		};
+		// error checking just to be sure, if localstorage contains something else then a JSON array (hackers?)
+		if (Object.prototype.toString.call(this._scorecache) !== "[object Array]") {
+			this._scorecache = [];
+		};
+		
+		// initialise hi-score array
+		for (var i=0; i < 10; i++) {
+			var rec = this._scorecache[i];
+			
+			if (typeof rec === "undefined") {
+				this._scorecache[i] = {"name":".....", "score":0, "level":1};
+			};
+		};
+	},
+
+    save: function () {
+		window.localStorage.setItem(this._namecache, JSON.stringify(this._scorecache));
+    },
+	
+    scoreIndex: function (sc, typ) {
+		// refresh cache if needed
+		if (typ != this._scoretype) {
+			this.loadHighscores(typ);
+		};
+
+		var idx = -1;
+		// check if new highscore
+		for (var i = this._scorecache.length-1; i >= 0; i--) {
+			if (sc > this._scorecache[i].score) {
+				idx = i;
+			} else {
+				break;
+			};
+		};
+		return idx;
+	},
+
+    submitScore: function (plr, sc, lvl, typ) {
+		var idx = this.scoreIndex(sc, typ);
+		if (idx >= 0) {
+			// insert new record
+			var rec = {"name":plr, "score":this.lcdgame.score, "level":this.lcdgame.level};
+			this._scorecache.splice(idx, 0, rec);
+			
+			// remove last records, keep max 10
+			var s = 10 - this._scorecache.length;
+			if (s < 0) {
+				this._scorecache.splice(s);
+			};
+
+			this.save();
+		};
+    },
+
+    checkScore: function () {
+		// save current score values, because will reset on background when new game starts
+		var sc = this.lcdgame.score;
+		var lvl = this.lcdgame.lvl;
+		var typ = this.lcdgame.gametype;
+
+		// check if out of rank
+		var idx = this.scoreIndex(sc, typ);
+
+		// new highscore
+		if (idx >= 0) {
+			// input name
+			var plr = prompt("New highscore, enter your name and press enter to submit or prses cancel.", "");
+
+			if (plr != null) {
+				this.submitScore(plr, sc, lvl, typ);
+			};
+			// show on screen
+			this.refreshHTML();
+			displayScorebox();
+		};
+    },
+
+	refreshHTML: function () {
+		// build highscore rows
+		var rows = "";
+		for (var i = 0; i < 10; i++) {
+			var rec = this._scorecache[i];
+			rows = rows + "      <tr><td>" + (i+1) + ".</td><td>" + rec.name + "</td><td>" + rec.score + "</td></tr>";
+		};
+
+		// game name and column headers
+		var mod = this.getGametype();
+		mod = (mod == "" ? mod : " (" + mod + ")");
+		var str =
+			"<h1>" + this.gametitle + mod + "</h1>" +
+			"<table>" +
+			"      <tr><td>Rk.</td><td>Name</td><td>Score</td></tr>" +
+			rows +
+			"    </table>";
+			
+		// refresh html content
+		this.lcdgame.scorecontent.innerHTML = str;
+    },
+};
+
+//LCDGame.HighScores.prototype.constructor = LCDGame.HighScores;
+// LCD game JavaScript library
+// Bas de Reuver (c)2018
+
 // -------------------------------------
 // game object
 // -------------------------------------
-LCDGame.Game = function (configfile) {
+LCDGame.Game = function (configfile, metadatafile) {
 
 	this.gamedata = [];
 	this.imageBackground = null;
 	this.imageShapes = null;
+	this.score = 0;
 	this.gametype = 0;
 	this.level = 0;
 
@@ -149,18 +367,54 @@ LCDGame.Game = function (configfile) {
 		this.imageShapes.attachEvent("error", this.onImageError.bind(this));
 	};
 
-	// add gamedata and populate by loading json
-	this.loadConfig(configfile);
-	
-	// create canvas element and add to document
-	this.canvas = document.createElement("canvas");
-	document.body.appendChild(this.canvas);
+// create canvas element and add to document
+	var str =
+		'<div class="container">' +
+		'  <canvas id="mycanvas" class="gamecvs" width="400" height="300"></canvas>' +
+		'  <a class="mybutton btnmenu" onclick="displayInfobox();">info</a>' +
+		'  <a class="mybutton btnmenu" onclick="displayScorebox();">scores</a>' +
+		'  <div class="infobox" id="infobox">' +
+		'    <div id="infocontent">' +
+		'      instructions' +
+		'    </div>' +
+		'    <a class="mybutton btnpop" onclick="hideInfobox();">Ok</a>' +
+		'  </div>' +
+		'</div>' +
+		'<div class="infobox" id="scorebox">' +
+		'  <div id="scorecontent">' +
+		'    <table>' +
+		'      <tr><td>Rk.</td><td>Name</td><td>Score</td></tr>' +
+		'      <tr><td>1.</td><td>First name</td><td>1000</td></tr>' +
+		'      <tr><td>2.</td><td>Second name</td><td>900</td></tr>' +
+		'      <tr><td>3.</td><td>Third name</td><td>800</td></tr>' +
+		'      <tr><td>4.</td><td>Fourth name</td><td>700</td></tr>' +
+		'      <tr><td>5.</td><td>Fifth name</td><td>600</td></tr>' +
+		'      <tr><td>6.</td><td>Sixth name</td><td>500</td></tr>' +
+		'      <tr><td>7.</td><td>Seventh name</td><td>400</td></tr>' +
+		'      <tr><td>8.</td><td>Eight name</td><td>300</td></tr>' +
+		'      <tr><td>9.</td><td>Ninth name</td><td>200</td></tr>' +
+		'      <tr><td>10.</td><td>Tenth name</td><td>100</td></tr>' +
+		'    </table>' +
+		'  </div>' +
+		'  <a class="mybutton btnpop" onclick="hideScorebox();">Ok</a>' +
+		'</div>';
 
+	document.write(str);
+
+	this.canvas = document.getElementById("mycanvas");
+	this.infocontent = document.getElementById("infocontent");
+	this.scorecontent = document.getElementById("scorecontent");
+	
 	// get context of canvas element
 	this.context2d = this.canvas.getContext("2d");
 		
 	// state manager
 	this.state = new LCDGame.StateManager(this);
+	
+	// add gamedata and populate by loading json
+	this.loadConfig(configfile);
+	metadatafile = (metadatafile || "metadata/gameinfo.json");
+	this.loadMetadata(metadatafile);
 
 	return this;
 }
@@ -170,7 +424,7 @@ LCDGame.Game.prototype = {
 	// background ans shapes images loaded
 	// -------------------------------------
 	onImageLoaded: function() {
-		// TODO: do something
+		// max two images
 		this.countimages++;
 		// check if both background and shapes images were loaded
 		if (this.countimages >= 2) {
@@ -180,7 +434,7 @@ LCDGame.Game.prototype = {
 	},
 
 	onImageError: function() {
-		// TODO: do something?
+		// handle error
 		console.log("** ERROR ** lcdgame.js - onImageError.");
 	},
 
@@ -368,6 +622,55 @@ LCDGame.Game.prototype = {
 		console.error(xhr);
 	},
 
+	// -------------------------------------
+	// load a metadata file
+	// -------------------------------------
+	loadMetadata: function(path) {
+		var xhrCallback = function()
+		{
+			if (xhr.readyState === XMLHttpRequest.DONE) {
+				if ((xhr.status === 200) || (xhr.status === 0)) {
+					this.onMetadataLoad(JSON.parse(xhr.responseText));
+				} else {
+					this.onMetadataError(xhr);
+				}
+			}
+		};
+	
+		var xhr = new XMLHttpRequest();
+		xhr.onreadystatechange = xhrCallback.bind(this);
+
+		xhr.open("GET", path, true);
+		xhr.send();
+	},
+
+	// -------------------------------------
+	// metadata load JSON file
+	// -------------------------------------
+	onMetadataLoad: function(data) {
+		console.log('onMetadataLoad start');
+		// load all from JSON data
+		this.metadata = data;
+		
+		// infobox content
+		this.infocontent.innerHTML = "<h1>" + data.gameinfo.device.title + "</h1><br/>" + data.gameinfo.instructions.en;
+
+		// get info from metadata
+		var title = data.gameinfo.device.title
+		var gametypes = data.gameinfo.gametypes;
+		this.gametype = (typeof gametypes === "undefined" ? 0 : 1);
+
+		// highscores
+		this.highscores = new LCDGame.HighScores(this, title, gametypes);
+		this.highscores.loadHighscores(this.gametype);
+		this.highscores.refreshHTML();
+	},
+
+	onMetadataError: function(xhr) {
+		console.log("** ERROR ** lcdgame.js - onMetadataError: error loading json file");
+		console.error(xhr);
+	},
+
 	resizeCanvas: function() {
 
 		// determine which is limiting factor for current window/frame size; width or height
@@ -453,11 +756,18 @@ LCDGame.Game.prototype = {
 		};
 	},
 
+	gameReset: function(gametype) {
+		// new game reset variables
+		this.score = 0;
+		this.level = 0;
+		this.gametype = gametype;
+	},
+
 	// -------------------------------------
 	// sound effects
 	// -------------------------------------
 	loadSoundEffects: function() {
-		// TODO: do something?
+		// handle error
 		console.log("loadSoundEffects - TODO load sound effects");
 	},
 
@@ -737,8 +1047,8 @@ LCDGame.Game.prototype = {
 	// function for drawing and redrawing shapes 
 	// -------------------------------------
 	shapesRefresh: function() {
-		// TODO: implement dirty rectangles
 
+		// TODO: implement dirty rectangles?
 		// FOR NOW: simply redraw everything
 	
 		if (this.gamedata.frames) {

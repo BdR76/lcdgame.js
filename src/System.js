@@ -7,6 +7,13 @@ var LCDGame = LCDGame || {
 	countimages: 0,	
 	// scale factor
 	scaleFactor: 1.0,
+	/**
+	* Keep score on global variable for highscore
+	*
+    * @property {score} integer - The game current score
+    * @default
+    */
+	score: 0,
     /**
 	* Which game type or difficulty, for high score purposes to be added later.
 	* Has to implemented as seen fit for each individual game.

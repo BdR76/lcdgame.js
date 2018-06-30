@@ -4,11 +4,12 @@
 // -------------------------------------
 // game object
 // -------------------------------------
-LCDGame.Game = function (configfile) {
+LCDGame.Game = function (configfile, metadatafile) {
 
 	this.gamedata = [];
 	this.imageBackground = null;
 	this.imageShapes = null;
+	this.score = 0;
 	this.gametype = 0;
 	this.level = 0;
 
@@ -35,18 +36,54 @@ LCDGame.Game = function (configfile) {
 		this.imageShapes.attachEvent("error", this.onImageError.bind(this));
 	};
 
-	// add gamedata and populate by loading json
-	this.loadConfig(configfile);
-	
-	// create canvas element and add to document
-	this.canvas = document.createElement("canvas");
-	document.body.appendChild(this.canvas);
+// create canvas element and add to document
+	var str =
+		'<div class="container">' +
+		'  <canvas id="mycanvas" class="gamecvs" width="400" height="300"></canvas>' +
+		'  <a class="mybutton btnmenu" onclick="displayInfobox();">info</a>' +
+		'  <a class="mybutton btnmenu" onclick="displayScorebox();">scores</a>' +
+		'  <div class="infobox" id="infobox">' +
+		'    <div id="infocontent">' +
+		'      instructions' +
+		'    </div>' +
+		'    <a class="mybutton btnpop" onclick="hideInfobox();">Ok</a>' +
+		'  </div>' +
+		'</div>' +
+		'<div class="infobox" id="scorebox">' +
+		'  <div id="scorecontent">' +
+		'    <table>' +
+		'      <tr><td>Rk.</td><td>Name</td><td>Score</td></tr>' +
+		'      <tr><td>1.</td><td>First name</td><td>1000</td></tr>' +
+		'      <tr><td>2.</td><td>Second name</td><td>900</td></tr>' +
+		'      <tr><td>3.</td><td>Third name</td><td>800</td></tr>' +
+		'      <tr><td>4.</td><td>Fourth name</td><td>700</td></tr>' +
+		'      <tr><td>5.</td><td>Fifth name</td><td>600</td></tr>' +
+		'      <tr><td>6.</td><td>Sixth name</td><td>500</td></tr>' +
+		'      <tr><td>7.</td><td>Seventh name</td><td>400</td></tr>' +
+		'      <tr><td>8.</td><td>Eight name</td><td>300</td></tr>' +
+		'      <tr><td>9.</td><td>Ninth name</td><td>200</td></tr>' +
+		'      <tr><td>10.</td><td>Tenth name</td><td>100</td></tr>' +
+		'    </table>' +
+		'  </div>' +
+		'  <a class="mybutton btnpop" onclick="hideScorebox();">Ok</a>' +
+		'</div>';
 
+	document.write(str);
+
+	this.canvas = document.getElementById("mycanvas");
+	this.infocontent = document.getElementById("infocontent");
+	this.scorecontent = document.getElementById("scorecontent");
+	
 	// get context of canvas element
 	this.context2d = this.canvas.getContext("2d");
 		
 	// state manager
 	this.state = new LCDGame.StateManager(this);
+	
+	// add gamedata and populate by loading json
+	this.loadConfig(configfile);
+	metadatafile = (metadatafile || "metadata/gameinfo.json");
+	this.loadMetadata(metadatafile);
 
 	return this;
 }
@@ -56,7 +93,7 @@ LCDGame.Game.prototype = {
 	// background ans shapes images loaded
 	// -------------------------------------
 	onImageLoaded: function() {
-		// TODO: do something
+		// max two images
 		this.countimages++;
 		// check if both background and shapes images were loaded
 		if (this.countimages >= 2) {
@@ -66,7 +103,7 @@ LCDGame.Game.prototype = {
 	},
 
 	onImageError: function() {
-		// TODO: do something?
+		// handle error
 		console.log("** ERROR ** lcdgame.js - onImageError.");
 	},
 
@@ -254,6 +291,55 @@ LCDGame.Game.prototype = {
 		console.error(xhr);
 	},
 
+	// -------------------------------------
+	// load a metadata file
+	// -------------------------------------
+	loadMetadata: function(path) {
+		var xhrCallback = function()
+		{
+			if (xhr.readyState === XMLHttpRequest.DONE) {
+				if ((xhr.status === 200) || (xhr.status === 0)) {
+					this.onMetadataLoad(JSON.parse(xhr.responseText));
+				} else {
+					this.onMetadataError(xhr);
+				}
+			}
+		};
+	
+		var xhr = new XMLHttpRequest();
+		xhr.onreadystatechange = xhrCallback.bind(this);
+
+		xhr.open("GET", path, true);
+		xhr.send();
+	},
+
+	// -------------------------------------
+	// metadata load JSON file
+	// -------------------------------------
+	onMetadataLoad: function(data) {
+		console.log('onMetadataLoad start');
+		// load all from JSON data
+		this.metadata = data;
+		
+		// infobox content
+		this.infocontent.innerHTML = "<h1>" + data.gameinfo.device.title + "</h1><br/>" + data.gameinfo.instructions.en;
+
+		// get info from metadata
+		var title = data.gameinfo.device.title
+		var gametypes = data.gameinfo.gametypes;
+		this.gametype = (typeof gametypes === "undefined" ? 0 : 1);
+
+		// highscores
+		this.highscores = new LCDGame.HighScores(this, title, gametypes);
+		this.highscores.loadHighscores(this.gametype);
+		this.highscores.refreshHTML();
+	},
+
+	onMetadataError: function(xhr) {
+		console.log("** ERROR ** lcdgame.js - onMetadataError: error loading json file");
+		console.error(xhr);
+	},
+
 	resizeCanvas: function() {
 
 		// determine which is limiting factor for current window/frame size; width or height
@@ -339,11 +425,18 @@ LCDGame.Game.prototype = {
 		};
 	},
 
+	gameReset: function(gametype) {
+		// new game reset variables
+		this.score = 0;
+		this.level = 0;
+		this.gametype = gametype;
+	},
+
 	// -------------------------------------
 	// sound effects
 	// -------------------------------------
 	loadSoundEffects: function() {
-		// TODO: do something?
+		// handle error
 		console.log("loadSoundEffects - TODO load sound effects");
 	},
 
@@ -623,8 +716,8 @@ LCDGame.Game.prototype = {
 	// function for drawing and redrawing shapes 
 	// -------------------------------------
 	shapesRefresh: function() {
-		// TODO: implement dirty rectangles
 
+		// TODO: implement dirty rectangles?
 		// FOR NOW: simply redraw everything
 	
 		if (this.gamedata.frames) {
