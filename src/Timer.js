@@ -34,12 +34,6 @@ LCDGame.Timer = function (game, eventfunction, interval) {
 		// do callback function to gameobj, so not to LCDGame.Timer object
 		this.doGameEvent.call(this.game);
 		// if maximum of callbacks was set
-		//console.log("LCDGame.Timer.doTimerEvent this.Max="+this.Max);
-		
-		// TESTING!!
-		//var d = new Date();
-		//var n = d.toLocaleTimeString() + '.' + ("000"+d.getMilliseconds()).substr(-3);
-		//console.log("onTimerWait - time="+n+ " Timer.Counter="+this.Counter+" Timer.Max="+this.Max);
 		if (typeof this.Max !== "undefined") {
 			if (this.Counter >= this.Max) this.Stop();
 		};

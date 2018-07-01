@@ -13,9 +13,6 @@ LCDGame.StateManager = function (lcdgame) {
 LCDGame.StateManager.prototype = {
 
    add: function (key, state) {
-
-		console.log("(typeof state) = " + (typeof state) );
-
 		//state.game = this.game;
         this.states[key] = new state(this.lcdgame);
 

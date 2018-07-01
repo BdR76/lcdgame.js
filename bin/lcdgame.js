@@ -60,9 +60,6 @@ LCDGame.StateManager = function (lcdgame) {
 LCDGame.StateManager.prototype = {
 
    add: function (key, state) {
-
-		console.log("(typeof state) = " + (typeof state) );
-
 		//state.game = this.game;
         this.states[key] = new state(this.lcdgame);
 
@@ -554,7 +551,6 @@ LCDGame.Game.prototype = {
 		this.countimages++;
 		// check if both background and shapes images were loaded
 		if (this.countimages >= 2) {
-			console.log("lcdgame.js - onImageLoaded.. ready to rock!");
 			this.initGame();
 		};
 	},
@@ -591,7 +587,6 @@ LCDGame.Game.prototype = {
 	// start game
 	// -------------------------------------
 	onConfigLoad: function(data) {
-		console.log('onConfigLoad start');
 		// load all from JSON data
 		this.gamedata = data;
 
@@ -601,8 +596,6 @@ LCDGame.Game.prototype = {
 	
 		// add custom lcdgame.js properties for use throughout the library
 		for (var i = 0; i < this.gamedata.frames.length; i++) {
-			//console.log('TEST frame ' + name);
-			//console.log('frame ' + name + ' -> x,y=' + this.gamedata.frames[i].frame.x + ',' + this.gamedata.frames[i].frame.y);
 
 			// add current/previous values to all shape objects
 			this.gamedata.frames[i].value = false;
@@ -774,7 +767,6 @@ LCDGame.Game.prototype = {
 	// metadata load JSON file
 	// -------------------------------------
 	onMetadataLoad: function(data) {
-		console.log('onMetadataLoad start');
 		// load all from JSON data
 		this.metadata = data;
 		
@@ -790,9 +782,6 @@ LCDGame.Game.prototype = {
 		this.highscores = new LCDGame.HighScores(this, title, gametypes);
 		this.highscores.loadHighscores(this.gametype);
 		this.highscores.refreshGlobalHS();
-		
-		console.log('testing GUIG -> '  + this.highscores.uuidv4());
-		
 	},
 
 	onMetadataError: function(xhr) {
@@ -911,6 +900,8 @@ LCDGame.Game.prototype = {
 		
 		hideInfobox();
 		hideScorebox();
+
+		console.log("lcdgame.js - ready to rock!");
 	},
 
 	gameReset: function(gametype) {
@@ -1109,7 +1100,6 @@ LCDGame.Game.prototype = {
 	},
 
 	shapesDisplayAll: function(value) {
-		//console.log("shapesDisplayAll: " + this.gamedata.frames[index].frame.x);
 
 		if (this.gamedata.frames) {
 			// all shapes
@@ -1212,7 +1202,6 @@ LCDGame.Game.prototype = {
 			// redraw entire background (=inefficient)
 			this.context2d.drawImage(this.imageBackground, 0, 0);
 			
-			//console.log("shapesRefresh called");
 			// add current/previous values to all shape objects
 			for (var i = 0; i < this.gamedata.frames.length; i++) {
 				if (this.gamedata.frames[i].value == true) {
@@ -1233,8 +1222,6 @@ LCDGame.Game.prototype = {
 	},
 
 	shapeDraw: function(index) {
-		//console.log("shapeDraw: " + this.gamedata.frames[index].x);
-
 		// draw shape
 		this.context2d.drawImage(
 			this.imageShapes,
@@ -1388,7 +1375,6 @@ LCDGame.Game.prototype = {
 	onkeydown: function(e) {
 		// get keycode
 		var keyCode = e.keyCode;
-		//console.log('lcdgame.js onkeydown -- '+keyCode);
 
 		// check if keycode in defined buttons
 		for (var i=0; i < this.gamedata.buttons.length; i++) {
@@ -1416,7 +1402,6 @@ LCDGame.Game.prototype = {
 	
 	onButtonDown: function(btnidx, diridx) {
 		var name = this.gamedata.buttons[btnidx].name;
-		//console.log('onButtonDown -- name=' + name + ' btnidx=' + btnidx);
 		this.state.currentState().input(name, diridx);
 
 		var idx = this.gamedata.buttons[btnidx].ids[diridx];
@@ -1426,7 +1411,6 @@ LCDGame.Game.prototype = {
 	},
 	
 	onButtonUp: function(btnidx, diridx) {
-		//console.log('onButtonUp -- name=' + name + ' btnidx=' + btnidx);
 		// TODO: visually update frame so key is in neutral position
 		for (var s=0; s < this.gamedata.buttons[btnidx].ids.length; s++) {
 			var idx = this.gamedata.buttons[btnidx].ids[s];
@@ -1541,12 +1525,6 @@ LCDGame.Timer = function (game, eventfunction, interval) {
 		// do callback function to gameobj, so not to LCDGame.Timer object
 		this.doGameEvent.call(this.game);
 		// if maximum of callbacks was set
-		//console.log("LCDGame.Timer.doTimerEvent this.Max="+this.Max);
-		
-		// TESTING!!
-		//var d = new Date();
-		//var n = d.toLocaleTimeString() + '.' + ("000"+d.getMilliseconds()).substr(-3);
-		//console.log("onTimerWait - time="+n+ " Timer.Counter="+this.Counter+" Timer.Max="+this.Max);
 		if (typeof this.Max !== "undefined") {
 			if (this.Counter >= this.Max) this.Stop();
 		};
