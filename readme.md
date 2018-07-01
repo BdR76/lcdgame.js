@@ -65,7 +65,7 @@ still missing features (~~strikethrough~~ is done).
 * ~~add gameplay info popup, explanation for each game~~
 * ~~add high scores list (local storage)~~
 * ~~add menu overlay in separate dom-elements~~
-* add high scores list (shared online)
+* ~~add high scores list (shared online)~~
 * responsive resizing/scaling and display centered
 * sound mp3/wav based on browsertype
 * Shapes editor, allow shapes change position, mouse drag/move
@@ -77,7 +77,7 @@ still missing features (~~strikethrough~~ is done).
 
 History
 -------
-30-jun-2018 v0.3.1 menu, infobox, local highscores   
+01-jul-2018 v0.3.1 menu, infobox, online highscores   
 23-jun-2018 v0.3 added statemanager, preliminary touch and scale   
 27-apr-2017 v0.2 Mario bros and Sea Ranger playable, better compatibility, utilities and tools   
 10-nov-2015 v0.1 first release of lcdgame.js and shape editor on github
