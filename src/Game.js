@@ -334,7 +334,7 @@ LCDGame.Game.prototype = {
 		// highscores
 		this.highscores = new LCDGame.HighScores(this, title, gametypes);
 		this.highscores.loadHighscores(this.gametype);
-		this.highscores.refreshHTML();
+		this.highscores.refreshGlobalHS();
 	},
 
 	onMetadataError: function(xhr) {

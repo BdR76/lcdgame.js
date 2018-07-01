@@ -3,6 +3,8 @@
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
+var LCDGAME_VERSION = "0.3.1";
+
 // namespace
 var LCDGame = LCDGame || {
 	loadsounds: null,
@@ -169,6 +171,7 @@ var SCORE_HTML =
 		'  </div>' +
 		'  <a class="mybutton btnpop" onclick="hideScorebox();">Ok</a>' +
 		'</div>';
+var HS_URL = "http://bdrgames.nl/lcdgames/php/";
 
 function displayScorebox() {
 	hideInfobox();
@@ -232,15 +235,6 @@ LCDGame.HighScores.prototype = {
 		if (Object.prototype.toString.call(this._scorecache) !== "[object Array]") {
 			this._scorecache = [];
 		};
-		
-		// initialise hi-score array
-		for (var i=0; i < 10; i++) {
-			var rec = this._scorecache[i];
-			
-			if (typeof rec === "undefined") {
-				this._scorecache[i] = {"name":".....", "score":0, "level":1};
-			};
-		};
 	},
 
     save: function () {
@@ -265,11 +259,11 @@ LCDGame.HighScores.prototype = {
 		return idx;
 	},
 
-    submitScore: function (plr, sc, lvl, typ) {
+    saveLocal: function (plr, sc, lvl, typ) {
 		var idx = this.scoreIndex(sc, typ);
 		if (idx >= 0) {
 			// insert new record
-			var rec = {"name":plr, "score":this.lcdgame.score, "level":this.lcdgame.level};
+			var rec = {"player":plr, "score":sc, "level":lvl};
 			this._scorecache.splice(idx, 0, rec);
 			
 			// remove last records, keep max 10
@@ -282,35 +276,119 @@ LCDGame.HighScores.prototype = {
 		};
     },
 
+    saveOnline: function (plr, sc, lvl, typ) {
+			// additional client info
+			var platform = navigator.platform;
+			var browser  = this.guessBrowser();
+			var language = navigator.language;
+			var clientguid  = this.getClientGUID();
+			
+			// build url
+			var url = HS_URL + "newhs.php";
+			var paramsdata = 
+				"gamename=" + this.gametitle +  // highscore data
+				"&gametype=" + typ +
+				"&player=" + plr + 
+				"&score=" + sc +
+				"&level=" + lvl +
+				"&platform=" + platform + // client info
+				"&browser=" + browser +
+				"&language=" + language +
+				"&lcdversion=" + LCDGAME_VERSION +
+				"&clientguid=" + clientguid;			
+
+			var request = new XMLHttpRequest();
+			request.open('POST', url, true);
+			request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+			//request.setRequestHeader("Content-length", paramsdata.length);
+			//request.setRequestHeader("Connection", "close");
+
+			// handle success or error
+			request.onreadystatechange = function(receiveddata) {
+				if (request.status >= 200 && request.status < 400) {
+					if (request.readyState == 4 && request.status == 200) {
+						// Success!
+						// here you could go to the leaderboard or restart your game
+						console.log('SUCCESS!!\nrequest.status='+ request.status + '\nrequest.response=' + request.response);
+						var test = JSON.parse(request.response);
+						if (test.result == 'OK') {
+							console.log('Highscore sent succesfully');
+							this.refreshGlobalHS();
+							displayScorebox();
+						} else {
+							console.log('Highscore sent failed');
+						};
+					};
+				} else {
+					// We reached our target server, but it returned an error
+					console.log('Highscore sent failed with error: ' + request.response);
+					resulttxt.text += '\nerror!';
+				}
+			}.bind(this); // <- only change
+
+			//debugger;
+			//paramsdata = getUserAgentParams();
+			request.send(paramsdata);
+    },
+
     checkScore: function () {
 		// save current score values, because will reset on background when new game starts
 		var sc = this.lcdgame.score;
-		var lvl = this.lcdgame.lvl;
+		var lvl = this.lcdgame.level;
 		var typ = this.lcdgame.gametype;
-
-		// check if out of rank
-		var idx = this.scoreIndex(sc, typ);
-
-		// new highscore
-		if (idx >= 0) {
+		
+		if (sc > 0) {
 			// input name
-			var plr = prompt("New highscore, enter your name and press enter to submit or prses cancel.", "");
+			var plr = prompt("New highscore, enter your name and press enter to submit or press cancel.", "");
 
 			if (plr != null) {
-				this.submitScore(plr, sc, lvl, typ);
+				this.saveLocal(plr, sc, lvl, typ);
+				this.saveOnline(plr, sc, lvl, typ);
 			};
-			// show on screen
-			this.refreshHTML();
-			displayScorebox();
 		};
     },
+	
+	refreshGlobalHS: function () {
+		var url = HS_URL + "geths.php" +
+			"?gamename=" + this.gametitle +  // highscore data
+			"&gametype=" + this.lcdgame.gametype;
+
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.open("GET", url, true); // true for asynchronous 
+		xmlHttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+		xmlHttp.onreadystatechange = function() { 
+			if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+				this.afterRefreshGlobalHS(xmlHttp.responseText);
+		}.bind(this); // <- only change
+		xmlHttp.send(null);
+	},
+	
+	afterRefreshGlobalHS: function (data) {
+		// error checking, localstorage might not exist yet at first time start up
+		try {
+			this._scorecache = JSON.parse(data);
+		} catch (e) {
+			this._scorecache = []; //error in the above string(in this case,yes)!
+		};
+		// error checking just to be sure, if data contains something else then a JSON array (hackers?)
+		if (Object.prototype.toString.call(this._scorecache) !== "[object Array]") {
+			this._scorecache = [];
+		};
+
+		this.refreshHTML();
+	},
 
 	refreshHTML: function () {
 		// build highscore rows
 		var rows = "";
 		for (var i = 0; i < 10; i++) {
 			var rec = this._scorecache[i];
-			rows = rows + "      <tr><td>" + (i+1) + ".</td><td>" + rec.name + "</td><td>" + rec.score + "</td></tr>";
+			
+			if (typeof rec === "undefined") {
+				rec = {"player":".....", "score":0, "level":1};
+			};
+			
+			rows = rows + "      <tr><td>" + (i+1) + ".</td><td>" + rec.player + "</td><td>" + rec.score + "</td></tr>";
 		};
 
 		// game name and column headers
@@ -326,6 +404,52 @@ LCDGame.HighScores.prototype = {
 		// refresh html content
 		this.lcdgame.scorecontent.innerHTML = str;
     },
+
+	uuidv4: function () {
+		return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, function(c) {
+			return (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+			}
+		)
+	},
+		
+	getClientGUID: function () {
+		var guid = window.localStorage.getItem("lcdgame_client_guid");
+		if (!guid) {
+			// create one
+			guid = this.uuidv4();
+			window.localStorage.setItem("lcdgame_client_guid", guid);
+		}
+		return guid;
+	},
+		
+	guessBrowser: function () {
+		// Opera 8.0+
+		if ((!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0) {
+			return "Opera 8.0+";
+		} else
+		// Firefox 1.0+
+		if (typeof InstallTrigger !== 'undefined') {
+			return "Firefox 1.0+";
+		} else
+		// Safari 3.0+ "[object HTMLElementConstructor]" 
+		if (/constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification))) {
+			return "Safari 3.0+";
+		} else
+		// Internet Explorer 6-11
+		if ( /*@cc_on!@*/false || !!document.documentMode) {
+			return "Internet Explorer 6-11";
+		} else
+		// Edge 20+
+		if ( !!window.StyleMedia) {
+			return "Edge 20+";
+		} else
+		// Chrome 1+
+		if ( !!window.chrome && !!window.chrome.webstore) {
+			return "Chrome 1+";
+		} else {
+			return "Unknown";
+		};
+	}
 };
 
 //LCDGame.HighScores.prototype.constructor = LCDGame.HighScores;
@@ -665,7 +789,10 @@ LCDGame.Game.prototype = {
 		// highscores
 		this.highscores = new LCDGame.HighScores(this, title, gametypes);
 		this.highscores.loadHighscores(this.gametype);
-		this.highscores.refreshHTML();
+		this.highscores.refreshGlobalHS();
+		
+		console.log('testing GUIG -> '  + this.highscores.uuidv4());
+		
 	},
 
 	onMetadataError: function(xhr) {

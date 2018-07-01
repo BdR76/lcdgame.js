@@ -1,6 +1,8 @@
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
+var LCDGAME_VERSION = "0.3.1";
+
 // namespace
 var LCDGame = LCDGame || {
 	loadsounds: null,

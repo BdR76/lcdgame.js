@@ -30,7 +30,6 @@ td:nth-child(3) {
 }
 
 .infobox{
-	display: none; /* infobox is hidden at startup */
 	position: absolute;
 	background: #fff;
 	color: #000;
