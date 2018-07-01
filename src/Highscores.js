@@ -108,7 +108,7 @@ LCDGame.HighScores.prototype = {
 		var idx = this.scoreIndex(sc, typ);
 		if (idx >= 0) {
 			// insert new record
-			var rec = {"name":plr, "score":this.lcdgame.score, "level":this.lcdgame.level};
+			var rec = {"name":plr, "score":sc, "level":lvl};
 			this._scorecache.splice(idx, 0, rec);
 			
 			// remove last records, keep max 10
@@ -133,7 +133,7 @@ LCDGame.HighScores.prototype = {
 		// new highscore
 		if (idx >= 0) {
 			// input name
-			var plr = prompt("New highscore, enter your name and press enter to submit or prses cancel.", "");
+			var plr = prompt("New highscore, enter your name and press enter to submit or press cancel.", "");
 
 			if (plr != null) {
 				this.submitScore(plr, sc, lvl, typ);
