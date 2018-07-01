@@ -44,6 +44,7 @@ highway.ClockMode.prototype = {
 			this.demotimer.Stop();
 			this.lcdgame.state.start("select");
 		};
+		// TESTING!!
 	},
 		
 	close: function() {
@@ -414,8 +415,8 @@ highway.MainGame.prototype = {
 		this.misses++;
 		this.gamestate = STATE_GAMECRASH;
 		// update misses display
-		this.lcdgame.sequenceShift("carlifes");
-		this.lcdgame.sequenceSetFirst("carlifes", true);
+		this.lcdgame.sequenceShift("carlives");
+		this.lcdgame.sequenceSetFirst("carlives", true);
 		if (this.misses >= 3) {
 			this.lcdgame.setShapeByName("gameover", true);
 		};
