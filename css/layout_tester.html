@@ -4,24 +4,145 @@
 		<title>css test2</title>
 	</head>
 	<link rel="stylesheet" type="text/css" href="lcdstyle.css">
+	<script>
+var IMG_URL = "../games/highway/img/highway_back.jpg";
+var cvs, ctx;
 
-	<body>
+function displayInfobox() {
+	hideScorebox();
+	document.getElementById("infobox").style.display = "inherit";
+	//event.stopPropagation(); // stop propagation on button click event
+}
+
+function hideInfobox() {
+	//var target = event.target || event.srcElement;
+	// filter event handling when the event bubbles
+	//if (event.currentTarget == target) {
+		document.getElementById("infobox").style.display = "none";
+	//}
+}
+
+function displayScorebox() {
+	hideInfobox();
+	document.getElementById("scorebox").style.display = "inherit";
+	//event.stopPropagation(); // stop propagation on button click event
+}
+
+function hideScorebox() {
+	//var target = event.target || event.srcElement;
+	// filter event handling when the event bubbles
+	//if (event.currentTarget == target) {
+		document.getElementById("scorebox").style.display = "none";
+	//}
+}
+
+function loadbackground() {
+	cvs = document.getElementById("mycanvas");
+	ctx = cvs.getContext("2d");
+
+	imageBackground = new Image();
+	imageBackground.addEventListener("load", this.onImageLoaded.bind(this));
+	imageBackground.src = IMG_URL;
+}
+
+function onImageLoaded() {
+
+	cvs.width = imageBackground.width;
+	cvs.height = imageBackground.height;
+	ctx.drawImage(imageBackground, 0, 0);
+	
+	resizeCanvas();
+	resizeInfobox(document.getElementById("infobox"));
+	resizeInfobox(document.getElementById("scorebox"));
+
+}
+
+function resizeCanvas() {
+
+	// determine which is limiting factor for current window/frame size; width or height
+	var scrratio = window.innerWidth / window.innerHeight;
+	var imgratio = cvs.width / cvs.height;
+	
+	// determine screen/frame size
+	var w = cvs.width;
+	var h = cvs.height;
+
+	if (imgratio > scrratio) {
+		// width of image should take entire width of screen
+		w = window.innerWidth;
+		this.scaleFactor = w / cvs.width;
+		h = cvs.height * this.scaleFactor;
+
+		// set margins for full height
+		var ymargin = (window.innerHeight - h) / 2;
+		cvs.style["margin-top"] = ymargin+"px";
+		cvs.style["margin-bottom"] = -ymargin+"px";
+		cvs.style["margin-left"] = "0px";
+	} else {
+		// height of image should take entire height of screen
+		h = window.innerHeight;
+		this.scaleFactor = h / cvs.height;
+		w = cvs.width * this.scaleFactor;
+
+		// set margins for full height
+		var xmargin = (window.innerWidth - w) / 2;
+		cvs.style["margin-left"] = xmargin+"px";
+		cvs.style["margin-right"] = -xmargin+"px";
+		cvs.style["margin-top"] = "0px";
+	}
+	
+	// set canvas size
+	cvs.style.width = w+"px";
+	cvs.style.height = h+"px";
+
+	// set canvas properties
+	cvs.style.display = "block";
+	cvs.style["touch-action"] = "none"; // no text select on touch
+	cvs.style["user-select"] = "none"; // no text select on touch
+	cvs.style["-webkit-tap-highlight-color"] = "rgba(0, 0, 0, 0)"; // not sure what this does 
+};
+	
+function resizeInfobox(box) {
+
+	// determine screen/frame size
+	var w = box.offsetWidth;
+	var h = box.offsetHeight;
+	var rect = box.getBoundingClientRect();
+	if (rect) {
+		w = rect.width;
+		h = rect.height;
+	};
+
+	var xmargin = (window.innerWidth - w) / 2;
+	var ymargin = (window.innerHeight - h) / 2;
+
+	// set margins for full height
+	box.style["margin-left"] = xmargin+"px";
+	box.style["margin-right"] = -xmargin+"px";
+	box.style["margin-top"] = ymargin+"px";
+	box.style["margin-bottom"] = -ymargin+"px";
+};
+
+	</script>
+
+	<body onload="loadbackground()">
 	
 <div class="container">
   <canvas id="mycanvas" class="gamecvs" width="400" height="300"></canvas>
-  <a class="mybutton btnmenu">info1</a>
-  <a class="mybutton btnmenu" onclick="displayInfobox();">help2</a>
+  <a class="mybutton btnmenu" onclick="displayInfobox();">info</a>
+  <a class="mybutton btnmenu" onclick="displayScorebox();">scores</a>
 
   <div class="infobox" id="infobox">
     <div>
-      <h1>test123</h1>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+      <h1>CSS Layout Tester</h1>
+      This is a test page to preview the CSS layout and test the resizing events.
     </div>
     <a class="mybutton btnpop" onclick="hideInfobox();">Ok</a>
   </div>
   
   <div class="infobox" id="scorebox">
     <div>
+	<h1>CSS Layout Tester (Game 1)</h1>
 	<table>
 		<tr><td>Rk.</td><td>Name</td><td>Score</td></tr>
 		<tr><td>1.</td><td>First name</td><td>1000</td></tr>
