@@ -1240,6 +1240,24 @@ LCDGame.Game.prototype = {
 		//this.context2d.fillStyle = "#fff";
 		//this.context2d.fillText(index, this.gamedata.frames[index].xpos, this.gamedata.frames[index].ypos);
 	},
+	
+	debugText: function(str, x, y) {
+		// set font
+		this.context2d.font = "bold 12px sans-serif";
+
+		var lineheight = 15;		
+		var lines = str.split('\n');
+
+		for (var i = 0; i<lines.length; i++) {
+			// shadow text
+			this.context2d.fillStyle = "#000";
+			this.context2d.fillText(lines[i], x+2, y+2);
+			// white text
+			this.context2d.fillStyle = "#fff";
+			this.context2d.fillText(lines[i], x, y);
+			y = y + lineheight;
+		};
+	},
 
 	// -------------------------------------
 	// buttons input through keyboard

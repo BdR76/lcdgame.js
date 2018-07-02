@@ -111,7 +111,7 @@ mariobros.MainGame = function(lcdgame) {
 	this.dropcase = [];
 
 	// initialise variable only once
-	for (var c = 1; c < 11; c++) {
+	for (var c = 0; c < 11; c++) {
 		this.holdcase[c] = false;
 	};
 	// 2 stacks of 4 cases on the truck, for dropped animation
@@ -312,15 +312,23 @@ mariobros.MainGame.prototype = {
 				if ( (!moveleft) && ([1,4,5,8,9].indexOf(c) > -1) )        {docheck = true};
 
 				if (docheck) {
-					// if case goes into middle of bottlemachine, temporary invisible
-					hold = this.lcdgame.sequenceShapeVisible(("case"+c), -1);
-					this.holdcase[c] = hold;
+					
+					if ([2,4,6,8,10].indexOf(c) > -1) {
+						// cases going into middle of bottlemachine, temporary invisible
+						hold = this.lcdgame.sequenceShapeVisible(("case"+c), -1);
+						this.holdcase[c] = hold;
+						// cases going up one level (grabbed by mario or luigi)
+						hold = this.holdcase[c-1];
+
+						if (hold) this.lcdgame.sequenceSetPos(("case"+c), 0, false); // make empty so hold in place for one tick
+					};
 					
 					// move all case on conveyor belt
 					this.lcdgame.sequenceShift("case"+c);
 					
 					// previous
 					var hold = this.holdcase[c-1];
+					this.holdcase[c-1] = false;
 					if (hold == true) this.lcdgame.sequenceSetFirst(("case"+(c)), true);
 
 					// play belt move sound if any cases moving left (or right) so do not play sound for each and every case
@@ -370,9 +378,15 @@ mariobros.MainGame.prototype = {
 			//	};
 			//};
 		};
-
 		// refresh shapes
 		this.lcdgame.shapesRefresh();
+		
+		//TESTING
+		//var str = "";
+		//for (var c = 0; c <= 11; c++) {
+		//	str = str + "holdcase["+c+"]" + this.holdcase[c] + "\n";
+		//}
+		//this.lcdgame.debugText(str, 10, 10);
 	},
 	
 	doCheckGrabCase: function() {
@@ -396,6 +410,8 @@ mariobros.MainGame.prototype = {
 				this.lcdgame.sequenceSetPos(("case"+casemove), -1, false);
 				this.lcdgame.sequenceSetPos(("case"+(casemove+1)), 0, true);
 				this.scorePoints(1);
+				// when moving up one place, case doesn't move immediately, hold for one tick
+				this.holdcase[casemove] = true;
 
 				// arms move animations
 				this.lcdgame.sequenceSetPos("luigi_arms", (this.luigipos*2), false);
@@ -436,6 +452,8 @@ mariobros.MainGame.prototype = {
 				this.lcdgame.sequenceSetPos(("case"+casemove), -1, false);
 				this.lcdgame.sequenceSetPos(("case"+(casemove+1)), 0, true);
 				this.scorePoints(1);
+				// when moving up one place, case doesn't move immediately, hold for one tick
+				this.holdcase[casemove] = true;
 
 				// arms move animations
 				this.lcdgame.sequenceSetPos("mario_arms", (this.mariopos*2), false);
@@ -642,7 +660,7 @@ mariobros.MainGame.prototype = {
 				this.lcdgame.gametype = (btn == "gamea" ? 1 : 2); // 1=game a, 2=game b
 				this.newGame();
 			};
-		} else { //if (this.gamestate == STATE_GAMEPLAY) {
+		} else if (this.gamestate == STATE_GAMEPLAY) {
 			// which button, up or down
 			if (btn == "luigi") {
 				var update = false;
