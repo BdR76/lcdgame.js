@@ -763,6 +763,28 @@ LCDGame.Game.prototype = {
 		xhr.send();
 	},
 
+	tinyMarkDown: function(str) {
+		// \n => <br/>
+		str = str.replace(/\n/gi, "<br/>");
+
+		// *bold* => <b>bold</b>
+		str = str.replace(/\*.*?\*/g, function(foo){
+			return "<b>"+foo.slice(1, -1)+"</b>";
+		});
+		
+		// _italic_ => <i>italic</i>
+		str = str.replace(/\_.*?\_/g, function(foo){
+			return "<i>"+foo.slice(1, -1)+"</i>";
+		});
+		
+		// [button] => <btn>button</btn>
+		str = str.replace(/\[.*?\]/g, function(foo){
+			return "<btn>"+foo.slice(1, -1)+"</btn>";
+		});
+		
+		return str;
+	},
+
 	// -------------------------------------
 	// metadata load JSON file
 	// -------------------------------------
@@ -771,7 +793,8 @@ LCDGame.Game.prototype = {
 		this.metadata = data;
 		
 		// infobox content
-		this.infocontent.innerHTML = "<h1>" + data.gameinfo.device.title + "</h1><br/>" + data.gameinfo.instructions.en;
+		var instr = this.tinyMarkDown(data.gameinfo.instructions.en);
+		this.infocontent.innerHTML = "<h1>" + data.gameinfo.device.title + "</h1><br/>" + instr;
 
 		// get info from metadata
 		var title = data.gameinfo.device.title
@@ -1240,7 +1263,7 @@ LCDGame.Game.prototype = {
 		//this.context2d.fillStyle = "#fff";
 		//this.context2d.fillText(index, this.gamedata.frames[index].xpos, this.gamedata.frames[index].ypos);
 	},
-	
+
 	debugText: function(str, x, y) {
 		// set font
 		this.context2d.font = "bold 12px sans-serif";
