@@ -16,7 +16,7 @@
 			"pro 1", "pro 2"
 		],
 		"instructions": {
-			"en": "Move left and right to avoid coconuts, boats, sharks and birds. When lifesaver drops down, move to the right to escape on the boat.\n\nPress [Mode] and then [Game A/B] to select 'pro1' or 'pro2', then press [Start] to start the game. You can also press keyboard cursors left and right to move."
+			"en": "Move left and right to avoid coconuts, boats, sharks and birds. When lifesaver drops down, move to the right to escape on the boat.\n\nStart the game by pressing [Mode],\nthen press [Game A/B] to select 'pro1' or 'pro2',\nthen press [Start] to start the game.\nYou can also press keyboard cursors left and right to move."
 		}
 	}
 }

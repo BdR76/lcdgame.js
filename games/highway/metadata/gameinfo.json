@@ -16,7 +16,7 @@
 			"game 1", "game 2"
 		],
 		"instructions": {
-			"en": "Avoid obstacles, pick up hitchhiker on the left and drop them off at sign on the right. Drop off 3 hitchhikers for a bonus game, get 3 identical numers for bonus.\n\nPress [Mode] to select game mode,\nthen [< Left] or [Right >] to start the game.\nYou can also press keyboard cursors left and right to move."
+			"en": "Avoid obstacles, pick up hitchhiker on the left and drop them off at sign on the right. Drop off 3 hitchhikers for a bonus game, get 3 identical numers for bonus.\n\nStart the game by pressing [Mode] to select game mode,\nthen [< Left] or [Right >] to start the game.\nYou can also press keyboard cursors left and right to move."
 		}
 	}
 }

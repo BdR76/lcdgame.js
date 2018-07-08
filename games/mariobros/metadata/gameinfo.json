@@ -16,7 +16,7 @@
 			"game A", "game B"
 		],
 		"instructions": {
-			"en": "Move Mario and Luigi up and down the bottling factory to safely get the crates into the truck. Fill the truck with 8 crates to complete the level.\n\nPress [Game A] or [Game B] to start the game.\nPress [Q]/[A] to move Luigi and [P]/[L] to move Mario."
+			"en": "Move Mario and Luigi up and down the bottling factory to safely get the crates into the truck. Fill the truck with 8 crates to complete the level.\n\nStart the game by pressing [Game A] or [Game B].\nPress [Q]/[A] to move Luigi and [P]/[L] to move Mario."
 		}
 	}
 }
