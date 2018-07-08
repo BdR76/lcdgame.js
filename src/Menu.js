@@ -4,7 +4,7 @@
 var MENU_HTML = 
 		'<div class="container">' +
 		'  <canvas id="mycanvas" class="gamecvs" width="400" height="300"></canvas>' +
-		'  <a class="mybutton btnmenu">info</a>' +
+		'  <a class="mybutton btnmenu">help</a>' +
 		'  <a class="mybutton btnmenu" onclick="displayInfobox();">help</a>' +
 		'  <div class="infobox" id="infobox">' +
 		'    <div>' +

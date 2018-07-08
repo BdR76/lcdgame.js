@@ -3,7 +3,7 @@
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
-var LCDGAME_VERSION = "0.3.1";
+var LCDGAME_VERSION = "0.3.2";
 
 // namespace
 var LCDGame = LCDGame || {
@@ -70,6 +70,8 @@ LCDGame.StateManager.prototype = {
 	
     start: function (key) {
 
+		this.lcdgame.cleartimers();
+
 		if (this._currentState && (this._currentState != key) ) {
 			this.states[this._currentState].destroy;
 		};
@@ -85,6 +87,75 @@ LCDGame.StateManager.prototype = {
     }
 
 };
+// LCD game JavaScript library
+// Bas de Reuver (c)2018
+
+// -------------------------------------
+// request animation frame
+// -------------------------------------
+LCDGame.AnimationFrame = function (lcdgame) {
+	// save reference to game object 
+	this.lcdgame = lcdgame;
+};
+
+LCDGame.AnimationFrame.prototype = {
+
+    start: function () {
+		var vendors = [
+			'ms',
+			'moz',
+			'webkit',
+			'o'
+		];
+
+		for (var x = 0; x < vendors.length && !window.requestAnimationFrame; x++)
+		{
+			window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+			window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'];
+		}
+
+		animationlast = 0.0;
+
+		var _this = this;
+
+		// cannot use requestAnimationFrame for whatever reason, fall back on `setTimeout`
+		if (!window.requestAnimationFrame)
+		{
+			useSetTimeout = true;
+
+			animationLoop = function () {
+				return _this.updateSetTimeout();
+			};
+
+			_timeOutID = window.setTimeout(this.animationLoop, 0);
+		}
+		else
+		{
+			// use requestAnimationFrame
+			useSetTimeout = false;
+
+			animationLoop = function (time) {
+				return _this.updateAnimFrame(time);
+			};
+
+			_timeOutID = window.requestAnimationFrame(animationLoop);
+		}
+	},
+	
+    updateAnimFrame: function (rafTime) {
+		// floor the rafTime to make it equivalent to the Date.now() provided by updateSetTimeout (just below)
+		this.lcdgame.updateloop(Math.floor(rafTime));
+
+		_timeOutID = window.requestAnimationFrame(animationLoop);
+	},
+	
+    updateSetTimeout: function () {
+		this.lcdgame.updateloop(Date.now());
+
+		var ms = Math.floor(1000.0 / 60.0);
+		_timeOutID = window.setTimeout(animationLoop, ms);
+	}
+}
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
@@ -124,7 +195,7 @@ LCDGame.State.prototype.constructor = LCDGame.State;
 var MENU_HTML = 
 		'<div class="container">' +
 		'  <canvas id="mycanvas" class="gamecvs" width="400" height="300"></canvas>' +
-		'  <a class="mybutton btnmenu">info</a>' +
+		'  <a class="mybutton btnmenu">help</a>' +
 		'  <a class="mybutton btnmenu" onclick="displayInfobox();">help</a>' +
 		'  <div class="infobox" id="infobox">' +
 		'    <div>' +
@@ -402,11 +473,27 @@ LCDGame.HighScores.prototype = {
 		this.lcdgame.scorecontent.innerHTML = str;
     },
 
+	//uuidv4: function () {
+	//	var patchcrypto = window.crypto || window.msCrypto; // IE11 -> msCrypto
+	//	return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, function(c) {
+	//		return (c ^ patchcrypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+	//		}
+	//	)
+	//},
+
 	uuidv4: function () {
-		return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, function(c) {
-			return (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+		// simpler uuid generator, better browser compatibility (found at https://gist.github.com/jcxplorer/)
+		var uuid = "";
+		var random;
+		for (var i = 0; i < 32; i++) {
+			random = Math.random() * 16 | 0;
+
+			if (i == 8 || i == 12 || i == 16 || i == 20) {
+				uuid += "-"
 			}
-		)
+			uuid += (i == 12 ? 4 : (i == 16 ? (random & 3 | 8) : random)).toString(16);
+		}
+		return uuid;
 	},
 		
 	getClientGUID: function () {
@@ -492,7 +579,7 @@ LCDGame.Game = function (configfile, metadatafile) {
 	var str =
 		'<div class="container">' +
 		'  <canvas id="mycanvas" class="gamecvs" width="400" height="300"></canvas>' +
-		'  <a class="mybutton btnmenu" onclick="displayInfobox();">info</a>' +
+		'  <a class="mybutton btnmenu" onclick="displayInfobox();">help</a>' +
 		'  <a class="mybutton btnmenu" onclick="displayScorebox();">scores</a>' +
 		'  <div class="infobox" id="infobox">' +
 		'    <div id="infocontent">' +
@@ -534,10 +621,19 @@ LCDGame.Game = function (configfile, metadatafile) {
 	// state manager
 	this.state = new LCDGame.StateManager(this);
 	
+	// request animation frame
+	this.raf = new LCDGame.AnimationFrame(this);
+
+	this.timers = [];
+
 	// add gamedata and populate by loading json
 	this.loadConfig(configfile);
 	metadatafile = (metadatafile || "metadata/gameinfo.json");
 	this.loadMetadata(metadatafile);
+	
+	// mouse or touch input
+	this._touchdevice = false;
+	//this._mousedevice = false
 
 	return this;
 }
@@ -898,19 +994,36 @@ LCDGame.Game.prototype = {
 			this.gamedata.sounds[i].audio = new Audio(strfile);
 			this.gamedata.sounds[i].audio.load();
 		};
+		
+		// mouse or touch input
+        //if (window.navigator.msPointerEnabled || window.navigator.pointerEnabled)
+        //{
+        //    this._mousedevice = true;
+        //};
+	
+        if ('ontouchstart' in document.documentElement || (window.navigator.maxTouchPoints && window.navigator.maxTouchPoints >= 1))
+        {
+            this._touchdevice = true;
+        };
 
 		// bind input
 		if (document.addEventListener) { // chrome, firefox
 			// mouse/touch
-			this.canvas.addEventListener("mousedown", this.ontouchdown.bind(this), false);
-			this.canvas.addEventListener("mouseup",   this.ontouchup.bind(this), false);
+			this.canvas.addEventListener("mousedown", this.onmousedown.bind(this), false);
+			this.canvas.addEventListener("mouseup",   this.onmouseup.bind(this), false);
 			// keyboard
 			document.addEventListener("keydown", this.onkeydown.bind(this), false);
 			document.addEventListener("keyup",   this.onkeyup.bind(this), false);
+			
+			if (this._touchdevice) {
+				this.canvas.addEventListener("touchstart", this.ontouchstart.bind(this), false);
+				this.canvas.addEventListener("touchend",   this.ontouchend.bind(this), false);
+			};
+
 		} else { // IE8
 			// mouse/touch
-			this.canvas.attachEvent("mousedown", this.ontouchdown.bind(this));
-			this.canvas.attachEvent("mouseup",   this.ontouchup.bind(this));
+			this.canvas.attachEvent("mousedown", this.onmousedown.bind(this));
+			this.canvas.attachEvent("mouseup",   this.onmouseup.bind(this));
 			// keyboard
 			document.attachEvent("keydown", this.onkeydown.bind(this));
 			document.attachEvent("keyup",   this.onkeyup.bind(this));
@@ -924,7 +1037,46 @@ LCDGame.Game.prototype = {
 		hideInfobox();
 		hideScorebox();
 
+		this.raf.start();
+
 		console.log("lcdgame.js - ready to rock!");
+	},
+
+	// -------------------------------------
+	// timers and game loop
+	// -------------------------------------
+	addtimer: function(context, callback, ms) {
+
+		// add new timer object
+		var tim = new LCDGame.Timer(context, callback, ms);
+		
+		this.timers.push(tim);
+		
+		return tim;
+	},
+
+	cleartimers: function() {
+		// clear all timers
+		for (var t=0; t < this.timers.length; t++) {
+			this.timers[t] = null;
+		};
+		this.timers = [];
+	},
+	
+	updateloop: function(timestamp) {
+
+		// check all timers
+		for (var t=0; t < this.timers.length; t++) {
+			if (this.timers[t].Enabled) {
+				this.timers[t].update(timestamp);
+			};
+		};
+		
+		// any shapes updates
+		if (this._refresh) {
+			this.shapesRefresh();
+			this._refresh = false;
+		};
 	},
 
 	gameReset: function(gametype) {
@@ -987,6 +1139,7 @@ LCDGame.Game.prototype = {
 		for (var i = 0; i < this.gamedata.frames.length; i++) {
 			if (this.gamedata.frames[i].filename == filename) {
 				this.gamedata.frames[i].value = value;
+				this._refresh = true;
 				return true;
 			};
 		};
@@ -995,6 +1148,7 @@ LCDGame.Game.prototype = {
 	
 	setShapeByIdx: function(idx, value) {
 		this.gamedata.frames[idx].value = value;
+		this._refresh = true;
 		return true;
 	},
 	
@@ -1022,6 +1176,8 @@ LCDGame.Game.prototype = {
 			// clear all shapes in sequence
 			this.gamedata.frames[shape].value = false;
 		};
+		// refresh display
+		this._refresh = true;
 	},
 
 	sequenceShift: function(name, max) {
@@ -1046,6 +1202,9 @@ LCDGame.Game.prototype = {
 		// set first value to blank; default value false
 		var shape1 = this.gamedata.sequences[seqidx].ids[0];
 		this.gamedata.frames[shape1].value = false;
+
+		// refresh display
+		this._refresh = true;
 	},
 
 	sequenceShiftReverse: function(name, min) {
@@ -1070,6 +1229,8 @@ LCDGame.Game.prototype = {
 		// set last value to blank; default value false
 		var shape1 = this.gamedata.sequences[seqidx].ids[i];
 		this.gamedata.frames[shape1].value = false;
+		// refresh display
+		this._refresh = true;
 	},
 
 	sequenceSetFirst: function(name, value) {
@@ -1079,6 +1240,8 @@ LCDGame.Game.prototype = {
 		// set value for first shape in sequence
 		var shape1 = this.gamedata.sequences[seqidx].ids[0];
 		this.gamedata.frames[shape1].value = value;
+		// refresh display
+		this._refresh = true;
 	},
 
 	sequenceSetPos: function(name, pos, value) {
@@ -1092,6 +1255,9 @@ LCDGame.Game.prototype = {
 			// set value for first shape in sequence
 			var shape1 = this.gamedata.sequences[seqidx].ids[pos];
 			this.gamedata.frames[shape1].value = value;
+
+			// refresh display
+			this._refresh = true;
 		}
 	},
 	
@@ -1138,6 +1304,8 @@ LCDGame.Game.prototype = {
 					this.digitsDisplay(this.gamedata.digits[i].name, this.gamedata.digits[i].max);
 				};
 			};
+			// refresh display
+			this._refresh = true;
 		};
 	},
 
@@ -1210,6 +1378,9 @@ LCDGame.Game.prototype = {
 					chridx = chridx + 1;
 				};
 			};
+
+			// refresh display
+			this._refresh = true;
 		};
 	},
 	
@@ -1241,6 +1412,8 @@ LCDGame.Game.prototype = {
 			//	this.debugRectangle(x1, y1, (x2-x1), (y2-y1));
 			//};
 		};
+		// display was refreshed
+		this._refresh = false;
 		
 	},
 
@@ -1259,14 +1432,14 @@ LCDGame.Game.prototype = {
 		);
 
 		// show shape index
-		//this.context2d.font = "bold 12px sans-serif";
+		//this.context2d.font = "bold 16px sans-serif";
 		//this.context2d.fillStyle = "#fff";
 		//this.context2d.fillText(index, this.gamedata.frames[index].xpos, this.gamedata.frames[index].ypos);
 	},
 
 	debugText: function(str, x, y) {
 		// set font
-		this.context2d.font = "bold 12px sans-serif";
+		this.context2d.font = "bold 16px sans-serif";
 
 		var lineheight = 15;		
 		var lines = str.split('\n');
@@ -1333,11 +1506,36 @@ LCDGame.Game.prototype = {
 		return result;
 	},
 
-	ontouchdown: function(evt) {
+	ontouchstart: function(evt) {
+
+		evt.preventDefault();
+
+        //  evt.changedTouches is changed touches in this event, not all touches at this moment
+        for (var i = 0; i < event.changedTouches.length; i++)
+        {
+			this.onmousedown(event.changedTouches[i]);
+        }
+	},
+	
+	ontouchend: function(evt) {
+		evt.preventDefault();
+
+        //  evt.changedTouches is changed touches in this event, not all touches at this moment
+        for (var i = 0; i < evt.changedTouches.length; i++)
+        {
+			this.onmouseup(evt.changedTouches[i]);
+        }
+	},
+
+	onmousedown: function(evt) {
+
+		var x = (evt.offsetX || evt.clientX - evt.target.offsetLeft);
+		var y = (evt.offsetY || evt.clientY - evt.target.offsetTop);
+
 		//var x = evt.layerX;
 		//var y = evt.layerY;
-		var x = evt.offsetX / this.scaleFactor;
-		var y = evt.offsetY / this.scaleFactor;
+		x = x / this.scaleFactor;
+		y = y / this.scaleFactor;
 
 		// check if pressed in defined buttons
 		for (var i=0; i < this.gamedata.buttons.length; i++) {
@@ -1373,11 +1571,15 @@ LCDGame.Game.prototype = {
 		};
 	},
 	
-	ontouchup: function(evt) {
+	onmouseup: function(evt) {
+
+		var x = (evt.offsetX || evt.clientX - evt.target.offsetLeft);
+		var y = (evt.offsetY || evt.clientY - evt.target.offsetTop);
+		
 		//var x = evt.layerX;
 		//var y = evt.layerY;
-		var x = evt.offsetX / this.scaleFactor;
-		var y = evt.offsetY / this.scaleFactor;
+		var x = x / this.scaleFactor;
+		var y = y / this.scaleFactor;
 
 		// check if pressed in defined buttons
 		for (var i=0; i < this.gamedata.buttons.length; i++) {
@@ -1442,13 +1644,13 @@ LCDGame.Game.prototype = {
 	},
 	
 	onButtonDown: function(btnidx, diridx) {
+		// pass input to game
 		var name = this.gamedata.buttons[btnidx].name;
 		this.state.currentState().input(name, diridx);
 
+		// show button down on screen
 		var idx = this.gamedata.buttons[btnidx].ids[diridx];
 		this.setShapeByIdx(idx, true);
-		this.shapesRefresh();
-	
 	},
 	
 	onButtonUp: function(btnidx, diridx) {
@@ -1457,8 +1659,6 @@ LCDGame.Game.prototype = {
 			var idx = this.gamedata.buttons[btnidx].ids[s];
 			this.setShapeByIdx(idx, false);
 		};
-		
-		this.shapesRefresh();
 	},
 
 	debugRectangle: function(xpos, ypos, w, h) {
@@ -1536,13 +1736,16 @@ LCDGame.Button = function (lcdgame, name) {
 // -------------------------------------
 // pulse timer object
 // -------------------------------------
-LCDGame.Timer = function (game, eventfunction, interval) {
-	// save reference to game object 
-	this.game = game;
+LCDGame.Timer = function (context, eventfunction, interval) {
+	// context of callback
+	this.context = context;
+	
+	// Event: Timer tick
+	this.doGameEvent = eventfunction;
 
 	// frequency of the timer in milliseconds
 	this.Interval = interval || 1000;
-	
+
 	// counter, useful for directing animations etc.
 	this.Counter = 0;
 
@@ -1550,59 +1753,54 @@ LCDGame.Timer = function (game, eventfunction, interval) {
 	this.Max = null;
 
 	// Property: Whether the timer is enable or not
-	this.Enable = new Boolean(false);
-
-	// Event: Timer tick
-	this.doGameEvent = eventfunction;
+	this.Enabled = false;
 
 	// Member variable: Hold interval id of the timer
-	var timerId = 0;
+	this.timerId = 0;
+	this.lasttime = 0;
+}
+	
+LCDGame.Timer.prototype = {
 
+	// update each frame
+	update: function(timestamp) {
+		var delta = timestamp - this.lasttime;
+		
+		// timer tick
+		if (delta > this.Interval) {
+			this.lasttime = timestamp;
+			this.doTimerEvent();
+		};
+	},
+	
 	// local timer event of Timer-object
-	this.doTimerEvent = function()
-	{
+	doTimerEvent: function() {
 		// keep track how many times event has fired
 		this.Counter++;
 		// do callback function to gameobj, so not to LCDGame.Timer object
-		this.doGameEvent.call(this.game);
+
+		this.doGameEvent.call(this.context);
 		// if maximum of callbacks was set
 		if (typeof this.Max !== "undefined") {
-			if (this.Counter >= this.Max) this.Stop();
+			if (this.Counter >= this.Max) this.Enabled = false;
 		};
 	},
 
 	// start/enable the timer
-	this.Start = function(max)
-	{
+	Start: function(max) {
 		// initialise variables
-		this.Enable = new Boolean(true);
+		this.Enabled = true;
 		this.Counter = 0;
 		this.Max = max;
-		
-		// bind callback function to gameobj, so not to LCDGame.Timer object
-		var timerEvent = this.doTimerEvent.bind(this);
-		
-		// start interval
-		if (this.Enable)
-		{
-			// clear any previous
-			if (this.timerId) {
-				clearInterval(this.timerId);
-			};
 
-			// start interval
-			this.timerId = setInterval(
-				timerEvent,
-				this.Interval
-			);
-		}
+		// start interval
+		this.lasttime = 0;
 	},
 
-	// stop/disable the timer
-	this.Stop = function()
-	{
-		this.Enable = new Boolean(false);
-		clearInterval(this.timerId);
+	// pause the timer
+	pause: function() {
+		debugger;
+		// initialise variables
+		this.Enabled = false;
 	}
 };
-

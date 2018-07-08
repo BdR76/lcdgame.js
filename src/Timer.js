@@ -4,13 +4,16 @@
 // -------------------------------------
 // pulse timer object
 // -------------------------------------
-LCDGame.Timer = function (game, eventfunction, interval) {
-	// save reference to game object 
-	this.game = game;
+LCDGame.Timer = function (context, eventfunction, interval) {
+	// context of callback
+	this.context = context;
+	
+	// Event: Timer tick
+	this.doGameEvent = eventfunction;
 
 	// frequency of the timer in milliseconds
 	this.Interval = interval || 1000;
-	
+
 	// counter, useful for directing animations etc.
 	this.Counter = 0;
 
@@ -18,59 +21,54 @@ LCDGame.Timer = function (game, eventfunction, interval) {
 	this.Max = null;
 
 	// Property: Whether the timer is enable or not
-	this.Enable = new Boolean(false);
-
-	// Event: Timer tick
-	this.doGameEvent = eventfunction;
+	this.Enabled = false;
 
 	// Member variable: Hold interval id of the timer
-	var timerId = 0;
+	this.timerId = 0;
+	this.lasttime = 0;
+}
+	
+LCDGame.Timer.prototype = {
 
+	// update each frame
+	update: function(timestamp) {
+		var delta = timestamp - this.lasttime;
+		
+		// timer tick
+		if (delta > this.Interval) {
+			this.lasttime = timestamp;
+			this.doTimerEvent();
+		};
+	},
+	
 	// local timer event of Timer-object
-	this.doTimerEvent = function()
-	{
+	doTimerEvent: function() {
 		// keep track how many times event has fired
 		this.Counter++;
 		// do callback function to gameobj, so not to LCDGame.Timer object
-		this.doGameEvent.call(this.game);
+
+		this.doGameEvent.call(this.context);
 		// if maximum of callbacks was set
 		if (typeof this.Max !== "undefined") {
-			if (this.Counter >= this.Max) this.Stop();
+			if (this.Counter >= this.Max) this.Enabled = false;
 		};
 	},
 
 	// start/enable the timer
-	this.Start = function(max)
-	{
+	Start: function(max) {
 		// initialise variables
-		this.Enable = new Boolean(true);
+		this.Enabled = true;
 		this.Counter = 0;
 		this.Max = max;
-		
-		// bind callback function to gameobj, so not to LCDGame.Timer object
-		var timerEvent = this.doTimerEvent.bind(this);
-		
-		// start interval
-		if (this.Enable)
-		{
-			// clear any previous
-			if (this.timerId) {
-				clearInterval(this.timerId);
-			};
 
-			// start interval
-			this.timerId = setInterval(
-				timerEvent,
-				this.Interval
-			);
-		}
+		// start interval
+		this.lasttime = 0;
 	},
 
-	// stop/disable the timer
-	this.Stop = function()
-	{
-		this.Enable = new Boolean(false);
-		clearInterval(this.timerId);
+	// pause the timer
+	pause: function() {
+		debugger;
+		// initialise variables
+		this.Enabled = false;
 	}
 };
-

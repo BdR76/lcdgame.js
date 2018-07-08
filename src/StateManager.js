@@ -23,6 +23,8 @@ LCDGame.StateManager.prototype = {
 	
     start: function (key) {
 
+		this.lcdgame.cleartimers();
+
 		if (this._currentState && (this._currentState != key) ) {
 			this.states[this._currentState].destroy;
 		};

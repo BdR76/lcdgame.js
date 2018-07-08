@@ -40,7 +40,7 @@ LCDGame.Game = function (configfile, metadatafile) {
 	var str =
 		'<div class="container">' +
 		'  <canvas id="mycanvas" class="gamecvs" width="400" height="300"></canvas>' +
-		'  <a class="mybutton btnmenu" onclick="displayInfobox();">info</a>' +
+		'  <a class="mybutton btnmenu" onclick="displayInfobox();">help</a>' +
 		'  <a class="mybutton btnmenu" onclick="displayScorebox();">scores</a>' +
 		'  <div class="infobox" id="infobox">' +
 		'    <div id="infocontent">' +
@@ -82,10 +82,19 @@ LCDGame.Game = function (configfile, metadatafile) {
 	// state manager
 	this.state = new LCDGame.StateManager(this);
 	
+	// request animation frame
+	this.raf = new LCDGame.AnimationFrame(this);
+
+	this.timers = [];
+
 	// add gamedata and populate by loading json
 	this.loadConfig(configfile);
 	metadatafile = (metadatafile || "metadata/gameinfo.json");
 	this.loadMetadata(metadatafile);
+	
+	// mouse or touch input
+	this._touchdevice = false;
+	//this._mousedevice = false
 
 	return this;
 }
@@ -446,19 +455,36 @@ LCDGame.Game.prototype = {
 			this.gamedata.sounds[i].audio = new Audio(strfile);
 			this.gamedata.sounds[i].audio.load();
 		};
+		
+		// mouse or touch input
+        //if (window.navigator.msPointerEnabled || window.navigator.pointerEnabled)
+        //{
+        //    this._mousedevice = true;
+        //};
+	
+        if ('ontouchstart' in document.documentElement || (window.navigator.maxTouchPoints && window.navigator.maxTouchPoints >= 1))
+        {
+            this._touchdevice = true;
+        };
 
 		// bind input
 		if (document.addEventListener) { // chrome, firefox
 			// mouse/touch
-			this.canvas.addEventListener("mousedown", this.ontouchdown.bind(this), false);
-			this.canvas.addEventListener("mouseup",   this.ontouchup.bind(this), false);
+			this.canvas.addEventListener("mousedown", this.onmousedown.bind(this), false);
+			this.canvas.addEventListener("mouseup",   this.onmouseup.bind(this), false);
 			// keyboard
 			document.addEventListener("keydown", this.onkeydown.bind(this), false);
 			document.addEventListener("keyup",   this.onkeyup.bind(this), false);
+			
+			if (this._touchdevice) {
+				this.canvas.addEventListener("touchstart", this.ontouchstart.bind(this), false);
+				this.canvas.addEventListener("touchend",   this.ontouchend.bind(this), false);
+			};
+
 		} else { // IE8
 			// mouse/touch
-			this.canvas.attachEvent("mousedown", this.ontouchdown.bind(this));
-			this.canvas.attachEvent("mouseup",   this.ontouchup.bind(this));
+			this.canvas.attachEvent("mousedown", this.onmousedown.bind(this));
+			this.canvas.attachEvent("mouseup",   this.onmouseup.bind(this));
 			// keyboard
 			document.attachEvent("keydown", this.onkeydown.bind(this));
 			document.attachEvent("keyup",   this.onkeyup.bind(this));
@@ -472,7 +498,46 @@ LCDGame.Game.prototype = {
 		hideInfobox();
 		hideScorebox();
 
+		this.raf.start();
+
 		console.log("lcdgame.js - ready to rock!");
+	},
+
+	// -------------------------------------
+	// timers and game loop
+	// -------------------------------------
+	addtimer: function(context, callback, ms) {
+
+		// add new timer object
+		var tim = new LCDGame.Timer(context, callback, ms);
+		
+		this.timers.push(tim);
+		
+		return tim;
+	},
+
+	cleartimers: function() {
+		// clear all timers
+		for (var t=0; t < this.timers.length; t++) {
+			this.timers[t] = null;
+		};
+		this.timers = [];
+	},
+	
+	updateloop: function(timestamp) {
+
+		// check all timers
+		for (var t=0; t < this.timers.length; t++) {
+			if (this.timers[t].Enabled) {
+				this.timers[t].update(timestamp);
+			};
+		};
+		
+		// any shapes updates
+		if (this._refresh) {
+			this.shapesRefresh();
+			this._refresh = false;
+		};
 	},
 
 	gameReset: function(gametype) {
@@ -535,6 +600,7 @@ LCDGame.Game.prototype = {
 		for (var i = 0; i < this.gamedata.frames.length; i++) {
 			if (this.gamedata.frames[i].filename == filename) {
 				this.gamedata.frames[i].value = value;
+				this._refresh = true;
 				return true;
 			};
 		};
@@ -543,6 +609,7 @@ LCDGame.Game.prototype = {
 	
 	setShapeByIdx: function(idx, value) {
 		this.gamedata.frames[idx].value = value;
+		this._refresh = true;
 		return true;
 	},
 	
@@ -570,6 +637,8 @@ LCDGame.Game.prototype = {
 			// clear all shapes in sequence
 			this.gamedata.frames[shape].value = false;
 		};
+		// refresh display
+		this._refresh = true;
 	},
 
 	sequenceShift: function(name, max) {
@@ -594,6 +663,9 @@ LCDGame.Game.prototype = {
 		// set first value to blank; default value false
 		var shape1 = this.gamedata.sequences[seqidx].ids[0];
 		this.gamedata.frames[shape1].value = false;
+
+		// refresh display
+		this._refresh = true;
 	},
 
 	sequenceShiftReverse: function(name, min) {
@@ -618,6 +690,8 @@ LCDGame.Game.prototype = {
 		// set last value to blank; default value false
 		var shape1 = this.gamedata.sequences[seqidx].ids[i];
 		this.gamedata.frames[shape1].value = false;
+		// refresh display
+		this._refresh = true;
 	},
 
 	sequenceSetFirst: function(name, value) {
@@ -627,6 +701,8 @@ LCDGame.Game.prototype = {
 		// set value for first shape in sequence
 		var shape1 = this.gamedata.sequences[seqidx].ids[0];
 		this.gamedata.frames[shape1].value = value;
+		// refresh display
+		this._refresh = true;
 	},
 
 	sequenceSetPos: function(name, pos, value) {
@@ -640,6 +716,9 @@ LCDGame.Game.prototype = {
 			// set value for first shape in sequence
 			var shape1 = this.gamedata.sequences[seqidx].ids[pos];
 			this.gamedata.frames[shape1].value = value;
+
+			// refresh display
+			this._refresh = true;
 		}
 	},
 	
@@ -686,6 +765,8 @@ LCDGame.Game.prototype = {
 					this.digitsDisplay(this.gamedata.digits[i].name, this.gamedata.digits[i].max);
 				};
 			};
+			// refresh display
+			this._refresh = true;
 		};
 	},
 
@@ -758,6 +839,9 @@ LCDGame.Game.prototype = {
 					chridx = chridx + 1;
 				};
 			};
+
+			// refresh display
+			this._refresh = true;
 		};
 	},
 	
@@ -789,6 +873,8 @@ LCDGame.Game.prototype = {
 			//	this.debugRectangle(x1, y1, (x2-x1), (y2-y1));
 			//};
 		};
+		// display was refreshed
+		this._refresh = false;
 		
 	},
 
@@ -807,14 +893,14 @@ LCDGame.Game.prototype = {
 		);
 
 		// show shape index
-		//this.context2d.font = "bold 12px sans-serif";
+		//this.context2d.font = "bold 16px sans-serif";
 		//this.context2d.fillStyle = "#fff";
 		//this.context2d.fillText(index, this.gamedata.frames[index].xpos, this.gamedata.frames[index].ypos);
 	},
 
 	debugText: function(str, x, y) {
 		// set font
-		this.context2d.font = "bold 12px sans-serif";
+		this.context2d.font = "bold 16px sans-serif";
 
 		var lineheight = 15;		
 		var lines = str.split('\n');
@@ -881,11 +967,36 @@ LCDGame.Game.prototype = {
 		return result;
 	},
 
-	ontouchdown: function(evt) {
+	ontouchstart: function(evt) {
+
+		evt.preventDefault();
+
+        //  evt.changedTouches is changed touches in this event, not all touches at this moment
+        for (var i = 0; i < event.changedTouches.length; i++)
+        {
+			this.onmousedown(event.changedTouches[i]);
+        }
+	},
+	
+	ontouchend: function(evt) {
+		evt.preventDefault();
+
+        //  evt.changedTouches is changed touches in this event, not all touches at this moment
+        for (var i = 0; i < evt.changedTouches.length; i++)
+        {
+			this.onmouseup(evt.changedTouches[i]);
+        }
+	},
+
+	onmousedown: function(evt) {
+
+		var x = (evt.offsetX || evt.clientX - evt.target.offsetLeft);
+		var y = (evt.offsetY || evt.clientY - evt.target.offsetTop);
+
 		//var x = evt.layerX;
 		//var y = evt.layerY;
-		var x = evt.offsetX / this.scaleFactor;
-		var y = evt.offsetY / this.scaleFactor;
+		x = x / this.scaleFactor;
+		y = y / this.scaleFactor;
 
 		// check if pressed in defined buttons
 		for (var i=0; i < this.gamedata.buttons.length; i++) {
@@ -921,11 +1032,15 @@ LCDGame.Game.prototype = {
 		};
 	},
 	
-	ontouchup: function(evt) {
+	onmouseup: function(evt) {
+
+		var x = (evt.offsetX || evt.clientX - evt.target.offsetLeft);
+		var y = (evt.offsetY || evt.clientY - evt.target.offsetTop);
+		
 		//var x = evt.layerX;
 		//var y = evt.layerY;
-		var x = evt.offsetX / this.scaleFactor;
-		var y = evt.offsetY / this.scaleFactor;
+		var x = x / this.scaleFactor;
+		var y = y / this.scaleFactor;
 
 		// check if pressed in defined buttons
 		for (var i=0; i < this.gamedata.buttons.length; i++) {
@@ -990,13 +1105,13 @@ LCDGame.Game.prototype = {
 	},
 	
 	onButtonDown: function(btnidx, diridx) {
+		// pass input to game
 		var name = this.gamedata.buttons[btnidx].name;
 		this.state.currentState().input(name, diridx);
 
+		// show button down on screen
 		var idx = this.gamedata.buttons[btnidx].ids[diridx];
 		this.setShapeByIdx(idx, true);
-		this.shapesRefresh();
-	
 	},
 	
 	onButtonUp: function(btnidx, diridx) {
@@ -1005,8 +1120,6 @@ LCDGame.Game.prototype = {
 			var idx = this.gamedata.buttons[btnidx].ids[s];
 			this.setShapeByIdx(idx, false);
 		};
-		
-		this.shapesRefresh();
 	},
 
 	debugRectangle: function(xpos, ypos, w, h) {

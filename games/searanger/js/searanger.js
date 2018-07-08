@@ -40,7 +40,7 @@ searanger.ClockMode = function(lcdgame) {
 searanger.ClockMode.prototype = {
 	init: function(){
 		// initialise all timers
-		this.demotimer = new LCDGame.Timer(this, this.onTimerDemo, 500);
+		this.demotimer = this.lcdgame.addtimer(this, this.onTimerDemo, 500);
 
 		// start demo mode
 		this.lcdgame.sequenceSetPos("mainguy", 0, true);
@@ -52,7 +52,6 @@ searanger.ClockMode.prototype = {
 	
 	input: function(buttonname) {
 		if (buttonname == "mode") {
-			this.demotimer.Stop();
 			this.lcdgame.state.start("select");
 		};
 	},
@@ -95,9 +94,6 @@ searanger.ClockMode.prototype = {
 			if ( ( this.demotimer.Counter    % 14) == 0) {this.lcdgame.sequenceSetPos("mainguy", 0, true) };
 			if ( ((this.demotimer.Counter+10) % 14) == 0) {this.lcdgame.sequenceSetPos("lifesaver", 0, true) };
 		};
-
-		// refresh shapes
-		this.lcdgame.shapesRefresh();
 	},
 
 	updateClock: function() {
@@ -160,7 +156,6 @@ searanger.SelectMode.prototype = {
 			// refresh shapes
 			this.lcdgame.setShapeByName("pro1", (this.gamepro==1));
 			this.lcdgame.setShapeByName("pro2", (this.gamepro==2));
-			this.lcdgame.shapesRefresh();
 		};
 		if (buttonname == "start") {
 			this.lcdgame.state.states["maingame"].gamepro = this.gamepro;
@@ -184,9 +179,9 @@ searanger.MainGame.prototype = {
 	init: function(){
 
 		// initialise all timers
-		this.gametimer = new LCDGame.Timer(this, this.onTimerGame, 250);
-		this.buoytimer = new LCDGame.Timer(this, this.onTimerBuoy, 500);
-		this.hittimer  = new LCDGame.Timer(this, this.onTimerHit,  250);
+		this.gametimer = this.lcdgame.addtimer(this, this.onTimerGame, 250);
+		this.buoytimer = this.lcdgame.addtimer(this, this.onTimerBuoy, 500);
+		this.hittimer  = this.lcdgame.addtimer(this, this.onTimerHit,  250);
 
 		// start demo mode
 		this.lcdgame.shapesDisplayAll(false);
@@ -334,15 +329,12 @@ searanger.MainGame.prototype = {
 			this.lcdgame.setShapeByName("mainguy7", true);
 			// switch to wait 3 seconds
 			this.gamestate = STATE_GAMEHIT;
-			this.gametimer.Stop();
+			this.gametimer.pause();
 			this.hittimer.Start(12);
 		} else {
 			// pulse tick sound effect when any hazard in play or added to play
 			if (pulse == 1) this.lcdgame.playSoundEffect("pulse");
 		};
-
-		// refresh shapes
-		this.lcdgame.shapesRefresh();
 	},
 	
 	onTimerBuoy: function() {
@@ -375,9 +367,6 @@ searanger.MainGame.prototype = {
 				this.lifebuoy = false;
 				break;
 		};
-
-		// refresh shapes
-		this.lcdgame.shapesRefresh();
 	},
 
 	onTimerHit: function() {
@@ -396,12 +385,10 @@ searanger.MainGame.prototype = {
 				if (this.lives > 0) {
 					if (this.gamestate == STATE_GAMEHIT) this.resetGuy();
 					this.gamestate = STATE_GAMEPLAY;
-					// refresh shapes
-					this.lcdgame.shapesRefresh();
 					this.gametimer.Start();
 				} else {
 					// game over, check for highscore
-					this.buoytimer.Stop();
+					this.buoytimer.pause();
 					this.lcdgame.highscores.checkScore();
 					this.lcdgame.state.start("select");
 				};
@@ -433,8 +420,6 @@ searanger.MainGame.prototype = {
 			this.guypos = this.guypos + step;
 			this.lcdgame.sequenceClear("mainguy");
 			this.lcdgame.sequenceSetPos("mainguy",  this.guypos, true);
-			// refresh
-			this.lcdgame.shapesRefresh();
 		};
 	},
 	
@@ -473,7 +458,7 @@ searanger.MainGame.prototype = {
 		// wait bonus sounds
 		if (wait) {
 			// switch to wait 3 seconds
-			this.gametimer.Stop();
+			this.gametimer.pause();
 			this.hittimer.Start(12);
 		};
 	},

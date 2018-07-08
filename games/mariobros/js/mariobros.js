@@ -24,12 +24,8 @@ mariobros.ClockMode = function(lcdgame) {
 }
 mariobros.ClockMode.prototype = {
 	init: function(){
-		// startup show all
-		this.lcdgame.shapesDisplayAll(true);
-		this.lcdgame.shapesRefresh();
-		this.lcdgame.shapesDisplayAll(false);
-
-		this.demotimer = new LCDGame.Timer(this, this.onTimerDemo, 500);
+		// clock timer
+		this.demotimer = this.lcdgame.addtimer(this, this.onTimerDemo, 500);
 
 		// start demo mode
 		this.demotimer.Start();
@@ -42,7 +38,6 @@ mariobros.ClockMode.prototype = {
 		if ( (btn == "gamea") || (btn == "gameb") ) {
 			this.lcdgame.level = 0; // new game
 			this.lcdgame.gametype = (btn == "gamea" ? 1 : 2); // 1=game a, 2=game b
-			this.demotimer.Stop();
 			this.lcdgame.state.start("maingame");
 		};
 	},
@@ -74,9 +69,6 @@ mariobros.ClockMode.prototype = {
 
 		// display time
 		this.lcdgame.digitsDisplay("digits", strtime, false);
-		
-		// refresh shapes
-		this.lcdgame.shapesRefresh();
 	}
 }
 
@@ -125,8 +117,8 @@ mariobros.MainGame.prototype = {
 	init: function(){
 	
 		// add timers
-		this.belttimer = new LCDGame.Timer(this, this.onTimerBelt, 210);
-		this.misstimer = new LCDGame.Timer(this, this.onTimerMiss, 200);
+		this.belttimer = this.lcdgame.addtimer(this, this.onTimerBelt, 210);
+		this.misstimer = this.lcdgame.addtimer(this, this.onTimerMiss, 200);
 
 		// new game or continue after cutscene
 		if (this.lcdgame.level == 0) {
@@ -182,6 +174,9 @@ mariobros.MainGame.prototype = {
 	// go to next level, possibly after cutscene
 	nextLevel: function() {
 
+		// next level
+		this.lcdgame.level++;
+
 		// clear drop animations
 		this.truckcases = 0;
 		for (var c = 0; c < 8; c++) {
@@ -196,8 +191,7 @@ mariobros.MainGame.prototype = {
 	// continue game after a miss (dropped crate)
 	continueGame: function() {
 		this.gamestate = STATE_GAMEPLAY;
-	
-		
+
 		// refresh luigi
 		this.lcdgame.sequenceClear("luigi_body");
 		this.lcdgame.sequenceClear("luigi_arms");
@@ -284,7 +278,7 @@ mariobros.MainGame.prototype = {
 				this.misswho = (moveleft ? "luigi" : "mario");
 				this.gamestate = STATE_GAMEDROP;
 				movebelt = false;
-				this.belttimer.Stop();
+				this.belttimer.pause();
 				this.misstimer.Start();
 				// play drop case sound
 				this.lcdgame.playSoundEffect("dropcase");
@@ -300,9 +294,7 @@ mariobros.MainGame.prototype = {
 			for (var c = 11; c > 0; c--) {
 
 				// check if any cases at all in game
-				var beltcases = false;
-				if ( (this.holdcase[c] == true) || ( this.lcdgame.sequenceShapeVisible(("case"+c)) == true) ) {
-					beltcases = true;
+				if ( this.lcdgame.sequenceShapeVisible(("case"+c)) == true ) {
 					anycases = true;
 				};
 
@@ -321,6 +313,12 @@ mariobros.MainGame.prototype = {
 						hold = this.holdcase[c-1];
 
 						if (hold) this.lcdgame.sequenceSetPos(("case"+c), 0, false); // make empty so hold in place for one tick
+					};
+
+					// check if cases moving on belt
+					var beltcases = false;
+					if ( (this.holdcase[c] == true) || ( this.lcdgame.sequenceShapeVisible(("case"+c)) == true) ) {
+						beltcases = true;
 					};
 					
 					// move all case on conveyor belt
@@ -378,8 +376,6 @@ mariobros.MainGame.prototype = {
 			//	};
 			//};
 		};
-		// refresh shapes
-		this.lcdgame.shapesRefresh();
 		
 		//TESTING
 		//var str = "";
@@ -515,7 +511,6 @@ mariobros.MainGame.prototype = {
 							// if game won
 							if (this.truckcases == 8) {
 								this.gamestate = STATE_GAMEWIN;
-								this.belttimer.Stop();
 								this.lcdgame.state.start("cutscene");
 								// keep smoke animation in cutscene in-sync with smoke during game
 								this.lcdgame.currentState().smokeframe = this.belttimer.Counter;
@@ -538,21 +533,15 @@ mariobros.MainGame.prototype = {
 	// -------------------------------------
 	onTimerMiss: function() {
 
-		var refresh = false;
-
 		var frame = this.misstimer.Counter;
 		if (frame == 1) {
 			this.lcdgame.sequenceSetPos("case"+this.misscase, -1, false);
-			refresh = true;
 		} else if (frame == 2) {
 			this.lcdgame.sequenceSetPos("case"+this.misscase, -1, true);
-			refresh = true;
 		} else if (frame == 3) {
 			this.lcdgame.sequenceSetPos("case"+this.misscase, -1, false);
-			refresh = true;
 		} else if (frame == 4) {
 			this.lcdgame.sequenceSetPos("case"+this.misscase, -1, true);
-			refresh = true;
 		} else if (frame == 5) {
 			// which crash
 			var crash = 3;
@@ -562,8 +551,6 @@ mariobros.MainGame.prototype = {
 			// show crash
 			this.lcdgame.sequenceSetPos("case"+this.misscase, -1, false);
 			this.lcdgame.setShapeByName("crash_"+crash, true);
-			
-			refresh = true;
 		} else if (frame == 7) {
 			// which crash
 			var crash = 3;
@@ -594,8 +581,6 @@ mariobros.MainGame.prototype = {
 			this.lcdgame.setShapeByName(this.misswho+"_foreman_s", bowdown);
 			this.lcdgame.setShapeByName(this.misswho+"_foreman_a1", !bowdown);
 			this.lcdgame.setShapeByName(this.misswho+"_foreman_a2", bowdown);
-
-			refresh = true;
 		} else if (frame >= 22) {
 			
 			// count miss
@@ -613,7 +598,7 @@ mariobros.MainGame.prototype = {
 			this.lcdgame.setShapeByName(this.misswho+"_bow1", false);
 			this.lcdgame.setShapeByName(this.misswho+"_bow2", false);
 
-			this.misstimer.Stop();
+			this.misstimer.pause();
 
 			// game over or continue
 			if (this.misscount >= 3) {
@@ -629,12 +614,7 @@ mariobros.MainGame.prototype = {
 				}; // resets positions
 				this.continueGame();
 			};
-
-			refresh = true;
 		};
-		
-		// refresh shapes
-		if (refresh) this.lcdgame.shapesRefresh();
 	},
 
 	// -------------------------------------
@@ -722,7 +702,7 @@ mariobros.CutScene = function(lcdgame) {
 }
 mariobros.CutScene.prototype = {
 	init: function(){
-		this.animatetimer = new LCDGame.Timer(this, this.onTimerAnimate, 187); // 320bpm = 0.1875s
+		this.animatetimer = this.lcdgame.addtimer(this, this.onTimerAnimate, 187); // 320bpm = 0.1875s
 		this.animatetimer.Start();
 	},
 	input: function(btn) {
@@ -732,7 +712,6 @@ mariobros.CutScene.prototype = {
 	// level finish animations
 	// -------------------------------------
 	onTimerAnimate: function() {
-		var refresh = false;
 
 		var frame = this.animatetimer.Counter;
 		
@@ -742,8 +721,6 @@ mariobros.CutScene.prototype = {
 		
 		// truck smoke animation, only when almost ready locading cases
 		if (frame < 30) {
-			refresh = true;
-		
 			// smoke animation in sync with smoke during game
 			var smoke = frame + this.smokeframe;
 			var smoke = (frame > 21 ? ((smoke >> 1) % 4) : (smoke % 4) );
@@ -768,7 +745,6 @@ mariobros.CutScene.prototype = {
 		if (frame <= 10) {
 			// score 10 points, beep sound for each point
 			this.lcdgame.state.states["maingame"].scorePoints(1);
-			refresh = true;
 			// bonus points sound
 			this.lcdgame.playSoundEffect("bonuspoint");
 		} else if (frame == 20) {
@@ -776,29 +752,24 @@ mariobros.CutScene.prototype = {
 			this.lcdgame.sequenceClear("case12");
 			this.lcdgame.sequenceClear("case13");
 			this.lcdgame.setShapeByName("truck", false);
-			refresh = true;
 		} else if (frame == 21) {
 			// stripes
 			this.lcdgame.setShapeByName("truck_s1", true);
 			this.lcdgame.setShapeByName("truck_s2", true);
-			refresh = true;
 		} else if (frame == 25) {
 			// stripes gone
 			this.lcdgame.setShapeByName("truck_s1", false);
 			this.lcdgame.setShapeByName("truck_s2", false);
-			refresh = true;
 		} else if (frame == 29) {
 			// stripes
 			this.lcdgame.setShapeByName("truck_s1", true);
 			this.lcdgame.setShapeByName("truck_s2", true);
-			refresh = true;
 		} else if (frame == 30) {
 			// stripes gone
 			this.lcdgame.setShapeByName("truck_s1", false);
 			this.lcdgame.setShapeByName("truck_s2", false);
 			this.lcdgame.setShapeByName("truck_s3", false);
 			this.lcdgame.setShapeByName("truck_s4", false);
-			refresh = true;
 		} else if (frame == 32) {
 			// clear mario/luigi
 			this.lcdgame.sequenceClear("luigi_body");
@@ -808,31 +779,25 @@ mariobros.CutScene.prototype = {
 			// mario/luigi resting
 			this.lcdgame.sequenceSetPos("luigi_body", 3, true);
 			this.lcdgame.sequenceSetPos("mario_body", 3, true);
-			refresh = true;
 		} else if (frame == 38) {
 			// air puff
 			this.lcdgame.setShapeByName("luigi_breath", true);
 			this.lcdgame.setShapeByName("mario_breath", true);
-			refresh = true;
 		} else if (frame == 41) {
 			// air puff gone
 			this.lcdgame.setShapeByName("luigi_breath", false);
 			this.lcdgame.setShapeByName("mario_breath", false);
-			refresh = true;
 		} else if (frame == 46) {
 			// air puff
 			this.lcdgame.setShapeByName("luigi_breath", true);
 			this.lcdgame.setShapeByName("mario_breath", true);
-			refresh = true;
 		} else if (frame == 48) {
 			// empty truck appears
 			this.lcdgame.setShapeByName("truck", true);
-			refresh = true;
 		} else if (frame == 49) {
 			// air puff gone
 			this.lcdgame.setShapeByName("luigi_breath", false);
 			this.lcdgame.setShapeByName("mario_breath", false);
-			refresh = true;
 		} else if (frame == 58) {
 			// luigi foreman appears
 			this.lcdgame.sequenceShift("luigi_body");
@@ -847,7 +812,6 @@ mariobros.CutScene.prototype = {
 			
 			this.lcdgame.setShapeByName("mario_foreman", true);
 			this.lcdgame.setShapeByName("mario_foreman_a1", true);
-			refresh = true;
 		} else if (frame > 64) {
 			// continue game
 			this.lcdgame.sequenceClear("luigi_body");
@@ -863,13 +827,7 @@ mariobros.CutScene.prototype = {
 			this.lcdgame.setShapeByName("mario_foreman_a1", false);
 			
 			// continue game state, and count next level
-			this.animatetimer.Stop();
-			this.lcdgame.level++; // next level
 			this.lcdgame.state.start("maingame");
-			refresh = true;
 		};
-
-		// refresh shapes
-		if (refresh) this.lcdgame.shapesRefresh();
-	},
+	}
 }
