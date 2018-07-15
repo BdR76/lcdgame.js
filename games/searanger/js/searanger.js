@@ -61,7 +61,7 @@ searanger.ClockMode.prototype = {
 
 	onTimerDemo: function() {
 		// update clock
-		if (this.demotimer.Counter % 2 != 0) {
+		if (this.demotimer.counter % 2 != 0) {
 			// demo timer event fired every half second
 			this.lcdgame.setShapeByName("time_colon", false);
 		} else {
@@ -71,7 +71,7 @@ searanger.ClockMode.prototype = {
 		};
 		
 		// timer is on halve seconds, update shapes only on every whole second
-		if ( (this.demotimer.Counter % 2) == 0) {
+		if ( (this.demotimer.counter % 2) == 0) {
 			// shift all sequences
 			this.lcdgame.sequenceShift("coconut");
 			this.lcdgame.sequenceShift("shark");
@@ -91,8 +91,8 @@ searanger.ClockMode.prototype = {
 			if (r3 < 25) {this.lcdgame.sequenceSetPos("ship", 0, true) };
 			if (r4 < 25) {this.lcdgame.sequenceSetPos("bird", 0, true) };
 
-			if ( ( this.demotimer.Counter    % 14) == 0) {this.lcdgame.sequenceSetPos("mainguy", 0, true) };
-			if ( ((this.demotimer.Counter+10) % 14) == 0) {this.lcdgame.sequenceSetPos("lifesaver", 0, true) };
+			if ( ( this.demotimer.counter    % 14) == 0) {this.lcdgame.sequenceSetPos("mainguy", 0, true) };
+			if ( ((this.demotimer.counter+10) % 14) == 0) {this.lcdgame.sequenceSetPos("lifesaver", 0, true) };
 		};
 	},
 
@@ -250,7 +250,7 @@ searanger.MainGame.prototype = {
 		};
 
 		// waves animation
-		var waves = (this.gametimer.Counter + this.waveoffset) % 8;
+		var waves = (this.gametimer.counter + this.waveoffset) % 8;
 		if (waves == 0) this.lcdgame.setShapeByName("waves", true);
 		if (waves == 1) this.lcdgame.setShapeByName("sharkaway1", true);
 		if (waves == 2) this.lcdgame.setShapeByName("sharkaway2", true);
@@ -261,7 +261,7 @@ searanger.MainGame.prototype = {
 		if (waves == 5) this.lcdgame.setShapeByName("monkey", false);
 		
 		// each timer update a different hazard
-		var frame = this.gametimer.Counter % 4;
+		var frame = this.gametimer.counter % 4;
 
 		// which sequences
 		var seq = "coconut";
@@ -345,7 +345,7 @@ searanger.MainGame.prototype = {
 		// 4.5s = lifesaver disappears
 		// 8.0s = lifesaver first throw position 
 		// etc.
-		var frame = this.buoytimer.Counter % 16;
+		var frame = this.buoytimer.counter % 16;
 		
 		switch (frame) {
 			case 1:
@@ -372,7 +372,7 @@ searanger.MainGame.prototype = {
 	onTimerHit: function() {
 		// pause for player lose animation
 		// play sound at 0.250s and 1.750s
-		var frame = this.hittimer.Counter % 16;
+		var frame = this.hittimer.counter % 16;
 
 		switch (frame) {
 			case 1:

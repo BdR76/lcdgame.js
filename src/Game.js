@@ -351,7 +351,7 @@ LCDGame.Game.prototype = {
 		
 		// infobox content
 		var instr = this.tinyMarkDown(data.gameinfo.instructions.en);
-		this.infocontent.innerHTML = "<h1>" + data.gameinfo.device.title + "</h1><br/>" + instr;
+		this.infocontent.innerHTML = "<h1>How to play</h1><br/>" + instr;
 
 		// get info from metadata
 		var title = data.gameinfo.device.title
@@ -528,7 +528,7 @@ LCDGame.Game.prototype = {
 
 		// check all timers
 		for (var t=0; t < this.timers.length; t++) {
-			if (this.timers[t].Enabled) {
+			if (this.timers[t].enabled) {
 				this.timers[t].update(timestamp);
 			};
 		};

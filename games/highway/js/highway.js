@@ -48,7 +48,7 @@ highway.ClockMode.prototype = {
 
 	onTimerDemo: function() {
 		// update clock
-		if (this.demotimer.Counter % 2 == 0) {
+		if (this.demotimer.counter % 2 == 0) {
 			// demo timer event fired every half second
 			this.lcdgame.setShapeByName("timecolon", false);
 		} else {
@@ -260,7 +260,7 @@ highway.MainGame.prototype = {
 	onTimerWait: function() {
 		var d = new Date();
 		var n = d.toLocaleTimeString() + '.' + ("000"+d.getMilliseconds()).substr(-3);
-		console.log("onTimerWait - time="+n+ " waittimer.Counter="+this.waittimer.Counter+" waittimer.Max="+this.waittimer.Max+" this.gamestate="+this.gamestate);
+		console.log("onTimerWait - time="+n+ " waittimer.counter="+this.waittimer.counter+" waittimer.Max="+this.waittimer.Max+" this.gamestate="+this.gamestate);
 		// determine where to continue
 		switch (this.gamestate) {
 			case STATE_GAMEPICK:
@@ -289,7 +289,7 @@ highway.MainGame.prototype = {
 				break;
 			case STATE_GAMECRASH:
 				// alarm sound before and after bonus game
-				if (this.waittimer.Counter != this.waittimer.Max) {
+				if (this.waittimer.counter != this.waittimer.Max) {
 					this.lcdgame.playSoundEffect("crash");
 				} else {
 					// continue or game over
@@ -311,9 +311,9 @@ highway.MainGame.prototype = {
 
 	onTimerCrash: function() {
 		// flash crash animation on/off
-		var b = (this.crashtimer.Counter % 2 == 0);
+		var b = (this.crashtimer.counter % 2 == 0);
 		var p = (this.carpos % 5) - 1;
-		console.log("onTimerCrash - this.crashtimer.Counter="+this.crashtimer.Counter+" ==> p="+p+" b="+b);
+		console.log("onTimerCrash - this.crashtimer.counter="+this.crashtimer.counter+" ==> p="+p+" b="+b);
 		this.lcdgame.sequenceSetPos("crash", p, b);
 	},
 
@@ -399,7 +399,7 @@ highway.MainGame.prototype = {
 	initWait: function(msecs, max) {
 		console.log("initWait("+msecs+", "+max+").. ok");
 		this.waittimer.pause();
-		this.waittimer.Counter = 0;
+		this.waittimer.counter = 0;
 		// short pause when picking up/dropping off hitchhiker, before/after gas bonus game etc.
 		if (typeof max === "undefined") max = 1;
 
@@ -685,7 +685,7 @@ highway.BonusGame.prototype = {
 	bonusWait: function(msecs, max) {
 		console.log("initWait("+msecs+", "+max+").. ok");
 		this.waittimer.pause();
-		this.waittimer.Counter = 0;
+		this.waittimer.counter = 0;
 		// short pause when picking up/dropping off hitchhiker, before/after gas bonus game etc.
 		if (typeof max === "undefined") max = 1;
 
@@ -702,7 +702,7 @@ highway.BonusGame.prototype = {
 		switch(this.bonusstate) {
 			case STATE_BONUSSTART:
 				// alarm sound before and after bonus game
-				if ( (this.waittimer.Max > 1) && (this.waittimer.Counter < 3) ) {
+				if ( (this.waittimer.Max > 1) && (this.waittimer.counter < 3) ) {
 					this.lcdgame.playSoundEffect("bonusalarm");
 				} else {
 					// start or continue bonus game
@@ -718,7 +718,7 @@ highway.BonusGame.prototype = {
 				break;
 			case STATE_BONUSEND:
 				// alarm sound before and after bonus game
-				if (this.waittimer.Counter < 3) {
+				if (this.waittimer.counter < 3) {
 					this.lcdgame.playSoundEffect("bonusalarm");
 				} else {
 					// continue normal game

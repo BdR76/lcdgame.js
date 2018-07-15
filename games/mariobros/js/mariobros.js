@@ -65,7 +65,7 @@ mariobros.ClockMode.prototype = {
 		var strtime = ("  "+ihours).substr(-2) + ("00"+imin).substr(-2);
 		
 		// clock time colon
-		this.lcdgame.setShapeByName("time_colon", (this.demotimer.Counter % 2 == 0));
+		this.lcdgame.setShapeByName("time_colon", (this.demotimer.counter % 2 == 0));
 
 		// display time
 		this.lcdgame.digitsDisplay("digits", strtime, false);
@@ -98,6 +98,8 @@ mariobros.MainGame = function(lcdgame) {
 	this.belttimer = null; // also drives the grab/move and dust animations
 	this.misstimer = null;
 	
+	this.chancetime = false; // score doubler
+	
 	// global game variables
 	this.holdcase = [];
 	this.dropcase = [];
@@ -119,6 +121,7 @@ mariobros.MainGame.prototype = {
 		// add timers
 		this.belttimer = this.lcdgame.addtimer(this, this.onTimerBelt, 210);
 		this.misstimer = this.lcdgame.addtimer(this, this.onTimerMiss, 200);
+		this.bonustimer = this.lcdgame.addtimer(this, this.onTimerBonus, 250);
 
 		// new game or continue after cutscene
 		if (this.lcdgame.level == 0) {
@@ -145,6 +148,7 @@ mariobros.MainGame.prototype = {
 		this.mariopos = 1;
 		this.scorePoints(0);
 		this.misscount = 0;
+		this.chancetime = false;
 
 		this.caseadd = 0;
 		this.caseaddbulk = 2;
@@ -158,6 +162,9 @@ mariobros.MainGame.prototype = {
 		//this.lcdgame.sequenceSetPos("case10", 1, true);
 		//this.lcdgame.sequenceSetPos("case10", 3, true);
 		//this.lcdgame.sequenceSetPos("case11", 0, true);
+		//this.misscount = 2;
+		//this.lcdgame.score = 298;
+		//this.refreshMiss(this.misscount);
 		//this.lcdgame.sequenceSetPos("case11", 2, true);
 		//
 		//// testing
@@ -214,7 +221,7 @@ mariobros.MainGame.prototype = {
 		msecs = Math.floor(msecs / 4);
 		if (msecs < 80) {msecs = 80};
 
-		this.belttimer.Interval = msecs;
+		this.belttimer.interval = msecs;
 		this.belttimer.Start();
 
 	},
@@ -237,7 +244,7 @@ mariobros.MainGame.prototype = {
 			this.doCheckGrabCase();
 			
 			// drop case animation
-			//if (this.belttimer.Counter % 4 == 0) {
+			//if (this.belttimer.counter % 4 == 0) {
 				this.doDropCaseAnimate();
 			//};
 		};
@@ -246,12 +253,12 @@ mariobros.MainGame.prototype = {
 		// belttimer ticks
 		// 1..2..3..4..5..6..7..8..9.. etc.
 		// move left^ move right^
-		var movebelt = (this.belttimer.Counter % 4 == 0);
-		var moveleft = (this.belttimer.Counter % 8 == 0);
+		var movebelt = (this.belttimer.counter % 4 == 0);
+		var moveleft = (this.belttimer.counter % 8 == 0);
 
 		// truck smoke animation, only when almost ready locading cases
 		if (this.truckcases >= 6) {
-			var smoke = (this.belttimer.Counter % 4); // 0..3
+			var smoke = (this.belttimer.counter % 4); // 0..3
 			if (smoke == 0) this.lcdgame.setShapeByName("truck_s3", true);
 			if (smoke == 1) this.lcdgame.setShapeByName("truck_s4", true);
 			if (smoke == 2) this.lcdgame.setShapeByName("truck_s3", false);
@@ -280,6 +287,12 @@ mariobros.MainGame.prototype = {
 				movebelt = false;
 				this.belttimer.pause();
 				this.misstimer.Start();
+				// cancel chance time
+				if (this.chancetime) {
+					this.chancetime = false;
+					this.bonustimer.pause();
+					this.refreshScore(this.lcdgame.score);
+				};
 				// play drop case sound
 				this.lcdgame.playSoundEffect("dropcase");
 			}
@@ -370,7 +383,7 @@ mariobros.MainGame.prototype = {
 				};
 			};
 			//if (this.gamestate == STATE_GAMEPLAY) {
-			//	if (this.belttimer.Counter % 24 == 0) {
+			//	if (this.belttimer.counter % 24 == 0) {
 			//		this.lcdgame.sequenceSetFirst("case1", true);
 			//		this.lcdgame.sequenceSetFirst("case1", true);
 			//	};
@@ -471,7 +484,7 @@ mariobros.MainGame.prototype = {
 			if ( (this.dropcase[c].dropped == 0) && (this.dropcase[c].falling == false) ){
 				console.log("doDropCase -- found non-dropped case, c=" + c + " frame="+this.dropcase[c].frame + " seq="+this.dropcase[c].seq);
 				this.dropcase[c].falling = true;
-				this.dropcase[c].fallsync = ((this.belttimer.Counter-1) % 4);
+				this.dropcase[c].fallsync = ((this.belttimer.counter-1) % 4);
 				this.truckdrop = true;
 				break;
 			};
@@ -492,7 +505,7 @@ mariobros.MainGame.prototype = {
 					var seq = this.dropcase[c].seq;
 					
 					// check if time to move one over
-					if (this.belttimer.Counter % 4 == this.dropcase[c].fallsync) {
+					if (this.belttimer.counter % 4 == this.dropcase[c].fallsync) {
 						// move one down
 						//this.lcdgame.sequenceSetPos("case12", 0, false); // top case held by luigi
 						this.lcdgame.sequenceSetPos(seq, this.dropcase[c].frame, false);
@@ -513,7 +526,7 @@ mariobros.MainGame.prototype = {
 								this.gamestate = STATE_GAMEWIN;
 								this.lcdgame.state.start("cutscene");
 								// keep smoke animation in cutscene in-sync with smoke during game
-								this.lcdgame.currentState().smokeframe = this.belttimer.Counter;
+								this.lcdgame.currentState().smokeframe = this.belttimer.counter;
 							};
 						};
 					};
@@ -522,10 +535,60 @@ mariobros.MainGame.prototype = {
 		};
 	},
 
+	onTimerBonus: function() {
+		if (this.chancetime) {
+			// blink score while playing
+			var s = (this.bonustimer.counter % 2 == 0 ? this.lcdgame.score : "");
+			this.refreshScore(s);
+		} else {
+			// blink misses and continue
+			var m = (this.bonustimer.counter % 2 == 0 ? this.misscount : 0);
+			this.refreshMiss(m);
+
+			// on last blink, reset counter
+			if (this.bonustimer.counter == this.bonustimer.max) {
+				this.misscount = 0;
+				// continue game
+				this.bonustimer.pause();
+				this.belttimer.Start();
+			};
+		}
+
+	},
+
+	refreshMiss: function(m) {
+		// show "miss" shape
+		this.lcdgame.setShapeByName("miss", (m > 0));
+		// display misses according to counter
+		for (var i = 1; i <= 3; i++) {
+			this.lcdgame.setShapeByName("miss_"+i, (m >= i));
+		};
+	},
+	
+	refreshScore: function(s) {
+		this.lcdgame.digitsDisplay("digits", ""+s, true);
+	},
+	
 	scorePoints: function(pts) {
-		this.lcdgame.score = this.lcdgame.score + pts;
+		this.lcdgame.score = this.lcdgame.score + (this.chancetime ? pts*2 : pts);
 		// display score
-		this.lcdgame.digitsDisplay("digits", ""+this.lcdgame.score, true);
+		if (!this.chancetime) {
+			this.refreshScore(this.lcdgame.score);
+		};
+
+		// pass 300 for bonus
+		if ( (this.lcdgame.score-pts < 300) && (this.lcdgame.score >= 300) ) {
+			if (this.misscount > 0) {
+				// reach 300 points, erase misses
+				this.belttimer.pause();
+				this.bonustimer.Start(9);
+			} else {
+				// reach 300 points without any misses
+				this.chancetime = true; // score doubler
+				this.bonustimer.Start();
+			}
+			
+		}
 	},
 
 	// -------------------------------------
@@ -533,7 +596,7 @@ mariobros.MainGame.prototype = {
 	// -------------------------------------
 	onTimerMiss: function() {
 
-		var frame = this.misstimer.Counter;
+		var frame = this.misstimer.counter;
 		if (frame == 1) {
 			this.lcdgame.sequenceSetPos("case"+this.misscase, -1, false);
 		} else if (frame == 2) {
@@ -582,11 +645,9 @@ mariobros.MainGame.prototype = {
 			this.lcdgame.setShapeByName(this.misswho+"_foreman_a1", !bowdown);
 			this.lcdgame.setShapeByName(this.misswho+"_foreman_a2", bowdown);
 		} else if (frame >= 22) {
-			
 			// count miss
 			this.misscount++;
-			this.lcdgame.setShapeByName("miss_"+this.misscount, true);
-			if (this.misscount == 1) {this.lcdgame.setShapeByName("miss", true)};
+			this.refreshMiss(this.misscount);
 
 			// clear foreman
 			this.lcdgame.setShapeByName(this.misswho+"_foreman", false);
@@ -713,7 +774,7 @@ mariobros.CutScene.prototype = {
 	// -------------------------------------
 	onTimerAnimate: function() {
 
-		var frame = this.animatetimer.Counter;
+		var frame = this.animatetimer.counter;
 		
 		if (frame == 1) {
 			this.lcdgame.setShapeByName("driver", false);

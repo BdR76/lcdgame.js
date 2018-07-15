@@ -890,7 +890,7 @@ LCDGame.Game.prototype = {
 		
 		// infobox content
 		var instr = this.tinyMarkDown(data.gameinfo.instructions.en);
-		this.infocontent.innerHTML = "<h1>" + data.gameinfo.device.title + "</h1><br/>" + instr;
+		this.infocontent.innerHTML = "<h1>How to play</h1><br/>" + instr;
 
 		// get info from metadata
 		var title = data.gameinfo.device.title
@@ -1067,7 +1067,7 @@ LCDGame.Game.prototype = {
 
 		// check all timers
 		for (var t=0; t < this.timers.length; t++) {
-			if (this.timers[t].Enabled) {
+			if (this.timers[t].enabled) {
 				this.timers[t].update(timestamp);
 			};
 		};
@@ -1744,16 +1744,16 @@ LCDGame.Timer = function (context, eventfunction, interval) {
 	this.doGameEvent = eventfunction;
 
 	// frequency of the timer in milliseconds
-	this.Interval = interval || 1000;
+	this.interval = interval || 1000;
 
 	// counter, useful for directing animations etc.
-	this.Counter = 0;
+	this.counter = 0;
 
 	// maximum counter, useful for directing animations etc.
-	this.Max = null;
+	this.max = null;
 
 	// Property: Whether the timer is enable or not
-	this.Enabled = false;
+	this.enabled = false;
 
 	// Member variable: Hold interval id of the timer
 	this.timerId = 0;
@@ -1767,7 +1767,7 @@ LCDGame.Timer.prototype = {
 		var delta = timestamp - this.lasttime;
 		
 		// timer tick
-		if (delta > this.Interval) {
+		if (delta > this.interval) {
 			this.lasttime = timestamp;
 			this.doTimerEvent();
 		};
@@ -1776,22 +1776,22 @@ LCDGame.Timer.prototype = {
 	// local timer event of Timer-object
 	doTimerEvent: function() {
 		// keep track how many times event has fired
-		this.Counter++;
+		this.counter++;
 		// do callback function to gameobj, so not to LCDGame.Timer object
 
 		this.doGameEvent.call(this.context);
 		// if maximum of callbacks was set
-		if (typeof this.Max !== "undefined") {
-			if (this.Counter >= this.Max) this.Enabled = false;
+		if (typeof this.max !== "undefined") {
+			if (this.counter >= this.max) this.enabled = false;
 		};
 	},
 
 	// start/enable the timer
 	Start: function(max) {
 		// initialise variables
-		this.Enabled = true;
-		this.Counter = 0;
-		this.Max = max;
+		this.enabled = true;
+		this.counter = 0;
+		this.max = max;
 
 		// start interval
 		this.lasttime = 0;
@@ -1801,6 +1801,6 @@ LCDGame.Timer.prototype = {
 	pause: function() {
 		debugger;
 		// initialise variables
-		this.Enabled = false;
+		this.enabled = false;
 	}
 };
