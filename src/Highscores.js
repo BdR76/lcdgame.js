@@ -8,7 +8,7 @@ var SCORE_HTML =
 		'  </div>' +
 		'  <a class="mybutton btnpop" onclick="hideScorebox();">Ok</a>' +
 		'</div>';
-var HS_URL = "http://bdrgames.nl/lcdgames/php/";
+var HS_URL = "http://bdrgames.nl/lcdgames/testphp/";
 
 function displayScorebox() {
 	hideInfobox();
@@ -167,6 +167,14 @@ LCDGame.HighScores.prototype = {
 			//paramsdata = getUserAgentParams();
 			request.send(paramsdata);
     },
+
+    getHighscore: function (typ) {
+		var sc = 0;
+		if (this.lcdgame.highscores._scorecache[0]) {
+			sc = this.lcdgame.highscores._scorecache[0].score;
+		};
+		return sc;
+	},
 
     checkScore: function () {
 		// save current score values, because will reset on background when new game starts

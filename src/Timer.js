@@ -4,15 +4,18 @@
 // -------------------------------------
 // pulse timer object
 // -------------------------------------
-LCDGame.Timer = function (context, eventfunction, interval) {
+LCDGame.Timer = function (context, callback, interval, waitfirst) {
 	// context of callback
 	this.context = context;
 	
 	// Event: Timer tick
-	this.doGameEvent = eventfunction;
+	this.callback = callback;
 
 	// frequency of the timer in milliseconds
 	this.interval = interval || 1000;
+	
+	// call callback instantly, or wait one pulse until calling callback
+	this.waitfirst = waitfirst;
 
 	// counter, useful for directing animations etc.
 	this.counter = 0;
@@ -32,11 +35,26 @@ LCDGame.Timer.prototype = {
 
 	// update each frame
 	update: function(timestamp) {
+	
+		//debugger;
+		var varname = this.callback.name;
+		//for (var key in this.context) {
+		//	if (this.context.hasOwnProperty(key)) {
+		//		if (key.indexOf("timer") >= 0) {
+		//			varname = key;
+		//			break;
+		//		};
+		//	};
+		//};
+		
 		var delta = timestamp - this.lasttime;
 		
 		// timer tick
-		if (delta > this.interval) {
-			this.lasttime = timestamp;
+		if (delta >= this.interval) {
+			console.log("LCDGame.Timer<"+varname+">.update() -> delta="+delta+" this.interval="+this.interval+" this.lasttime="+this.lasttime+" this.waitfirst="+this.waitfirst);
+			//this.lasttime = timestamp;
+			this.lasttime = this.lasttime + this.interval;
+			// game callbacks
 			this.doTimerEvent();
 		};
 	},
@@ -47,7 +65,7 @@ LCDGame.Timer.prototype = {
 		this.counter++;
 		// do callback function to gameobj, so not to LCDGame.Timer object
 
-		this.doGameEvent.call(this.context);
+		this.callback.call(this.context, this);
 		// if maximum of callbacks was set
 		if (typeof this.max !== "undefined") {
 			if (this.counter >= this.max) this.enabled = false;
@@ -55,19 +73,21 @@ LCDGame.Timer.prototype = {
 	},
 
 	// start/enable the timer
-	Start: function(max) {
+	start: function(max, waitfirst) {
+		// change waitfirst only when passed as parameter
+		if (typeof waitfirst !== "undefined") this.waitfirst = waitfirst;
 		// initialise variables
 		this.enabled = true;
 		this.counter = 0;
 		this.max = max;
-
-		// start interval
-		this.lasttime = 0;
+		//this.lasttime = 0;
+		this.lasttime = (this.context.lcdgame.raf.raftime || 0);
+		// start immediately?
+		if (waitfirst == false) this.lasttime -= this.interval;
 	},
 
 	// pause the timer
 	pause: function() {
-		debugger;
 		// initialise variables
 		this.enabled = false;
 	}

@@ -32,9 +32,9 @@ LCDGame.StateManager.prototype = {
 		this.states[this._currentState].init();
     },
 
-    currentState: function (key) {
+    currentState: function () {
 
-		if (this._currentState && (this._currentState != key) ) {
+		if (this._currentState) {
 			return this.states[this._currentState];
 		};
     }

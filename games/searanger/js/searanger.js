@@ -44,14 +44,14 @@ searanger.ClockMode.prototype = {
 
 		// start demo mode
 		this.lcdgame.sequenceSetPos("mainguy", 0, true);
-		this.demotimer.Start();
+		this.demotimer.start();
 	},
 
 	update: function() {
 	},
 	
-	input: function(buttonname) {
-		if (buttonname == "mode") {
+	press: function(btn) {
+		if (btn == "mode") {
 			this.lcdgame.state.start("select");
 		};
 	},
@@ -144,20 +144,20 @@ searanger.SelectMode.prototype = {
 	update: function() {
 	},
 	
-	input: function(buttonname) {
-		if (buttonname == "mode") {
+	press: function(btn) {
+		if (btn == "mode") {
 			this.lcdgame.setShapeByName("pro1", false);
 			this.lcdgame.setShapeByName("pro2", false);
 			this.lcdgame.state.start("clock");
 		};
-		if (buttonname == "game") {
+		if (btn == "game") {
 			this.gamepro = 3 - this.gamepro; // 1..2
 
 			// refresh shapes
 			this.lcdgame.setShapeByName("pro1", (this.gamepro==1));
 			this.lcdgame.setShapeByName("pro2", (this.gamepro==2));
 		};
-		if (buttonname == "start") {
+		if (btn == "start") {
 			this.lcdgame.state.states["maingame"].gamepro = this.gamepro;
 			this.lcdgame.state.start("maingame");
 		};
@@ -209,9 +209,9 @@ searanger.MainGame.prototype = {
 		// timers/pulse generators
 		
 		// start hazards moving
-		this.gametimer.Interval = (this.gamepro==1 ? 250 : 125);
-		this.gametimer.Start();
-		this.buoytimer.Start();
+		this.gametimer.interval = (this.gamepro==1 ? 250 : 125);
+		this.gametimer.start();
+		this.buoytimer.start();
 	},
 
 	update: function() {
@@ -220,10 +220,10 @@ searanger.MainGame.prototype = {
 	close: function() {
 	},
 	
-	input: function(buttonname) {
+	press: function(btn) {
 		if (this.gamestate == STATE_GAMEPLAY) {
-			if (buttonname == "left") this.moveGuy(-1);
-			if (buttonname == "right") this.moveGuy(+1);
+			if (btn == "left") this.moveGuy(-1);
+			if (btn == "right") this.moveGuy(+1);
 		}
 	},
 	
@@ -330,7 +330,7 @@ searanger.MainGame.prototype = {
 			// switch to wait 3 seconds
 			this.gamestate = STATE_GAMEHIT;
 			this.gametimer.pause();
-			this.hittimer.Start(12);
+			this.hittimer.start(12);
 		} else {
 			// pulse tick sound effect when any hazard in play or added to play
 			if (pulse == 1) this.lcdgame.playSoundEffect("pulse");
@@ -385,7 +385,7 @@ searanger.MainGame.prototype = {
 				if (this.lives > 0) {
 					if (this.gamestate == STATE_GAMEHIT) this.resetGuy();
 					this.gamestate = STATE_GAMEPLAY;
-					this.gametimer.Start();
+					this.gametimer.start();
 				} else {
 					// game over, check for highscore
 					this.buoytimer.pause();
@@ -444,12 +444,12 @@ searanger.MainGame.prototype = {
 		// pass 500 points, bonus life and speed up
 		if ( (sc1 < 500) && (sc2 >= 500) ) {
 			this.updateLives(+1);
-			this.gametimer.Interval = 125;
+			this.gametimer.interval = 125;
 			wait = true;
 		};
 		// pass 1000 points, slow down again
 		if (sc1 > sc2) {
-			this.gametimer.Interval = (this.gamepro==1 ? 250 : 125);
+			this.gametimer.interval = (this.gamepro==1 ? 250 : 125);
 		};
 		this.lcdgame.score += pts;
 		// display score
@@ -459,7 +459,7 @@ searanger.MainGame.prototype = {
 		if (wait) {
 			// switch to wait 3 seconds
 			this.gametimer.pause();
-			this.hittimer.Start(12);
+			this.hittimer.start(12);
 		};
 	},
 	

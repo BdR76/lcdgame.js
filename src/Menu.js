@@ -13,7 +13,7 @@ var MENU_HTML =
 		'    </div>' +
 		'    <a class="mybutton btnpop" onclick="hideInfobox();">Ok</a>' +
 		'  </div>' +
-		'</div>';;
+		'</div>';
 
 
 function displayInfobox() {

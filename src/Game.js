@@ -41,7 +41,7 @@ LCDGame.Game = function (configfile, metadatafile) {
 		'<div class="container">' +
 		'  <canvas id="mycanvas" class="gamecvs" width="400" height="300"></canvas>' +
 		'  <a class="mybutton btnmenu" onclick="displayInfobox();">help</a>' +
-		'  <a class="mybutton btnmenu" onclick="displayScorebox();">scores</a>' +
+		'  <a class="mybutton btnmenu" onclick="displayScorebox();">highscores</a>' +
 		'  <div class="infobox" id="infobox">' +
 		'    <div id="infocontent">' +
 		'      instructions' +
@@ -500,16 +500,21 @@ LCDGame.Game.prototype = {
 
 		this.raf.start();
 
-		console.log("lcdgame.js - ready to rock!");
+		console.log("lcdgame.js v" +  LCDGAME_VERSION + " :: start");
 	},
 
 	// -------------------------------------
 	// timers and game loop
 	// -------------------------------------
-	addtimer: function(context, callback, ms) {
+	addtimer: function(context, callback, ms, waitfirst) {
+
+		// after .start() do instantly start callbacks (true), or wait the first time (false), so:
+		// true  => .start() [callback] ..wait ms.. [callback] ..wait ms.. etc.
+		// false => .start() ..wait ms.. [callback] ..wait ms.. [callback] etc.
+		if (typeof waitfirst === "undefined") waitfirst = true;
 
 		// add new timer object
-		var tim = new LCDGame.Timer(context, callback, ms);
+		var tim = new LCDGame.Timer(context, callback, ms, waitfirst);
 		
 		this.timers.push(tim);
 		
@@ -519,6 +524,7 @@ LCDGame.Game.prototype = {
 	cleartimers: function() {
 		// clear all timers
 		for (var t=0; t < this.timers.length; t++) {
+			this.timers[t].pause();
 			this.timers[t] = null;
 		};
 		this.timers = [];
@@ -783,7 +789,12 @@ LCDGame.Game.prototype = {
 			};
 		};
 		
-		if (digidx != -1) {
+		if (digidx == -1) {
+			console.log("** ERROR ** digitsDisplay('"+name+"') - digits not found.");
+			// if not found return -1
+			throw "lcdgames.js - digitsDisplay, no digits with name '" + name + "'";
+		} else {
+
 			// align right parameter is optional, set default value
 			//if (rightalign === "undefined") {rightalign = false};
 
@@ -1107,7 +1118,7 @@ LCDGame.Game.prototype = {
 	onButtonDown: function(btnidx, diridx) {
 		// pass input to game
 		var name = this.gamedata.buttons[btnidx].name;
-		this.state.currentState().input(name, diridx);
+		this.state.currentState().press(name, diridx);
 
 		// show button down on screen
 		var idx = this.gamedata.buttons[btnidx].ids[diridx];
@@ -1120,6 +1131,12 @@ LCDGame.Game.prototype = {
 			var idx = this.gamedata.buttons[btnidx].ids[s];
 			this.setShapeByIdx(idx, false);
 		};
+
+		// pass input to game
+		if (typeof this.state.currentState().release !== "undefined") {
+			var name = this.gamedata.buttons[btnidx].name;
+			this.state.currentState().release(name, diridx);
+		}
 	},
 
 	debugRectangle: function(xpos, ypos, w, h) {

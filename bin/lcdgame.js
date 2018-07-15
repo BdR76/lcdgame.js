@@ -79,9 +79,9 @@ LCDGame.StateManager.prototype = {
 		this.states[this._currentState].init();
     },
 
-    currentState: function (key) {
+    currentState: function () {
 
-		if (this._currentState && (this._currentState != key) ) {
+		if (this._currentState) {
 			return this.states[this._currentState];
 		};
     }
@@ -96,6 +96,7 @@ LCDGame.StateManager.prototype = {
 LCDGame.AnimationFrame = function (lcdgame) {
 	// save reference to game object 
 	this.lcdgame = lcdgame;
+	this.raftime = null;
 };
 
 LCDGame.AnimationFrame.prototype = {
@@ -144,13 +145,15 @@ LCDGame.AnimationFrame.prototype = {
 	
     updateAnimFrame: function (rafTime) {
 		// floor the rafTime to make it equivalent to the Date.now() provided by updateSetTimeout (just below)
-		this.lcdgame.updateloop(Math.floor(rafTime));
+		this.raftime = Math.floor(rafTime);
+		this.lcdgame.updateloop(this.raftime);
 
 		_timeOutID = window.requestAnimationFrame(animationLoop);
 	},
 	
     updateSetTimeout: function () {
-		this.lcdgame.updateloop(Date.now());
+		this.raftime = Date.now();
+		this.lcdgame.updateloop(this.raftime);
 
 		var ms = Math.floor(1000.0 / 60.0);
 		_timeOutID = window.setTimeout(animationLoop, ms);
@@ -204,7 +207,7 @@ var MENU_HTML =
 		'    </div>' +
 		'    <a class="mybutton btnpop" onclick="hideInfobox();">Ok</a>' +
 		'  </div>' +
-		'</div>';;
+		'</div>';
 
 
 function displayInfobox() {
@@ -239,7 +242,7 @@ var SCORE_HTML =
 		'  </div>' +
 		'  <a class="mybutton btnpop" onclick="hideScorebox();">Ok</a>' +
 		'</div>';
-var HS_URL = "http://bdrgames.nl/lcdgames/php/";
+var HS_URL = "http://bdrgames.nl/lcdgames/testphp/";
 
 function displayScorebox() {
 	hideInfobox();
@@ -398,6 +401,14 @@ LCDGame.HighScores.prototype = {
 			//paramsdata = getUserAgentParams();
 			request.send(paramsdata);
     },
+
+    getHighscore: function (typ) {
+		var sc = 0;
+		if (this.lcdgame.highscores._scorecache[0]) {
+			sc = this.lcdgame.highscores._scorecache[0].score;
+		};
+		return sc;
+	},
 
     checkScore: function () {
 		// save current score values, because will reset on background when new game starts
@@ -580,7 +591,7 @@ LCDGame.Game = function (configfile, metadatafile) {
 		'<div class="container">' +
 		'  <canvas id="mycanvas" class="gamecvs" width="400" height="300"></canvas>' +
 		'  <a class="mybutton btnmenu" onclick="displayInfobox();">help</a>' +
-		'  <a class="mybutton btnmenu" onclick="displayScorebox();">scores</a>' +
+		'  <a class="mybutton btnmenu" onclick="displayScorebox();">highscores</a>' +
 		'  <div class="infobox" id="infobox">' +
 		'    <div id="infocontent">' +
 		'      instructions' +
@@ -1039,16 +1050,21 @@ LCDGame.Game.prototype = {
 
 		this.raf.start();
 
-		console.log("lcdgame.js - ready to rock!");
+		console.log("lcdgame.js v" +  LCDGAME_VERSION + " :: start");
 	},
 
 	// -------------------------------------
 	// timers and game loop
 	// -------------------------------------
-	addtimer: function(context, callback, ms) {
+	addtimer: function(context, callback, ms, waitfirst) {
+
+		// after .start() do instantly start callbacks (true), or wait the first time (false), so:
+		// true  => .start() [callback] ..wait ms.. [callback] ..wait ms.. etc.
+		// false => .start() ..wait ms.. [callback] ..wait ms.. [callback] etc.
+		if (typeof waitfirst === "undefined") waitfirst = true;
 
 		// add new timer object
-		var tim = new LCDGame.Timer(context, callback, ms);
+		var tim = new LCDGame.Timer(context, callback, ms, waitfirst);
 		
 		this.timers.push(tim);
 		
@@ -1058,6 +1074,7 @@ LCDGame.Game.prototype = {
 	cleartimers: function() {
 		// clear all timers
 		for (var t=0; t < this.timers.length; t++) {
+			this.timers[t].pause();
 			this.timers[t] = null;
 		};
 		this.timers = [];
@@ -1322,7 +1339,12 @@ LCDGame.Game.prototype = {
 			};
 		};
 		
-		if (digidx != -1) {
+		if (digidx == -1) {
+			console.log("** ERROR ** digitsDisplay('"+name+"') - digits not found.");
+			// if not found return -1
+			throw "lcdgames.js - digitsDisplay, no digits with name '" + name + "'";
+		} else {
+
 			// align right parameter is optional, set default value
 			//if (rightalign === "undefined") {rightalign = false};
 
@@ -1646,7 +1668,7 @@ LCDGame.Game.prototype = {
 	onButtonDown: function(btnidx, diridx) {
 		// pass input to game
 		var name = this.gamedata.buttons[btnidx].name;
-		this.state.currentState().input(name, diridx);
+		this.state.currentState().press(name, diridx);
 
 		// show button down on screen
 		var idx = this.gamedata.buttons[btnidx].ids[diridx];
@@ -1659,6 +1681,12 @@ LCDGame.Game.prototype = {
 			var idx = this.gamedata.buttons[btnidx].ids[s];
 			this.setShapeByIdx(idx, false);
 		};
+
+		// pass input to game
+		if (typeof this.state.currentState().release !== "undefined") {
+			var name = this.gamedata.buttons[btnidx].name;
+			this.state.currentState().release(name, diridx);
+		}
 	},
 
 	debugRectangle: function(xpos, ypos, w, h) {
@@ -1736,15 +1764,18 @@ LCDGame.Button = function (lcdgame, name) {
 // -------------------------------------
 // pulse timer object
 // -------------------------------------
-LCDGame.Timer = function (context, eventfunction, interval) {
+LCDGame.Timer = function (context, callback, interval, waitfirst) {
 	// context of callback
 	this.context = context;
 	
 	// Event: Timer tick
-	this.doGameEvent = eventfunction;
+	this.callback = callback;
 
 	// frequency of the timer in milliseconds
 	this.interval = interval || 1000;
+	
+	// call callback instantly, or wait one pulse until calling callback
+	this.waitfirst = waitfirst;
 
 	// counter, useful for directing animations etc.
 	this.counter = 0;
@@ -1764,11 +1795,26 @@ LCDGame.Timer.prototype = {
 
 	// update each frame
 	update: function(timestamp) {
+	
+		//debugger;
+		var varname = this.callback.name;
+		//for (var key in this.context) {
+		//	if (this.context.hasOwnProperty(key)) {
+		//		if (key.indexOf("timer") >= 0) {
+		//			varname = key;
+		//			break;
+		//		};
+		//	};
+		//};
+		
 		var delta = timestamp - this.lasttime;
 		
 		// timer tick
-		if (delta > this.interval) {
-			this.lasttime = timestamp;
+		if (delta >= this.interval) {
+			console.log("LCDGame.Timer<"+varname+">.update() -> delta="+delta+" this.interval="+this.interval+" this.lasttime="+this.lasttime+" this.waitfirst="+this.waitfirst);
+			//this.lasttime = timestamp;
+			this.lasttime = this.lasttime + this.interval;
+			// game callbacks
 			this.doTimerEvent();
 		};
 	},
@@ -1779,7 +1825,7 @@ LCDGame.Timer.prototype = {
 		this.counter++;
 		// do callback function to gameobj, so not to LCDGame.Timer object
 
-		this.doGameEvent.call(this.context);
+		this.callback.call(this.context, this);
 		// if maximum of callbacks was set
 		if (typeof this.max !== "undefined") {
 			if (this.counter >= this.max) this.enabled = false;
@@ -1787,19 +1833,21 @@ LCDGame.Timer.prototype = {
 	},
 
 	// start/enable the timer
-	Start: function(max) {
+	start: function(max, waitfirst) {
+		// change waitfirst only when passed as parameter
+		if (typeof waitfirst !== "undefined") this.waitfirst = waitfirst;
 		// initialise variables
 		this.enabled = true;
 		this.counter = 0;
 		this.max = max;
-
-		// start interval
-		this.lasttime = 0;
+		//this.lasttime = 0;
+		this.lasttime = (this.context.lcdgame.raf.raftime || 0);
+		// start immediately?
+		if (waitfirst == false) this.lasttime -= this.interval;
 	},
 
 	// pause the timer
 	pause: function() {
-		debugger;
 		// initialise variables
 		this.enabled = false;
 	}

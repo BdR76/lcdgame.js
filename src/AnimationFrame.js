@@ -7,6 +7,7 @@
 LCDGame.AnimationFrame = function (lcdgame) {
 	// save reference to game object 
 	this.lcdgame = lcdgame;
+	this.raftime = null;
 };
 
 LCDGame.AnimationFrame.prototype = {
@@ -55,13 +56,15 @@ LCDGame.AnimationFrame.prototype = {
 	
     updateAnimFrame: function (rafTime) {
 		// floor the rafTime to make it equivalent to the Date.now() provided by updateSetTimeout (just below)
-		this.lcdgame.updateloop(Math.floor(rafTime));
+		this.raftime = Math.floor(rafTime);
+		this.lcdgame.updateloop(this.raftime);
 
 		_timeOutID = window.requestAnimationFrame(animationLoop);
 	},
 	
     updateSetTimeout: function () {
-		this.lcdgame.updateloop(Date.now());
+		this.raftime = Date.now();
+		this.lcdgame.updateloop(this.raftime);
 
 		var ms = Math.floor(1000.0 / 60.0);
 		_timeOutID = window.setTimeout(animationLoop, ms);
