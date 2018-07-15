@@ -298,9 +298,15 @@ LCDGame.HighScores.prototype = {
 		// -------------------------------------
 		//       device guesses
 		// -------------------------------------
-
+		// BlackBerry
+		if (/BlackBerry|BB10|PlayBook|Passport/i.test(ua)) {
+			device = "BlackBerry"
+		} else
 		// samsung mobiles
-		if (/GT-I9\d{3}/.test(ua)) {device = "Galaxy S-series"}
+			if (/GT-I9\d{3}|SM-G9\d{2}/.test(ua)) {device = "Galaxy S-series"}
+		else if (/SAMSUNG/.test(ua)) {device = "Samsung"}
+		// huawei
+		else if (/huawei/i.test(ua)) {device = "Huawei"}
 		// windows phone
 		else if (/IEMobile|Windows Phone/i.test(ua)) {
 			device = "Windows Phone"
@@ -381,6 +387,10 @@ LCDGame.HighScores.prototype = {
 		// Internet Explorer
 		if (/MSIE /.test(ua)) {
 			browser = (/MSIE [^;) ]*/.exec(ua)[0] || "MSIE")
+		} else
+		// Internet Explorer 11
+		if (/rv\:11\./.test(ua)) {
+			browser = "MSIE 11";				
 		} else
 		// Internet Explorer 6-11
 		if ( /*@cc_on!@*/false || !!document.documentMode) {
