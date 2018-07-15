@@ -371,7 +371,7 @@ highway.MainGame.prototype = {
 
 	initNextLevel: function() {
 		// set and rest game specific variables
-		this.hitchhikers = 2;
+		this.hitchhikers = 0;
 		this.lcdgame.level++; // next level
 		this.gamestate = STATE_GAMEPLAY;
 
@@ -406,6 +406,9 @@ highway.MainGame.prototype = {
 		// display game1 or game2
 		if (this.lcdgame.gametype == 1) {this.lcdgame.setShapeByName("game1", true)};
 		if (this.lcdgame.gametype == 2) {this.lcdgame.setShapeByName("game2", true)};
+
+		// reset score
+		this.lcdgame.digitsDisplay("digit", "0", true);
 
 		// every game begins with one sign at front, one dog in middle and one tree in back, always.
 		this.lcdgame.sequenceSetPos("dog",  1, true);

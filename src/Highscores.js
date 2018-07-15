@@ -114,9 +114,9 @@ LCDGame.HighScores.prototype = {
     },
 
     saveOnline: function (plr, sc, lvl, typ) {
+		
 			// additional client info
-			var platform = navigator.platform;
-			var browser  = this.guessBrowser();
+			var guess = this.guessOsBrowser();
 			var language = navigator.language;
 			var clientguid  = this.getClientGUID();
 			
@@ -128,8 +128,9 @@ LCDGame.HighScores.prototype = {
 				"&player=" + plr + 
 				"&score=" + sc +
 				"&level=" + lvl +
-				"&platform=" + platform + // client info
-				"&browser=" + browser +
+				"&device=" + guess.device +
+				"&os=" + guess.os +
+				"&browser=" + guess.browser;
 				"&language=" + language +
 				"&lcdversion=" + LCDGAME_VERSION +
 				"&clientguid=" + clientguid;			
@@ -283,33 +284,116 @@ LCDGame.HighScores.prototype = {
 		return guid;
 	},
 		
-	guessBrowser: function () {
+	guessOsBrowser: function () {
+		// Educated guess for OS and browser, send with highscores for library optimizing
+
+		// initialise
+		var device = "";
+		var os = "";
+		var browser = "";
+		
+		// note: navigator.userAgent is a mess
+		var ua = navigator.userAgent || navigator.vendor || window.opera;
+
+		// -------------------------------------
+		//       device guesses
+		// -------------------------------------
+
+		// samsung mobiles
+		if (/GT-I9\d{3}/.test(ua)) {device = "Galaxy S-series"}
+		// windows phone
+		else if (/IEMobile|Windows Phone/i.test(ua)) {
+			device = "Windows Phone"
+		} else
+		// iOS detection from: http://stackoverflow.com/a/9039885/177710
+		if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+			if (/iPad/.test(ua))      { device = "iPad"}
+			else if (/iPod/.test(ua)) { device = "iPod"}
+			else                      ( device = "iPhone" );
+		} else
+		// Mac OS desktop
+		if (/mac os|macintosh/i.test(ua)) {
+			device = "Macintosh"
+		};
+
+		// -------------------------------------
+		//       OS guesses
+		// -------------------------------------
+		// Windows Phone must come first because its UA also contains "Android"
+		if (/windows phone/i.test(ua)) {
+			os = "Windows Phone"
+		} else
+		if (/android /i.test(ua)) {
+			os = (/android [^;)]*/i.exec(ua)[0] || "Android")
+		} else
+		// iOS detection from: http://stackoverflow.com/a/9039885/177710
+		if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+			var osvar = /(iphone os |cpu os )[^;) ]*/i.exec(ua);
+			os = (osvar[0] || "");
+			os = os.replace(/cpu|iphone|os/ig, "").trim();
+			os = "iOS " + os.replace(/_/g, ".");
+		} else
+		if (/mac os/i.test(ua)) {
+			os = "Mac OS"
+		} else
+		if ( (/windows /i.test(ua)) ) {
+			var osvar = /windows [^;)]*/i.exec(ua)[0];
+			os = (osvar || "Windows");
+
+			if (/10/.test(osvar))      os = "Windows 10"
+			if (/6.3/.test(osvar))     os = "Windows 8.1"
+			if (/6.2/.test(osvar))     os = "Windows 8"
+			if (/6.1/.test(osvar))     os = "Windows 7"
+			if (/6.0/.test(osvar))     os = "Windows Vista"
+			if (/5.1|5.2/.test(osvar)) os = "Windows XP"
+			if (/5.0/.test(osvar))     os = "Windows 2000"
+		} else
+		// any other
+			{os = navigator.platform};
+
+		// -------------------------------------
+		//       Browser guesses
+		// -------------------------------------
 		// Opera 8.0+
 		if ((!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0) {
-			return "Opera 8.0+";
+			browser = "Opera 8.0+";
 		} else
 		// Firefox 1.0+
 		if (typeof InstallTrigger !== 'undefined') {
-			return "Firefox 1.0+";
+			browser = "Firefox 1.0+";
+		} else
+		// Edge 20+
+		if (/edge/i.test(ua)) {
+			browser = "Edge";
+		} else
+		// Chrome 1+
+		if ( (/chrome/i.test(ua)) && (/google/i.test(navigator.vendor)) ) {
+			browser = "Chrome";
 		} else
 		// Safari 3.0+ "[object HTMLElementConstructor]" 
-		if (/constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification))) {
-			return "Safari 3.0+";
+		if ( (/safari/i.test(ua)) && (/apple computer/i.test(navigator.vendor)) ) {
+			browser = "Safari";
+		} else
+		// Internet Explorer mobile
+		if (/iemobile/i.test(ua)) {
+			browser = (/iemobile[^;) ]*/i.exec(ua)[0] || "IEMobile")
+		} else
+		// Internet Explorer
+		if (/MSIE /.test(ua)) {
+			browser = (/MSIE [^;) ]*/.exec(ua)[0] || "MSIE")
 		} else
 		// Internet Explorer 6-11
 		if ( /*@cc_on!@*/false || !!document.documentMode) {
-			return "Internet Explorer 6-11";
-		} else
-		// Edge 20+
-		if ( !!window.StyleMedia) {
-			return "Edge 20+";
-		} else
-		// Chrome 1+
-		if ( !!window.chrome && !!window.chrome.webstore) {
-			return "Chrome 1+";
-		} else {
-			return "Unknown";
+			browser = "MSIE 6-11";
 		};
+		
+		// replace problematic characters
+		device  =  device.replace(/&|\?|\//g, " ").trim();
+		os      =      os.replace(/&|\?|\//g, " ").trim();
+		browser = browser.replace(/&|\?|\//g, " ").trim();
+		
+		// return result
+		return {"device": device, "os": os, "browser": browser};
 	}
 };
 

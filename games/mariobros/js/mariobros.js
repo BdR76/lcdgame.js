@@ -4,12 +4,10 @@
 var mariobros = {};
 
 // constants
-var STATE_DEMO = 1;
-var STATE_MODESELECT = 2;
-var STATE_GAMEPLAY = 10;
-var STATE_GAMEDROP = 11;
-var STATE_GAMEWIN = 12;
-var STATE_GAMEOVER = 13;
+var STATE_GAMEPLAY = 1;
+var STATE_GAMEDROP = 2;
+var STATE_GAMEWIN  = 3;
+var STATE_GAMEOVER = 4;
 
 mariobros = function(lcdgame) {
 	// save reference to lcdgame object
@@ -132,20 +130,14 @@ mariobros.MainGame.prototype = {
 		// add timers
 		this.belttimer = this.lcdgame.addtimer(this, this.onTimerBelt, 210);
 		this.misstimer = this.lcdgame.addtimer(this, this.onTimerMiss, 200);
+
 		this.bonustimer = this.lcdgame.addtimer(this, this.onTimerBonus, 250);
 		this.resettimer = this.lcdgame.addtimer(this, this.onTimerReset, 250);
+		
+		this.animatetimer = this.lcdgame.addtimer(this, this.onTimerAnimate, 187); // 320bpm = 0.1875s
 
-		// new game or continue after cutscene
-		if (this.lcdgame.level == 0) {
-			this.newGame();
-		} else {
-			this.nextLevel();
-		};
-
-		// continue changetimer blinking score after a cut-scene
-		if (this.chancetime) {
-			this.bonustimer.start();
-		};
+		// new game
+		this.newGame();
 	},
 	
 	// start a new game, reset score level etc.
@@ -176,13 +168,15 @@ mariobros.MainGame.prototype = {
 		this.nextLevel();
 		
 		// TESTING! start with cases in truck and on top belt
-		//this.lcdgame.score = 298;
+		//this.misscount = 2;
+		//this.refreshMiss(2);
+		//this.lcdgame.score = 280;
 		//this.lcdgame.sequenceSetPos("case10", 1, true);
 		//this.lcdgame.sequenceSetPos("case10", 3, true);
 		//this.lcdgame.sequenceSetPos("case11", 0, true);
 		//this.lcdgame.sequenceSetPos("case11", 2, true);
-		//
-		//// testing
+		
+		// testing
 		//this.truckcases = 0;
 		//for (var c = 0; c < 6; c++) {
 		//	this.dropcase[c].dropped = 1;
@@ -546,9 +540,8 @@ mariobros.MainGame.prototype = {
 							// if game won
 							if (this.truckcases == 8) {
 								this.gamestate = STATE_GAMEWIN;
-								this.lcdgame.state.start("cutscene");
-								// keep smoke animation in cutscene in-sync with smoke during game
-								this.lcdgame.state.currentState().smokeframe = this.belttimer.counter;
+								this.belttimer.pause();
+								this.animatetimer.start();
 							};
 						};
 					};
@@ -558,25 +551,29 @@ mariobros.MainGame.prototype = {
 	},
 
 	onTimerBonus: function(tmr) {
-		debugger;
 		// blink score while playing
 		var s = (tmr.counter % 2 == 0 ? this.lcdgame.score : "");
 		this.refreshScore(s);
 	},
 
-	onTimerReset: function(a,b, c) {
-		debugger;
+	onTimerReset: function(tmr) {
+		//debugger;
 
 		// blink misses and continue
-		var m = (this.bonustimer.counter % 2 == 0 ? this.misscount : 0);
+		var m = (tmr.counter % 2 == 0 ? this.misscount : 0);
 		this.refreshMiss(m);
 
 		// on last blink, reset counter
-		if (this.bonustimer.counter == this.bonustimer.max) {
+		if (tmr.counter == tmr.max) {
 			this.misscount = 0;
 			// continue game
-			this.bonustimer.pause();
-			this.belttimer.start();
+			tmr.pause();
+			
+			if (this.gamestate == STATE_GAMEWIN) {
+				this.animatetimer.unpause();
+			} else {
+				this.belttimer.start();
+			};
 		};
 	},
 
@@ -604,8 +601,11 @@ mariobros.MainGame.prototype = {
 		// pass 300 for bonus
 		if ( (this.lcdgame.score-pts < 300) && (this.lcdgame.score >= 300) ) {
 			if (this.misscount > 0) {
-				// reach 300 points, erase misses
+				// score >300 can occur either during game (belttimer) or during cutscene (animatetimer)
 				this.belttimer.pause();
+				this.animatetimer.pause();
+
+				// reset misses
 				this.resettimer.start(9);
 			} else {
 				// reach 300 points without any misses
@@ -774,25 +774,11 @@ mariobros.MainGame.prototype = {
 				};
 			};
 		};
-	}
-}
+	},
 
 // =============================================================================
 // cut scene between levels, truck full and drive away
 // =============================================================================
-mariobros.CutScene = function(lcdgame) {
-	this.lcdgame = lcdgame;
-	this.animatetimer;
-	this.smokeframe = 0;
-}
-mariobros.CutScene.prototype = {
-	init: function(){
-		this.animatetimer = this.lcdgame.addtimer(this, this.onTimerAnimate, 187); // 320bpm = 0.1875s
-		
-		this.animatetimer.start();
-	},
-	press: function(btn) {
-	},
 
 	// -------------------------------------
 	// level finish animations
@@ -830,7 +816,7 @@ mariobros.CutScene.prototype = {
 		
 		if (frame <= 10) {
 			// score 10 points, beep sound for each point
-			this.lcdgame.state.states["maingame"].scorePoints(1);
+			this.scorePoints(1);
 			// bonus points sound
 			this.lcdgame.playSoundEffect("bonuspoint");
 		} else if (frame == 20) {
@@ -913,7 +899,8 @@ mariobros.CutScene.prototype = {
 			this.lcdgame.setShapeByName("mario_foreman_a1", false);
 			
 			// continue game state, and count next level
-			this.lcdgame.state.start("maingame");
+			this.animatetimer.pause();
+			this.nextLevel();
 		};
 	}
 }

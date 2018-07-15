@@ -83,7 +83,7 @@ LCDGame.Timer.prototype = {
 		//this.lasttime = 0;
 		this.lasttime = (this.context.lcdgame.raf.raftime || 0);
 		// start immediately?
-		if (waitfirst == false) this.lasttime -= this.interval;
+		if (this.waitfirst == false) this.lasttime -= this.interval;
 	},
 
 	// pause the timer

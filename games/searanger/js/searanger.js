@@ -40,7 +40,7 @@ searanger.ClockMode = function(lcdgame) {
 searanger.ClockMode.prototype = {
 	init: function(){
 		// initialise all timers
-		this.demotimer = this.lcdgame.addtimer(this, this.onTimerDemo, 500);
+		this.demotimer = this.lcdgame.addtimer(this, this.onTimerDemo, 500, false);
 
 		// start demo mode
 		this.lcdgame.sequenceSetPos("mainguy", 0, true);
@@ -61,7 +61,7 @@ searanger.ClockMode.prototype = {
 
 	onTimerDemo: function() {
 		// update clock
-		if (this.demotimer.counter % 2 != 0) {
+		if (this.demotimer.counter % 2 == 0) {
 			// demo timer event fired every half second
 			this.lcdgame.setShapeByName("time_colon", false);
 		} else {
@@ -121,6 +121,7 @@ searanger.ClockMode.prototype = {
 searanger.SelectMode = function(lcdgame) {
 	this.lcdgame = lcdgame;
 	this.gamepro;
+	this.beeptimer;
 }
 searanger.SelectMode.prototype = {
 	init: function(){
@@ -138,7 +139,9 @@ searanger.SelectMode.prototype = {
 		// initialise
 		this.lcdgame.setShapeByName("pro1", true);
 		this.gamepro = 1;
-		
+
+		// show highscore and beep before starting
+		this.beeptimer = this.lcdgame.addtimer(this, this.onTimerBeep, 1000, false);
 	},
 
 	update: function() {
@@ -158,9 +161,22 @@ searanger.SelectMode.prototype = {
 			this.lcdgame.setShapeByName("pro2", (this.gamepro==2));
 		};
 		if (btn == "start") {
+			// show highscore and beep
+			var sc = this.lcdgame.highscores.getHighscore(this.gamepro);
+			this.lcdgame.digitsDisplay("digits", ""+sc, true);
+			this.beeptimer.start();
+		};
+	},
+	
+	release: function(btn) {
+		if (btn == "start") {
 			this.lcdgame.state.states["maingame"].gamepro = this.gamepro;
 			this.lcdgame.state.start("maingame");
 		};
+	},
+	
+	onTimerBeep: function(tmr) {
+		this.lcdgame.playSoundEffect("beepbeep"); // "lose"
 	},
 
 	close: function() {
