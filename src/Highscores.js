@@ -4,10 +4,11 @@
 var SCORE_HTML = 
 		'<div class="infobox" id="scorebox">' +
 		'  <div id="scorecontent">' +
-		'    high-scores'
+		'    One moment...' +
 		'  </div>' +
 		'  <a class="mybutton btnpop" onclick="hideScorebox();">Ok</a>' +
 		'</div>';
+		
 var HS_URL = "http://bdrgames.nl/lcdgames/testphp/";
 
 function displayScorebox() {
@@ -116,10 +117,26 @@ LCDGame.HighScores.prototype = {
     saveOnline: function (plr, sc, lvl, typ) {
 		
 			// additional client info
-			var guess = this.guessOsBrowser();
+			if (platform) {
+				// use platform.js for more accurate info
+				var info =
+					(platform.product ? "&device="  + platform.product : "") +
+					(platform.os      ? "&os="      + platform.os      : "") +
+					(platform.name    ? "&browser=" + platform.name    : "");
+			} else {
+				var guess = this.guessOsBrowser();
+				var info =
+					"&device=" + guess.device +
+					"&os=" + guess.os +
+					"&browser=" + guess.browser;
+			};
 			var language = navigator.language;
 			var clientguid  = this.getClientGUID();
 			
+			// reserved characters in url
+			//var gametitle = gametitle.replace(/\&/g, "%26"); // & -> %26
+			var plr = plr.replace(/\&/g, "%26"); // & -> %26
+
 			// build url
 			var url = HS_URL + "newhs.php";
 			var paramsdata = 
@@ -128,9 +145,7 @@ LCDGame.HighScores.prototype = {
 				"&player=" + plr + 
 				"&score=" + sc +
 				"&level=" + lvl +
-				"&device=" + guess.device +
-				"&os=" + guess.os +
-				"&browser=" + guess.browser;
+				info + // client info
 				"&language=" + language +
 				"&lcdversion=" + LCDGAME_VERSION +
 				"&clientguid=" + clientguid;			
@@ -187,9 +202,13 @@ LCDGame.HighScores.prototype = {
 			// input name
 			var plr = prompt("New highscore, enter your name and press enter to submit or press cancel.", "");
 
+			// not null (cancel) or empty string
 			if (plr != null) {
-				this.saveLocal(plr, sc, lvl, typ);
-				this.saveOnline(plr, sc, lvl, typ);
+				plr = plr.trim();
+				if (plr != "") {
+					this.saveLocal(plr, sc, lvl, typ);
+					this.saveOnline(plr, sc, lvl, typ);
+				};
 			};
 		};
     },
@@ -285,7 +304,10 @@ LCDGame.HighScores.prototype = {
 	},
 		
 	guessOsBrowser: function () {
-		// Educated guess for OS and browser, send with highscores for library optimizing
+		// Also send OS and browser with highscores, for library optimizing
+		// Educated guess; far from accurate
+		// Determining the device/os/browser goes way beyond the scope of this LCDgame library
+		// For more accurately determining os/browser use library platform.js or similar library
 
 		// initialise
 		var device = "";
@@ -304,9 +326,25 @@ LCDGame.HighScores.prototype = {
 		} else
 		// samsung mobiles
 			if (/GT-I9\d{3}|SM-G9\d{2}/.test(ua)) {device = "Galaxy S-series"}
+		else if (/SM-A\d{3}/.test(ua)) {device = "Galaxy A-series"}
+		else if (/SM-J\d{3}/.test(ua)) {device = "Galaxy J-series"}
+		else if (/SM-T\d{3}/.test(ua)) {device = "Galaxy Tab"}
+		else if (/SM-N\d{3}/.test(ua)) {device = "Galaxy Note"}
 		else if (/SAMSUNG/.test(ua)) {device = "Samsung"}
 		// huawei
 		else if (/huawei/i.test(ua)) {device = "Huawei"}
+		// kindle
+		else if (/kindle/.test(ua)) {device = "Kindle"}
+		// Xbox One
+		else if (/xbox one/i.test(ua)) {device = "Xbox One"}
+		// Xbox 360
+		else if (/xbox/i.test(ua)) {device = "Xbox 360"}
+		// Playstation Vita, Playstation 3, Playstation 4
+		else if (/playstation /i.test(ua)) {
+			device = (/playstation [^;) ]*/i.exec(ua) || "Playstation")
+		}
+		// Wii U
+		else if (/nintendo wii/i.test(ua)) {device = "Wii U"}
 		// windows phone
 		else if (/IEMobile|Windows Phone/i.test(ua)) {
 			device = "Windows Phone"
@@ -325,6 +363,10 @@ LCDGame.HighScores.prototype = {
 		// -------------------------------------
 		//       OS guesses
 		// -------------------------------------
+		// Windows Phone must come first because its UA also contains "Android"
+		if (/tizen /i.test(ua)) {
+			os = (/tizen [^;)]*/i.exec(ua)[0] || "Tizen")
+		} else
 		// Windows Phone must come first because its UA also contains "Android"
 		if (/windows phone/i.test(ua)) {
 			os = "Windows Phone"
