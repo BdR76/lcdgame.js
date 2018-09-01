@@ -4,12 +4,11 @@
 var MENU_HTML = 
 		'<div class="container">' +
 		'  <canvas id="mycanvas" class="gamecvs" width="400" height="300"></canvas>' +
-		'  <a class="mybutton btnmenu">help</a>' +
 		'  <a class="mybutton btnmenu" onclick="displayInfobox();">help</a>' +
+		'  <a class="mybutton btnmenu" onclick="displayScorebox();">highscores</a>' +
 		'  <div class="infobox" id="infobox">' +
-		'    <div>' +
-		'      <h1>test123</h1>' +
-		'      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.' +
+		'    <div id="infocontent">' +
+		'      instructions' +
 		'    </div>' +
 		'    <a class="mybutton btnpop" onclick="hideInfobox();">Ok</a>' +
 		'  </div>' +

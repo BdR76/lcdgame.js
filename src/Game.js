@@ -38,35 +38,8 @@ LCDGame.Game = function (configfile, metadatafile) {
 
 // create canvas element and add to document
 	var str =
-		'<div class="container">' +
-		'  <canvas id="mycanvas" class="gamecvs" width="400" height="300"></canvas>' +
-		'  <a class="mybutton btnmenu" onclick="displayInfobox();">help</a>' +
-		'  <a class="mybutton btnmenu" onclick="displayScorebox();">highscores</a>' +
-		'  <div class="infobox" id="infobox">' +
-		'    <div id="infocontent">' +
-		'      instructions' +
-		'    </div>' +
-		'    <a class="mybutton btnpop" onclick="hideInfobox();">Ok</a>' +
-		'  </div>' +
-		'</div>' +
-		'<div class="infobox" id="scorebox">' +
-		'  <div id="scorecontent">' +
-		'    <table>' +
-		'      <tr><td>Rk.</td><td>Name</td><td>Score</td></tr>' +
-		'      <tr><td>1.</td><td>First name</td><td>1000</td></tr>' +
-		'      <tr><td>2.</td><td>Second name</td><td>900</td></tr>' +
-		'      <tr><td>3.</td><td>Third name</td><td>800</td></tr>' +
-		'      <tr><td>4.</td><td>Fourth name</td><td>700</td></tr>' +
-		'      <tr><td>5.</td><td>Fifth name</td><td>600</td></tr>' +
-		'      <tr><td>6.</td><td>Sixth name</td><td>500</td></tr>' +
-		'      <tr><td>7.</td><td>Seventh name</td><td>400</td></tr>' +
-		'      <tr><td>8.</td><td>Eight name</td><td>300</td></tr>' +
-		'      <tr><td>9.</td><td>Ninth name</td><td>200</td></tr>' +
-		'      <tr><td>10.</td><td>Tenth name</td><td>100</td></tr>' +
-		'    </table>' +
-		'  </div>' +
-		'  <a class="mybutton btnpop" onclick="hideScorebox();">Ok</a>' +
-		'</div>';
+		MENU_HTML + 
+		SCORE_HTML;
 
 	document.write(str);
 
