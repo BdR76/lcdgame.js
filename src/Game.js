@@ -998,15 +998,30 @@ LCDGame.Game.prototype = {
 				switch(this.gamedata.buttons[i].type) {
 					case "updown":
 						// two direction button up/down
-						var half = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
+						var yhalf = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
 						// up or down
-						btnidx = (y < this.gamedata.buttons[i].area.y1 + half ? 0 : 1);
+						btnidx = (y < this.gamedata.buttons[i].area.y1 + yhalf ? 0 : 1);
 						break;
 					case "leftright":
 						// two direction button left/right
-						var half = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
+						var xhalf = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
 						// left or right
-						btnidx = (x < this.gamedata.buttons[i].area.x1 + half ? 0 : 1);
+						btnidx = (x < this.gamedata.buttons[i].area.x1 + xhalf ? 0 : 1);
+						break;
+					case "dpad":
+						// four direction button up/down/left/right
+						var xhalf = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
+						var yhalf = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
+						// distance to center
+						var xdist = x - this.gamedata.buttons[i].area.x1 - xhalf;
+						var ydist = y - this.gamedata.buttons[i].area.y1 - yhalf;
+						if (Math.abs(xdist) < Math.abs(ydist)) {
+							// up or down
+							btnidx = (ydist < 0 ? 0 : 1); // 0=up, 1=down
+						} else {
+							// left or right
+							btnidx = (xdist < 0 ? 2 : 3); // 2=left, 3=right
+						};
 						break;
 					//default: // case "button":
 					//	// simple button
@@ -1051,6 +1066,21 @@ LCDGame.Game.prototype = {
 						var half = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
 						// left or right
 						btnidx = (x < this.gamedata.buttons[i].area.x1 + half ? 0 : 1);
+						break;
+					case "dpad":
+						// four direction button up/down/left/right
+						var xhalf = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
+						var yhalf = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
+						// distance to center
+						var xdist = x - this.gamedata.buttons[i].area.x1 - xhalf;
+						var ydist = y - this.gamedata.buttons[i].area.y1 - yhalf;
+						if (Math.abs(xdist) < Math.abs(ydist)) {
+							// up or down
+							btnidx = (ydist < 0 ? 0 : 1); // 0=up, 1=down
+						} else {
+							// left or right
+							btnidx = (xdist < 0 ? 2 : 3); // 2=left, 3=right
+						};
 						break;
 					//default: // case "button":
 					//	// simple button
