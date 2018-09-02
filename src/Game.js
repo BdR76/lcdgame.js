@@ -212,8 +212,11 @@ LCDGame.Game.prototype = {
 			var xmax = xmax + wh;
 			var ymax = ymax + hh;
 
+			var xcenter = (xmin + xmax) / 2.0;
+			var ycenter = (ymin + ymax) / 2.0;
+
 			// button touch area
-			this.gamedata.buttons[b].area = {"x1":xmin, "y1":ymin, "x2":xmax, "y2":ymax};
+			this.gamedata.buttons[b].area = {"x1":xmin, "y1":ymin, "x2":xmax, "y2":ymax, "xc":xcenter, "yc":ycenter};
 
 			// default keycodes
 			var defkey = this.gamedata.buttons[b].name;
@@ -233,18 +236,18 @@ LCDGame.Game.prototype = {
 					&& (this.gamedata.buttons[b1].area.y1 < this.gamedata.buttons[b2].area.y2) // vertical overlap
 					&& (this.gamedata.buttons[b1].area.y2 > this.gamedata.buttons[b2].area.y1)
 				) {
-					// determine the center points of each area
-					var xc1 = (this.gamedata.buttons[b1].area.x1 + this.gamedata.buttons[b1].area.x2) / 2.0;
-					var yc1 = (this.gamedata.buttons[b1].area.y1 + this.gamedata.buttons[b1].area.y2) / 2.0;
-					var xc2 = (this.gamedata.buttons[b2].area.x1 + this.gamedata.buttons[b2].area.x2) / 2.0;
-					var yc2 = (this.gamedata.buttons[b2].area.y1 + this.gamedata.buttons[b2].area.y2) / 2.0;
+					// get center points of each area
+					var xc1 = this.gamedata.buttons[b1].area.xc;
+					var yc1 = this.gamedata.buttons[b1].area.yc;
+					var xc2 = this.gamedata.buttons[b2].area.xc;
+					var yc2 = this.gamedata.buttons[b2].area.yc;
 					
 					// rectract to left, right, up, down
 					if ( Math.abs(xc1 - xc2) > Math.abs(yc1 - yc2) ) {
 						if (xc1 > xc2) { // b1 is to the right of b2
 							var dif = (this.gamedata.buttons[b1].area.x1 - this.gamedata.buttons[b2].area.x2) / 2;
-							this.gamedata.buttons[b1].area.x1 += dif;
-							this.gamedata.buttons[b2].area.x2 -= dif;
+							this.gamedata.buttons[b1].area.x1 -= dif;
+							this.gamedata.buttons[b2].area.x2 += dif;
 						} else { // b1 is to the left of b2
 							var dif = (this.gamedata.buttons[b1].area.x2 - this.gamedata.buttons[b2].area.x1) / 2;
 							this.gamedata.buttons[b1].area.x2 -= dif;
@@ -253,8 +256,8 @@ LCDGame.Game.prototype = {
 					} else {
 						if (yc1 > yc2) { // b1 is below b2
 							var dif = (this.gamedata.buttons[b1].area.y1 - this.gamedata.buttons[b2].area.y2) / 2;
-							this.gamedata.buttons[b1].area.y1 += dif;
-							this.gamedata.buttons[b2].area.y2 -= dif;
+							this.gamedata.buttons[b1].area.y1 -= dif;
+							this.gamedata.buttons[b2].area.y2 += dif;
 						} else { // b1 is above b2
 							var dif = (this.gamedata.buttons[b1].area.y2 - this.gamedata.buttons[b2].area.y1) / 2;
 							this.gamedata.buttons[b1].area.y2 -= dif;
