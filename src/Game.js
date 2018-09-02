@@ -312,8 +312,16 @@ LCDGame.Game.prototype = {
 		});
 		
 		// [button] => <btn>button</btn>
-		str = str.replace(/\[.*?\]/g, function(foo){
+		str = str.replace(/\[(?:(?!\[).)*?\](?!\()/g, function(foo){
 			return "<btn>"+foo.slice(1, -1)+"</btn>";
+		});
+		
+		// hyperlinks [url text](www.test.com) => <a href="http://www.test.com">url text</a>
+		str = str.replace(/(\[(?:(?!\[).)*?\])(\((?:(?!\().)*?\))/g, function(all, fst, sec, pos){
+			var url = sec.slice(1, -1);
+			if (url.indexOf("http") != 0) url = "http://" + url;
+			var txt = fst.slice(1, -1);
+			return '<a href="' + url + '">' + txt + '</a>';
 		});
 		
 		return str;
@@ -553,6 +561,7 @@ LCDGame.Game.prototype = {
 	},
 
 	playSoundEffect: function (name) {
+		
 		// device sound is not muted
 		if (!this.soundmute) {
 			// get sound index from name
@@ -586,12 +595,15 @@ LCDGame.Game.prototype = {
 	},
 
 	setShapeByName: function(filename, value) {
-		// find shape 
-		for (var i = 0; i < this.gamedata.frames.length; i++) {
-			if (this.gamedata.frames[i].filename == filename) {
-				this.gamedata.frames[i].value = value;
-				this._refresh = true;
-				return true;
+		// if called too soon
+		if (this.gamedata.frames) {
+			// find shape 
+			for (var i = 0; i < this.gamedata.frames.length; i++) {
+				if (this.gamedata.frames[i].filename == filename) {
+					this.gamedata.frames[i].value = value;
+					this._refresh = true;
+					return true;
+				};
 			};
 		};
 		return false;
@@ -710,6 +722,18 @@ LCDGame.Game.prototype = {
 			// refresh display
 			this._refresh = true;
 		}
+	},
+
+	shapeVisible: function(name) {
+		// find shape 
+		for (var i = 0; i < this.gamedata.frames.length; i++) {
+			if (this.gamedata.frames[i].filename == name) {
+				if (this.gamedata.frames[i].value == true) {
+					return true;
+				};
+			};
+		};
+		return false;
 	},
 	
 	sequenceShapeVisible: function(name, pos) {
