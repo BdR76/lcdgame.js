@@ -12,6 +12,7 @@ LCDGame.Game = function (configfile, metadatafile) {
 	this.score = 0;
 	this.gametype = 0;
 	this.level = 0;
+	this.soundmute = false;
 
 	// initialise object
 	this.countimages = 0;
@@ -537,6 +538,10 @@ LCDGame.Game.prototype = {
 		console.log("loadSoundEffects - TODO load sound effects");
 	},
 
+	setSoundMute: function (value) {
+		this.soundmute = value;
+	},
+
 	soundIndexByName: function (name) {
 		var idx = 0;
 		for (var i = 0; i < this.gamedata.sounds.length; i++) {
@@ -548,18 +553,21 @@ LCDGame.Game.prototype = {
 	},
 
 	playSoundEffect: function (name) {
-		// get sound index from name
-		var idx = this.soundIndexByName(name);
-		
-		// if sound exists
-		if (idx >= 0) {
-			// if sound is playing then stop it now
-			if (this.gamedata.sounds[idx].audio.paused == false) {
-				this.gamedata.sounds[idx].audio.pause();
-				this.gamedata.sounds[idx].audio.currentTime = 0;
+		// device sound is not muted
+		if (!this.soundmute) {
+			// get sound index from name
+			var idx = this.soundIndexByName(name);
+			
+			// if sound exists
+			if (idx >= 0) {
+				// if sound is playing then stop it now
+				if (this.gamedata.sounds[idx].audio.paused == false) {
+					this.gamedata.sounds[idx].audio.pause();
+					this.gamedata.sounds[idx].audio.currentTime = 0;
+				};
+				// start playing sound
+				this.gamedata.sounds[idx].audio.play();
 			};
-			// start playing sound
-			this.gamedata.sounds[idx].audio.play();
 		};
 	},
 
