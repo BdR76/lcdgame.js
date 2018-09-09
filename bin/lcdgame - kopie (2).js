@@ -1,3 +1,689 @@
+/* LCD game JavaScript library -- by BdR 2018 */
+
+// LCD game JavaScript library
+// Bas de Reuver (c)2018
+
+var LCDGAME_VERSION = "0.3.2";
+
+// namespace
+var LCDGame = LCDGame || {
+	loadsounds: null,
+	countimages: 0,	
+	// scale factor
+	scaleFactor: 1.0,
+	/**
+	* Keep score on global variable for highscore
+	*
+    * @property {score} integer - The game current score
+    * @default
+    */
+	score: 0,
+    /**
+	* Which game type or difficulty, for high score purposes to be added later.
+	* Has to implemented as seen fit for each individual game.
+	* For the game Mariobros it can be 1='Game A', 2='Game B'
+	* For the game Searanger it can be 1='Pro 1', 2='Pro 2'. etc.
+	*
+    * @property {gametype} integer - The game type or difficulty setting of the game
+    * @default
+    */
+	gametype: 0,
+    /**
+	* Which current 'level' in the game, for high score purposes to be added later.
+	* Has to implemented as seen fit for each individual game.
+	* For the game Highway it can be the amount of GAS bonus games played.
+	* For the game Mariobros it can be how many trucks completed. etc.
+	*
+    * @property {level} integer - The current level in game
+    * @default
+    */
+	level: 0,
+	// events
+	onImageLoaded: null,
+	onImageError: null,
+	canvas: null,
+	context2d: null,
+	debugtxt: null
+};
+
+// LCD game JavaScript library
+// Bas de Reuver (c)2018
+
+LCDGame.State = function () {
+
+    this.lcdgame = null;
+    this.key = ""; // state name
+
+    this.statemanager = null;
+};
+
+LCDGame.State.prototype = {
+	// additional methods, can implemented by each state
+    init: function () {
+    },
+
+    preload: function () {
+    },
+
+    loadUpdate: function () {
+    },
+
+    loadRender: function () {
+    },
+
+    create: function () {
+    },
+
+    update: function () {
+    }
+};
+
+LCDGame.State.prototype.constructor = LCDGame.State;
+// LCD game JavaScript library
+// Bas de Reuver (c)2018
+
+// -------------------------------------
+// the state manager
+// -------------------------------------
+LCDGame.StateManager = function (lcdgame) {
+    this.lcdgame = lcdgame;
+    this._currentState;
+	this.states = {}; // hold all states
+};
+
+LCDGame.StateManager.prototype = {
+
+   add: function (key, state) {
+		//state.game = this.game;
+        this.states[key] = new state(this.lcdgame);
+
+		this._currentState = key;
+	
+        return state;
+    },
+	
+    start: function (key) {
+
+		this.lcdgame.cleartimers();
+
+		if (this._currentState && (this._currentState != key) ) {
+			this.states[this._currentState].destroy;
+		};
+		this._currentState = key;
+		this.states[this._currentState].init();
+    },
+
+    currentState: function () {
+
+		if (this._currentState) {
+			return this.states[this._currentState];
+		};
+    }
+
+};
+// LCD game JavaScript library
+// Bas de Reuver (c)2018
+
+// -------------------------------------
+// request animation frame
+// -------------------------------------
+LCDGame.AnimationFrame = function (lcdgame) {
+	// save reference to game object 
+	this.lcdgame = lcdgame;
+	this.raftime = null;
+};
+
+LCDGame.AnimationFrame.prototype = {
+
+    start: function () {
+		var vendors = [
+			'ms',
+			'moz',
+			'webkit',
+			'o'
+		];
+
+		for (var x = 0; x < vendors.length && !window.requestAnimationFrame; x++)
+		{
+			window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+			window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'];
+		}
+
+		animationlast = 0.0;
+
+		var _this = this;
+
+		// cannot use requestAnimationFrame for whatever reason, fall back on `setTimeout`
+		if (!window.requestAnimationFrame)
+		{
+			useSetTimeout = true;
+
+			animationLoop = function () {
+				return _this.updateSetTimeout();
+			};
+
+			_timeOutID = window.setTimeout(this.animationLoop, 0);
+		}
+		else
+		{
+			// use requestAnimationFrame
+			useSetTimeout = false;
+
+			animationLoop = function (time) {
+				return _this.updateAnimFrame(time);
+			};
+
+			_timeOutID = window.requestAnimationFrame(animationLoop);
+		}
+	},
+	
+    updateAnimFrame: function (rafTime) {
+		// floor the rafTime to make it equivalent to the Date.now() provided by updateSetTimeout (just below)
+		this.raftime = Math.floor(rafTime);
+		this.lcdgame.updateloop(this.raftime);
+
+		_timeOutID = window.requestAnimationFrame(animationLoop);
+	},
+	
+    updateSetTimeout: function () {
+		this.raftime = Date.now();
+		this.lcdgame.updateloop(this.raftime);
+
+		var ms = Math.floor(1000.0 / 60.0);
+		_timeOutID = window.setTimeout(animationLoop, ms);
+	}
+}
+// LCD game JavaScript library
+// Bas de Reuver (c)2018
+
+var MENU_HTML = 
+		'<div class="container">' +
+		'  <canvas id="mycanvas" class="gamecvs"></canvas>' +
+		'  <a class="mybutton btnmenu" onclick="displayInfobox();">help</a>' +
+		'  <a class="mybutton btnmenu" onclick="displayScorebox();">highscores</a>' +
+		'  <div class="infobox" id="infobox">' +
+		'    <div id="infocontent">' +
+		'      instructions' +
+		'    </div>' +
+		'    <a class="mybutton btnpop" onclick="hideInfobox();">Ok</a>' +
+		'  </div>' +
+		'</div>';
+
+
+function displayInfobox() {
+	hideScorebox();
+	document.getElementById("infobox").style.display = "inherit";
+	//event.stopPropagation(); // stop propagation on button click event
+}
+
+function hideInfobox() {
+	//var target = event.target || event.srcElement;
+	// filter event handling when the event bubbles
+	//if (event.currentTarget == target) {
+		document.getElementById("infobox").style.display = "none";
+	//}
+}
+
+// -------------------------------------
+// menu overlay object
+// -------------------------------------
+LCDGame.Menu = function (lcdgame, name) {
+	// save reference to game object 
+	this.lcdgame = lcdgame;
+};
+
+// LCD game JavaScript library
+// Bas de Reuver (c)2018
+
+var SCORE_HTML = 
+		'<div class="infobox" id="scorebox">' +
+		'  <div id="scorecontent">' +
+		'    One moment...' +
+		'  </div>' +
+		'  <a class="mybutton btnpop" onclick="hideScorebox();">Ok</a>' +
+		'</div>';
+		
+var HS_URL = "http://bdrgames.nl/lcdgames/testphp/";
+
+function displayScorebox() {
+	hideInfobox();
+	document.getElementById("scorebox").style.display = "inherit";
+	//event.stopPropagation(); // stop propagation on button click event
+}
+
+function hideScorebox() {
+	//var target = event.target || event.srcElement;
+	// filter event handling when the event bubbles
+	//if (event.currentTarget == target) {
+		document.getElementById("scorebox").style.display = "none";
+	//}
+}
+
+// -------------------------------------
+// highscores object
+// -------------------------------------
+LCDGame.HighScores = function (lcdgame, gametitle, gametypes) {
+	// save reference to game objects
+	this.lcdgame = lcdgame;
+
+	// display variables
+	this.gametitle = gametitle;
+	this.gametypes = gametypes;
+
+	// highscore variables
+	this._scorecache = [];
+	this._scoretype = 0;
+	this._namecache = "";
+};
+
+LCDGame.HighScores.prototype = {
+
+    getGametype: function () {
+		var res = "";
+		if (this.gametypes) {
+			this.lcdgame.gametype-1
+			res = this.gametypes[this.lcdgame.gametype-1];
+		};
+		return res;
+	},
+
+	loadHighscores: function (typ) {
+
+		// clear variables
+		this._scorecache = [];
+		this._scoretype = typ;
+		this._namecache = "lcdgame_"+this.gametitle+"_hs"+typ;
+
+		// load from localstorage
+		var sc = window.localStorage.getItem(this._namecache);
+
+		// error checking, localstorage might not exist yet at first time start up
+		try {
+			this._scorecache = JSON.parse(sc);
+		} catch (e) {
+			this._scorecache = []; //error in the above string(in this case,yes)!
+		};
+		// error checking just to be sure, if localstorage contains something else then a JSON array (hackers?)
+		if (Object.prototype.toString.call(this._scorecache) !== "[object Array]") {
+			this._scorecache = [];
+		};
+	},
+
+    save: function () {
+		window.localStorage.setItem(this._namecache, JSON.stringify(this._scorecache));
+    },
+	
+    scoreIndex: function (sc, typ) {
+		// refresh cache if needed
+		if (typ != this._scoretype) {
+			this.loadHighscores(typ);
+		};
+
+		var idx = -1;
+		// check if new highscore
+		for (var i = this._scorecache.length-1; i >= 0; i--) {
+			if (sc > this._scorecache[i].score) {
+				idx = i;
+			} else {
+				break;
+			};
+		};
+		return idx;
+	},
+
+    saveLocal: function (plr, sc, lvl, typ) {
+		var idx = this.scoreIndex(sc, typ);
+		if (idx >= 0) {
+			// insert new record
+			var rec = {"player":plr, "score":sc, "level":lvl};
+			this._scorecache.splice(idx, 0, rec);
+			
+			// remove last records, keep max 10
+			var s = 10 - this._scorecache.length;
+			if (s < 0) {
+				this._scorecache.splice(s);
+			};
+
+			this.save();
+		};
+    },
+
+    saveOnline: function (plr, sc, lvl, typ) {
+		
+			// additional client info
+			if (platform) {
+				// use platform.js for more accurate info
+				var info =
+					(platform.product ? "&device="  + platform.product : "") +
+					(platform.os      ? "&os="      + platform.os      : "") +
+					(platform.name    ? "&browser=" + platform.name    : "");
+			} else {
+				var guess = this.guessOsBrowser();
+				var info =
+					"&device=" + guess.device +
+					"&os=" + guess.os +
+					"&browser=" + guess.browser;
+			};
+			var language = navigator.language;
+			var clientguid  = this.getClientGUID();
+			
+			// reserved characters in url
+			//var gametitle = gametitle.replace(/\&/g, "%26"); // & -> %26
+			var plr = plr.replace(/\&/g, "%26"); // & -> %26
+
+			// build url
+			var url = HS_URL + "newhs.php";
+			var paramsdata = 
+				"gamename=" + this.gametitle +  // highscore data
+				"&gametype=" + typ +
+				"&player=" + plr + 
+				"&score=" + sc +
+				"&level=" + lvl +
+				info + // client info
+				"&language=" + language +
+				"&lcdversion=" + LCDGAME_VERSION +
+				"&clientguid=" + clientguid;			
+
+			var request = new XMLHttpRequest();
+			request.open('POST', url, true);
+			request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+			//request.setRequestHeader("Content-length", paramsdata.length);
+			//request.setRequestHeader("Connection", "close");
+
+			// handle success or error
+			request.onreadystatechange = function(receiveddata) {
+				if (request.status >= 200 && request.status < 400) {
+					if (request.readyState == 4 && request.status == 200) {
+						// Success!
+						// here you could go to the leaderboard or restart your game
+						console.log('SUCCESS!!\nrequest.status='+ request.status + '\nrequest.response=' + request.response);
+						var test = JSON.parse(request.response);
+						if (test.result == 'OK') {
+							console.log('Highscore sent succesfully');
+							this.refreshGlobalHS();
+							displayScorebox();
+						} else {
+							console.log('Highscore sent failed');
+						};
+					};
+				} else {
+					// We reached our target server, but it returned an error
+					console.log('Highscore sent failed with error: ' + request.response);
+					resulttxt.text += '\nerror!';
+				}
+			}.bind(this); // <- only change
+
+			//debugger;
+			//paramsdata = getUserAgentParams();
+			request.send(paramsdata);
+    },
+
+    getHighscore: function (typ) {
+		var sc = 0;
+		if (this.lcdgame.highscores._scorecache[0]) {
+			sc = this.lcdgame.highscores._scorecache[0].score;
+		};
+		return sc;
+	},
+
+    checkScore: function () {
+		// save current score values, because will reset on background when new game starts
+		var sc = this.lcdgame.score;
+		var lvl = this.lcdgame.level;
+		var typ = this.lcdgame.gametype;
+		
+		if (sc > 0) {
+			// input name
+			var plr = prompt("New highscore, enter your name and press enter to submit or press cancel.", "");
+
+			// not null (cancel) or empty string
+			if (plr != null) {
+				plr = plr.trim();
+				if (plr != "") {
+					this.saveLocal(plr, sc, lvl, typ);
+					this.saveOnline(plr, sc, lvl, typ);
+				};
+			};
+		};
+    },
+	
+	refreshGlobalHS: function () {
+		var url = HS_URL + "geths.php" +
+			"?gamename=" + this.gametitle +  // highscore data
+			"&gametype=" + this.lcdgame.gametype;
+
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.open("GET", url, true); // true for asynchronous 
+		xmlHttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+		xmlHttp.onreadystatechange = function() { 
+			if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+				this.afterRefreshGlobalHS(xmlHttp.responseText);
+		}.bind(this); // <- only change
+		xmlHttp.send(null);
+	},
+	
+	afterRefreshGlobalHS: function (data) {
+		// error checking, localstorage might not exist yet at first time start up
+		try {
+			this._scorecache = JSON.parse(data);
+		} catch (e) {
+			this._scorecache = []; //error in the above string(in this case,yes)!
+		};
+		// error checking just to be sure, if data contains something else then a JSON array (hackers?)
+		if (Object.prototype.toString.call(this._scorecache) !== "[object Array]") {
+			this._scorecache = [];
+		};
+
+		this.refreshHTML();
+	},
+
+	refreshHTML: function () {
+		// build highscore rows
+		var rows = "";
+		for (var i = 0; i < 10; i++) {
+			var rec = this._scorecache[i];
+			
+			if (typeof rec === "undefined") {
+				rec = {"player":".....", "score":0, "level":1};
+			};
+			
+			rows = rows + "      <tr><td>" + (i+1) + ".</td><td>" + rec.player + "</td><td>" + rec.score + "</td></tr>";
+		};
+
+		// game name and column headers
+		var mod = this.getGametype();
+		mod = (mod == "" ? mod : " (" + mod + ")");
+		var str =
+			"<h1>" + this.gametitle + mod + "</h1>" +
+			"<table>" +
+			"      <tr><td>Rk.</td><td>Name</td><td>Score</td></tr>" +
+			rows +
+			"    </table>";
+			
+		// refresh html content
+		this.lcdgame.scorecontent.innerHTML = str;
+    },
+
+	//uuidv4: function () {
+	//	var patchcrypto = window.crypto || window.msCrypto; // IE11 -> msCrypto
+	//	return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, function(c) {
+	//		return (c ^ patchcrypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+	//		}
+	//	)
+	//},
+
+	uuidv4: function () {
+		// simpler uuid generator, better browser compatibility (found at https://gist.github.com/jcxplorer/)
+		var uuid = "";
+		var random;
+		for (var i = 0; i < 32; i++) {
+			random = Math.random() * 16 | 0;
+
+			if (i == 8 || i == 12 || i == 16 || i == 20) {
+				uuid += "-"
+			}
+			uuid += (i == 12 ? 4 : (i == 16 ? (random & 3 | 8) : random)).toString(16);
+		}
+		return uuid;
+	},
+		
+	getClientGUID: function () {
+		var guid = window.localStorage.getItem("lcdgame_client_guid");
+		if (!guid) {
+			// create one
+			guid = this.uuidv4();
+			window.localStorage.setItem("lcdgame_client_guid", guid);
+		}
+		return guid;
+	},
+		
+	guessOsBrowser: function () {
+		// Also send OS and browser with highscores, for library optimizing
+		// Educated guess; far from accurate
+		// Determining the device/os/browser goes way beyond the scope of this LCDgame library
+		// For more accurately determining os/browser use library platform.js or similar library
+
+		// initialise
+		var device = "";
+		var os = "";
+		var browser = "";
+		
+		// note: navigator.userAgent is a mess
+		var ua = navigator.userAgent || navigator.vendor || window.opera;
+
+		// -------------------------------------
+		//       device guesses
+		// -------------------------------------
+		// BlackBerry
+		if (/BlackBerry|BB10|PlayBook|Passport/i.test(ua)) {
+			device = "BlackBerry"
+		} else
+		// samsung mobiles
+			if (/GT-I9\d{3}|SM-G9\d{2}/.test(ua)) {device = "Galaxy S-series"}
+		else if (/SM-A\d{3}/.test(ua)) {device = "Galaxy A-series"}
+		else if (/SM-J\d{3}/.test(ua)) {device = "Galaxy J-series"}
+		else if (/SM-T\d{3}/.test(ua)) {device = "Galaxy Tab"}
+		else if (/SM-N\d{3}/.test(ua)) {device = "Galaxy Note"}
+		else if (/SAMSUNG/.test(ua)) {device = "Samsung"}
+		// huawei
+		else if (/huawei/i.test(ua)) {device = "Huawei"}
+		// kindle
+		else if (/kindle/.test(ua)) {device = "Kindle"}
+		// Xbox One
+		else if (/xbox one/i.test(ua)) {device = "Xbox One"}
+		// Xbox 360
+		else if (/xbox/i.test(ua)) {device = "Xbox 360"}
+		// Playstation Vita, Playstation 3, Playstation 4
+		else if (/playstation /i.test(ua)) {
+			device = (/playstation [^;) ]*/i.exec(ua) || "Playstation")
+		}
+		// Wii U
+		else if (/nintendo wii/i.test(ua)) {device = "Wii U"}
+		// windows phone
+		else if (/IEMobile|Windows Phone/i.test(ua)) {
+			device = "Windows Phone"
+		} else
+		// iOS detection from: http://stackoverflow.com/a/9039885/177710
+		if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+			if (/iPad/.test(ua))      { device = "iPad"}
+			else if (/iPod/.test(ua)) { device = "iPod"}
+			else                      ( device = "iPhone" );
+		} else
+		// Mac OS desktop
+		if (/mac os|macintosh/i.test(ua)) {
+			device = "Macintosh"
+		};
+
+		// -------------------------------------
+		//       OS guesses
+		// -------------------------------------
+		// Windows Phone must come first because its UA also contains "Android"
+		if (/tizen /i.test(ua)) {
+			os = (/tizen [^;)]*/i.exec(ua)[0] || "Tizen")
+		} else
+		// Windows Phone must come first because its UA also contains "Android"
+		if (/windows phone/i.test(ua)) {
+			os = "Windows Phone"
+		} else
+		if (/android /i.test(ua)) {
+			os = (/android [^;)]*/i.exec(ua)[0] || "Android")
+		} else
+		// iOS detection from: http://stackoverflow.com/a/9039885/177710
+		if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+			var osvar = /(iphone os |cpu os )[^;) ]*/i.exec(ua);
+			os = (osvar[0] || "");
+			os = os.replace(/cpu|iphone|os/ig, "").trim();
+			os = "iOS " + os.replace(/_/g, ".");
+		} else
+		if (/mac os/i.test(ua)) {
+			os = "Mac OS"
+		} else
+		if ( (/windows /i.test(ua)) ) {
+			var osvar = /windows [^;)]*/i.exec(ua)[0];
+			os = (osvar || "Windows");
+
+			if (/10/.test(osvar))      os = "Windows 10"
+			if (/6.3/.test(osvar))     os = "Windows 8.1"
+			if (/6.2/.test(osvar))     os = "Windows 8"
+			if (/6.1/.test(osvar))     os = "Windows 7"
+			if (/6.0/.test(osvar))     os = "Windows Vista"
+			if (/5.1|5.2/.test(osvar)) os = "Windows XP"
+			if (/5.0/.test(osvar))     os = "Windows 2000"
+		} else
+		// any other
+			{os = navigator.platform};
+
+		// -------------------------------------
+		//       Browser guesses
+		// -------------------------------------
+		// Opera 8.0+
+		if ((!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0) {
+			browser = "Opera 8.0+";
+		} else
+		// Firefox 1.0+
+		if (typeof InstallTrigger !== 'undefined') {
+			browser = "Firefox 1.0+";
+		} else
+		// Edge 20+
+		if (/edge/i.test(ua)) {
+			browser = "Edge";
+		} else
+		// Chrome 1+
+		if ( (/chrome/i.test(ua)) && (/google/i.test(navigator.vendor)) ) {
+			browser = "Chrome";
+		} else
+		// Safari 3.0+ "[object HTMLElementConstructor]" 
+		if ( (/safari/i.test(ua)) && (/apple computer/i.test(navigator.vendor)) ) {
+			browser = "Safari";
+		} else
+		// Internet Explorer mobile
+		if (/iemobile/i.test(ua)) {
+			browser = (/iemobile[^;) ]*/i.exec(ua)[0] || "IEMobile")
+		} else
+		// Internet Explorer
+		if (/MSIE /.test(ua)) {
+			browser = (/MSIE [^;) ]*/.exec(ua)[0] || "MSIE")
+		} else
+		// Internet Explorer 11
+		if (/rv\:11\./.test(ua)) {
+			browser = "MSIE 11";				
+		} else
+		// Internet Explorer 6-11
+		if ( /*@cc_on!@*/false || !!document.documentMode) {
+			browser = "MSIE 6-11";
+		};
+		
+		// replace problematic characters
+		device  =  device.replace(/&|\?|\//g, " ").trim();
+		os      =      os.replace(/&|\?|\//g, " ").trim();
+		browser = browser.replace(/&|\?|\//g, " ").trim();
+		
+		// return result
+		return {"device": device, "os": os, "browser": browser};
+	}
+};
+
+//LCDGame.HighScores.prototype.constructor = LCDGame.HighScores;
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
@@ -356,6 +1042,9 @@ LCDGame.Game.prototype = {
 
 	resizeCanvas: function() {
 
+		console.log("resizeCanvas - window.innerWidth=" + window.innerWidth + " window.innerHeight=" + window.innerHeight);
+		var scrratio = window.innerWidth / window.innerHeight;
+		
 		// determine which is limiting factor for current window/frame size; width or height
 		var scrratio = window.innerWidth / window.innerHeight;
 		var imgratio = this.canvas.width / this.canvas.height;
@@ -397,7 +1086,7 @@ LCDGame.Game.prototype = {
 		this.canvas.style["touch-action"] = "none"; // no text select on touch
 		this.canvas.style["user-select"] = "none"; // no text select on touch
 		this.canvas.style["-webkit-tap-highlight-color"] = "rgba(0, 0, 0, 0)"; // not sure what this does 
-		
+
 		// center infobox
 		this.resizeInfobox(this.infobox);
 		this.resizeInfobox(this.scorebox);
@@ -407,7 +1096,7 @@ LCDGame.Game.prototype = {
 
 		// set visible, else width height doesn't work
 		box.style.display = "inherit";
-
+		
 		// determine screen/frame size
 		var w = box.offsetWidth;
 		var h = box.offsetHeight;
@@ -425,7 +1114,7 @@ LCDGame.Game.prototype = {
 		box.style["margin-right"] = -xmargin+"px";
 		box.style["margin-top"] = ymargin+"px";
 		box.style["margin-bottom"] = -ymargin+"px";
-		
+
 		// reset visibility
 		box.style.display = "none";
 	},
@@ -490,7 +1179,7 @@ LCDGame.Game.prototype = {
 
 		// center position
 		this.resizeCanvas();
-		
+
 		hideInfobox();
 		hideScorebox();
 
@@ -807,7 +1496,7 @@ LCDGame.Game.prototype = {
 	digitsDisplay: function(name, str, rightalign) {
 		// not loaded yet
 		if (!this.gamedata.digits) return;
-
+		
 		// get sequence
 		var digidx = -1;
 		for (var i = 0; i < this.gamedata.digits.length; i++) {
@@ -902,9 +1591,9 @@ LCDGame.Game.prototype = {
 					this.shapeDraw(i);
 				};
 			};
-			
+	
 			this.drawDebugText();
-
+	
 			// debugging show button areas
 			//for (var i=0; i < this.gamedata.buttons.length; i++) {
 			//	var x1 = this.gamedata.buttons[i].area.x1;
@@ -1239,3 +1928,135 @@ LCDGame.Game.prototype = {
 LCDGame.BPMToMillSec = function (bpm) {
 	return (60000 / bpm);
 }
+// LCD game JavaScript library
+// Bas de Reuver (c)2018
+
+// -------------------------------------
+// shape object
+// -------------------------------------
+LCDGame.Shape = function (lcdgame, framename) {
+	// save reference to game object 
+	this.lcdgame = lcdgame;
+	this.framename = framename;
+	this.idx = 0;
+};
+
+// LCD game JavaScript library
+// Bas de Reuver (c)2018
+
+// -------------------------------------
+// button object
+// -------------------------------------
+LCDGame.Button = function (lcdgame, name) {
+	// save reference to game object 
+	this.lcdgame = lcdgame;
+	this.name = name;
+	this.keycodes = [];
+	
+	// do a guess
+	// save reference to game object
+
+	//TODO: add support for buttons types
+//button type="button"		ok
+//button type="updown"		ok
+//button type="leftright"	ok
+//button type="dpad"		TODO
+//button type="diagonal"	TODO
+//button type="switch"		TODO
+
+};
+
+// LCD game JavaScript library
+// Bas de Reuver (c)2018
+
+// -------------------------------------
+// pulse timer object
+// -------------------------------------
+LCDGame.Timer = function (context, callback, interval, waitfirst) {
+	// context of callback
+	this.context = context;
+	
+	// Event: Timer tick
+	this.callback = callback;
+
+	// frequency of the timer in milliseconds
+	this.interval = interval || 1000;
+	
+	// call callback instantly, or wait one pulse until calling callback
+	this.waitfirst = waitfirst;
+
+	// counter, useful for directing animations etc.
+	this.counter = 0;
+
+	// maximum counter, useful for directing animations etc.
+	this.max = null;
+
+	// Property: Whether the timer is enable or not
+	this.enabled = false;
+
+	// Member variable: Hold interval id of the timer
+	this.timerId = 0;
+	this.lasttime = 0;
+}
+	
+LCDGame.Timer.prototype = {
+
+	// update each frame
+	update: function(timestamp) {
+	
+		//debugger;
+		var varname = this.callback.name;
+		//for (var key in this.context) {
+		//	if (this.context.hasOwnProperty(key)) {
+		//		if (key.indexOf("timer") >= 0) {
+		//			varname = key;
+		//			break;
+		//		};
+		//	};
+		//};
+		
+		var delta = timestamp - this.lasttime;
+		
+		// timer tick
+		if (delta >= this.interval) {
+			console.log("LCDGame.Timer<"+varname+">.update() -> delta="+delta+" this.interval="+this.interval+" this.lasttime="+this.lasttime+" this.waitfirst="+this.waitfirst);
+			//this.lasttime = timestamp;
+			this.lasttime = this.lasttime + this.interval;
+			// game callbacks
+			this.doTimerEvent();
+		};
+	},
+	
+	// local timer event of Timer-object
+	doTimerEvent: function() {
+		// keep track how many times event has fired
+		this.counter++;
+		// do callback function to gameobj, so not to LCDGame.Timer object
+
+		this.callback.call(this.context, this);
+		// if maximum of callbacks was set
+		if (typeof this.max !== "undefined") {
+			if (this.counter >= this.max) this.enabled = false;
+		};
+	},
+
+	// start/enable the timer
+	start: function(max, waitfirst) {
+		// change waitfirst only when passed as parameter
+		if (typeof waitfirst !== "undefined") this.waitfirst = waitfirst;
+		// initialise variables
+		this.enabled = true;
+		this.counter = 0;
+		this.max = max;
+		//this.lasttime = 0;
+		this.lasttime = (this.context.lcdgame.raf.raftime || 0);
+		// start immediately?
+		if (this.waitfirst == false) this.lasttime -= this.interval;
+	},
+
+	// pause the timer
+	pause: function() {
+		// initialise variables
+		this.enabled = false;
+	}
+};

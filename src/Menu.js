@@ -3,7 +3,7 @@
 
 var MENU_HTML = 
 		'<div class="container">' +
-		'  <canvas id="mycanvas" class="gamecvs" width="400" height="300"></canvas>' +
+		'  <canvas id="mycanvas" class="gamecvs"></canvas>' +
 		'  <a class="mybutton btnmenu" onclick="displayInfobox();">help</a>' +
 		'  <a class="mybutton btnmenu" onclick="displayScorebox();">highscores</a>' +
 		'  <div class="infobox" id="infobox">' +

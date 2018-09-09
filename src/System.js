@@ -40,6 +40,7 @@ var LCDGame = LCDGame || {
 	onImageLoaded: null,
 	onImageError: null,
 	canvas: null,
-	context2d: null
+	context2d: null,
+	debugtxt: null
 };
 
