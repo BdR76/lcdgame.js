@@ -1,0 +1,22 @@
+{
+	"gameinfo": {
+		"device": {
+			"title": "Tom's Adventure",
+			"model": "SG-845",
+			"manufacturer": "Sunwing",
+			"releasedate": "1983",
+			"type": "LCD"
+		},
+		"simulation": {
+			"program": "Bas de Reuver",
+			"photoedit": "Bas de Reuver",
+			"deviceprovided": "Bas de Reuver"
+		},
+		"gametypes": [
+			"G1", "G2"
+		],
+		"instructions": {
+			"en": "Grab the treasure chest while avoiding dragons and falling rocks. Thiefs will try to steal the treasure from you. Carry the chest back and throw it to safety when the door opens.\n\nStart the game by pressing [select] to select G1 or G2.\nThen press [start] to start the game.\nYou can also press keyboard cursors to move."
+		}
+	}
+}
