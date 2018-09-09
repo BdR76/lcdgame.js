@@ -397,6 +397,10 @@ LCDGame.Game.prototype = {
 		this.canvas.style["touch-action"] = "none"; // no text select on touch
 		this.canvas.style["user-select"] = "none"; // no text select on touch
 		this.canvas.style["-webkit-tap-highlight-color"] = "rgba(0, 0, 0, 0)"; // not sure what this does 
+		
+		// center infobox
+		this.resizeInfobox(this.infobox);
+		this.resizeInfobox(this.scorebox);
 	},
 	
 	resizeInfobox: function(box) {
@@ -475,10 +479,11 @@ LCDGame.Game.prototype = {
 			document.attachEvent("keyup",   this.onkeyup.bind(this));
 		};
 
+		// real time resize
+		window.addEventListener("resize", this.resizeCanvas.bind(this), false);
+
 		// center position
 		this.resizeCanvas();
-		this.resizeInfobox(this.infobox);
-		this.resizeInfobox(this.scorebox);
 		
 		hideInfobox();
 		hideScorebox();
