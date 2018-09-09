@@ -42,9 +42,43 @@ var LCDGame = LCDGame || {
 	onImageLoaded: null,
 	onImageError: null,
 	canvas: null,
-	context2d: null
+	context2d: null,
+	debugtxt: null
 };
 
+// LCD game JavaScript library
+// Bas de Reuver (c)2018
+
+LCDGame.State = function () {
+
+    this.lcdgame = null;
+    this.key = ""; // state name
+
+    this.statemanager = null;
+};
+
+LCDGame.State.prototype = {
+	// additional methods, can implemented by each state
+    init: function () {
+    },
+
+    preload: function () {
+    },
+
+    loadUpdate: function () {
+    },
+
+    loadRender: function () {
+    },
+
+    create: function () {
+    },
+
+    update: function () {
+    }
+};
+
+LCDGame.State.prototype.constructor = LCDGame.State;
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
@@ -162,48 +196,14 @@ LCDGame.AnimationFrame.prototype = {
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
-LCDGame.State = function () {
-
-    this.lcdgame = null;
-    this.key = ""; // state name
-
-    this.statemanager = null;
-};
-
-LCDGame.State.prototype = {
-	// additional methods, can implemented by each state
-    init: function () {
-    },
-
-    preload: function () {
-    },
-
-    loadUpdate: function () {
-    },
-
-    loadRender: function () {
-    },
-
-    create: function () {
-    },
-
-    update: function () {
-    }
-};
-
-LCDGame.State.prototype.constructor = LCDGame.State;
-// LCD game JavaScript library
-// Bas de Reuver (c)2018
-
 var MENU_HTML = 
 		'<div class="container">' +
-		'  <canvas id="mycanvas" class="gamecvs" width="400" height="300"></canvas>' +
-		'  <a class="mybutton btnmenu">help</a>' +
+		'  <canvas id="mycanvas" class="gamecvs"></canvas>' +
 		'  <a class="mybutton btnmenu" onclick="displayInfobox();">help</a>' +
+		'  <a class="mybutton btnmenu" onclick="displayScorebox();">highscores</a>' +
 		'  <div class="infobox" id="infobox">' +
-		'    <div>' +
-		'      <h1>test123</h1>' +
-		'      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.' +
+		'    <div id="infocontent">' +
+		'      instructions' +
 		'    </div>' +
 		'    <a class="mybutton btnpop" onclick="hideInfobox();">Ok</a>' +
 		'  </div>' +
@@ -238,10 +238,11 @@ LCDGame.Menu = function (lcdgame, name) {
 var SCORE_HTML = 
 		'<div class="infobox" id="scorebox">' +
 		'  <div id="scorecontent">' +
-		'    high-scores'
+		'    One moment...' +
 		'  </div>' +
 		'  <a class="mybutton btnpop" onclick="hideScorebox();">Ok</a>' +
 		'</div>';
+		
 var HS_URL = "http://bdrgames.nl/lcdgames/testphp/";
 
 function displayScorebox() {
@@ -350,10 +351,26 @@ LCDGame.HighScores.prototype = {
     saveOnline: function (plr, sc, lvl, typ) {
 		
 			// additional client info
-			var guess = this.guessOsBrowser();
+			if (platform) {
+				// use platform.js for more accurate info
+				var info =
+					(platform.product ? "&device="  + platform.product : "") +
+					(platform.os      ? "&os="      + platform.os      : "") +
+					(platform.name    ? "&browser=" + platform.name    : "");
+			} else {
+				var guess = this.guessOsBrowser();
+				var info =
+					"&device=" + guess.device +
+					"&os=" + guess.os +
+					"&browser=" + guess.browser;
+			};
 			var language = navigator.language;
 			var clientguid  = this.getClientGUID();
 			
+			// reserved characters in url
+			//var gametitle = gametitle.replace(/\&/g, "%26"); // & -> %26
+			var plr = plr.replace(/\&/g, "%26"); // & -> %26
+
 			// build url
 			var url = HS_URL + "newhs.php";
 			var paramsdata = 
@@ -362,9 +379,7 @@ LCDGame.HighScores.prototype = {
 				"&player=" + plr + 
 				"&score=" + sc +
 				"&level=" + lvl +
-				"&device=" + guess.device +
-				"&os=" + guess.os +
-				"&browser=" + guess.browser;
+				info + // client info
 				"&language=" + language +
 				"&lcdversion=" + LCDGAME_VERSION +
 				"&clientguid=" + clientguid;			
@@ -421,9 +436,13 @@ LCDGame.HighScores.prototype = {
 			// input name
 			var plr = prompt("New highscore, enter your name and press enter to submit or press cancel.", "");
 
+			// not null (cancel) or empty string
 			if (plr != null) {
-				this.saveLocal(plr, sc, lvl, typ);
-				this.saveOnline(plr, sc, lvl, typ);
+				plr = plr.trim();
+				if (plr != "") {
+					this.saveLocal(plr, sc, lvl, typ);
+					this.saveOnline(plr, sc, lvl, typ);
+				};
 			};
 		};
     },
@@ -519,7 +538,10 @@ LCDGame.HighScores.prototype = {
 	},
 		
 	guessOsBrowser: function () {
-		// Educated guess for OS and browser, send with highscores for library optimizing
+		// Also send OS and browser with highscores, for library optimizing
+		// Educated guess; far from accurate
+		// Determining the device/os/browser goes way beyond the scope of this LCDgame library
+		// For more accurately determining os/browser use library platform.js or similar library
 
 		// initialise
 		var device = "";
@@ -532,9 +554,31 @@ LCDGame.HighScores.prototype = {
 		// -------------------------------------
 		//       device guesses
 		// -------------------------------------
-
+		// BlackBerry
+		if (/BlackBerry|BB10|PlayBook|Passport/i.test(ua)) {
+			device = "BlackBerry"
+		} else
 		// samsung mobiles
-		if (/GT-I9\d{3}/.test(ua)) {device = "Galaxy S-series"}
+			if (/GT-I9\d{3}|SM-G9\d{2}/.test(ua)) {device = "Galaxy S-series"}
+		else if (/SM-A\d{3}/.test(ua)) {device = "Galaxy A-series"}
+		else if (/SM-J\d{3}/.test(ua)) {device = "Galaxy J-series"}
+		else if (/SM-T\d{3}/.test(ua)) {device = "Galaxy Tab"}
+		else if (/SM-N\d{3}/.test(ua)) {device = "Galaxy Note"}
+		else if (/SAMSUNG/.test(ua)) {device = "Samsung"}
+		// huawei
+		else if (/huawei/i.test(ua)) {device = "Huawei"}
+		// kindle
+		else if (/kindle/.test(ua)) {device = "Kindle"}
+		// Xbox One
+		else if (/xbox one/i.test(ua)) {device = "Xbox One"}
+		// Xbox 360
+		else if (/xbox/i.test(ua)) {device = "Xbox 360"}
+		// Playstation Vita, Playstation 3, Playstation 4
+		else if (/playstation /i.test(ua)) {
+			device = (/playstation [^;) ]*/i.exec(ua) || "Playstation")
+		}
+		// Wii U
+		else if (/nintendo wii/i.test(ua)) {device = "Wii U"}
 		// windows phone
 		else if (/IEMobile|Windows Phone/i.test(ua)) {
 			device = "Windows Phone"
@@ -553,6 +597,10 @@ LCDGame.HighScores.prototype = {
 		// -------------------------------------
 		//       OS guesses
 		// -------------------------------------
+		// Windows Phone must come first because its UA also contains "Android"
+		if (/tizen /i.test(ua)) {
+			os = (/tizen [^;)]*/i.exec(ua)[0] || "Tizen")
+		} else
 		// Windows Phone must come first because its UA also contains "Android"
 		if (/windows phone/i.test(ua)) {
 			os = "Windows Phone"
@@ -616,6 +664,10 @@ LCDGame.HighScores.prototype = {
 		if (/MSIE /.test(ua)) {
 			browser = (/MSIE [^;) ]*/.exec(ua)[0] || "MSIE")
 		} else
+		// Internet Explorer 11
+		if (/rv\:11\./.test(ua)) {
+			browser = "MSIE 11";				
+		} else
 		// Internet Explorer 6-11
 		if ( /*@cc_on!@*/false || !!document.documentMode) {
 			browser = "MSIE 6-11";
@@ -646,6 +698,7 @@ LCDGame.Game = function (configfile, metadatafile) {
 	this.score = 0;
 	this.gametype = 0;
 	this.level = 0;
+	this.soundmute = false;
 
 	// initialise object
 	this.countimages = 0;
@@ -672,35 +725,8 @@ LCDGame.Game = function (configfile, metadatafile) {
 
 // create canvas element and add to document
 	var str =
-		'<div class="container">' +
-		'  <canvas id="mycanvas" class="gamecvs" width="400" height="300"></canvas>' +
-		'  <a class="mybutton btnmenu" onclick="displayInfobox();">help</a>' +
-		'  <a class="mybutton btnmenu" onclick="displayScorebox();">highscores</a>' +
-		'  <div class="infobox" id="infobox">' +
-		'    <div id="infocontent">' +
-		'      instructions' +
-		'    </div>' +
-		'    <a class="mybutton btnpop" onclick="hideInfobox();">Ok</a>' +
-		'  </div>' +
-		'</div>' +
-		'<div class="infobox" id="scorebox">' +
-		'  <div id="scorecontent">' +
-		'    <table>' +
-		'      <tr><td>Rk.</td><td>Name</td><td>Score</td></tr>' +
-		'      <tr><td>1.</td><td>First name</td><td>1000</td></tr>' +
-		'      <tr><td>2.</td><td>Second name</td><td>900</td></tr>' +
-		'      <tr><td>3.</td><td>Third name</td><td>800</td></tr>' +
-		'      <tr><td>4.</td><td>Fourth name</td><td>700</td></tr>' +
-		'      <tr><td>5.</td><td>Fifth name</td><td>600</td></tr>' +
-		'      <tr><td>6.</td><td>Sixth name</td><td>500</td></tr>' +
-		'      <tr><td>7.</td><td>Seventh name</td><td>400</td></tr>' +
-		'      <tr><td>8.</td><td>Eight name</td><td>300</td></tr>' +
-		'      <tr><td>9.</td><td>Ninth name</td><td>200</td></tr>' +
-		'      <tr><td>10.</td><td>Tenth name</td><td>100</td></tr>' +
-		'    </table>' +
-		'  </div>' +
-		'  <a class="mybutton btnpop" onclick="hideScorebox();">Ok</a>' +
-		'</div>';
+		MENU_HTML + 
+		SCORE_HTML;
 
 	document.write(str);
 
@@ -873,8 +899,11 @@ LCDGame.Game.prototype = {
 			var xmax = xmax + wh;
 			var ymax = ymax + hh;
 
+			var xcenter = (xmin + xmax) / 2.0;
+			var ycenter = (ymin + ymax) / 2.0;
+
 			// button touch area
-			this.gamedata.buttons[b].area = {"x1":xmin, "y1":ymin, "x2":xmax, "y2":ymax};
+			this.gamedata.buttons[b].area = {"x1":xmin, "y1":ymin, "x2":xmax, "y2":ymax, "xc":xcenter, "yc":ycenter};
 
 			// default keycodes
 			var defkey = this.gamedata.buttons[b].name;
@@ -894,18 +923,18 @@ LCDGame.Game.prototype = {
 					&& (this.gamedata.buttons[b1].area.y1 < this.gamedata.buttons[b2].area.y2) // vertical overlap
 					&& (this.gamedata.buttons[b1].area.y2 > this.gamedata.buttons[b2].area.y1)
 				) {
-					// determine the center points of each area
-					var xc1 = (this.gamedata.buttons[b1].area.x1 + this.gamedata.buttons[b1].area.x2) / 2.0;
-					var yc1 = (this.gamedata.buttons[b1].area.y1 + this.gamedata.buttons[b1].area.y2) / 2.0;
-					var xc2 = (this.gamedata.buttons[b2].area.x1 + this.gamedata.buttons[b2].area.x2) / 2.0;
-					var yc2 = (this.gamedata.buttons[b2].area.y1 + this.gamedata.buttons[b2].area.y2) / 2.0;
+					// get center points of each area
+					var xc1 = this.gamedata.buttons[b1].area.xc;
+					var yc1 = this.gamedata.buttons[b1].area.yc;
+					var xc2 = this.gamedata.buttons[b2].area.xc;
+					var yc2 = this.gamedata.buttons[b2].area.yc;
 					
 					// rectract to left, right, up, down
 					if ( Math.abs(xc1 - xc2) > Math.abs(yc1 - yc2) ) {
 						if (xc1 > xc2) { // b1 is to the right of b2
 							var dif = (this.gamedata.buttons[b1].area.x1 - this.gamedata.buttons[b2].area.x2) / 2;
-							this.gamedata.buttons[b1].area.x1 += dif;
-							this.gamedata.buttons[b2].area.x2 -= dif;
+							this.gamedata.buttons[b1].area.x1 -= dif;
+							this.gamedata.buttons[b2].area.x2 += dif;
 						} else { // b1 is to the left of b2
 							var dif = (this.gamedata.buttons[b1].area.x2 - this.gamedata.buttons[b2].area.x1) / 2;
 							this.gamedata.buttons[b1].area.x2 -= dif;
@@ -914,8 +943,8 @@ LCDGame.Game.prototype = {
 					} else {
 						if (yc1 > yc2) { // b1 is below b2
 							var dif = (this.gamedata.buttons[b1].area.y1 - this.gamedata.buttons[b2].area.y2) / 2;
-							this.gamedata.buttons[b1].area.y1 += dif;
-							this.gamedata.buttons[b2].area.y2 -= dif;
+							this.gamedata.buttons[b1].area.y1 -= dif;
+							this.gamedata.buttons[b2].area.y2 += dif;
 						} else { // b1 is above b2
 							var dif = (this.gamedata.buttons[b1].area.y2 - this.gamedata.buttons[b2].area.y1) / 2;
 							this.gamedata.buttons[b1].area.y2 -= dif;
@@ -969,8 +998,16 @@ LCDGame.Game.prototype = {
 		});
 		
 		// [button] => <btn>button</btn>
-		str = str.replace(/\[.*?\]/g, function(foo){
+		str = str.replace(/\[(?:(?!\[).)*?\](?!\()/g, function(foo){
 			return "<btn>"+foo.slice(1, -1)+"</btn>";
+		});
+		
+		// hyperlinks [url text](www.test.com) => <a href="http://www.test.com">url text</a>
+		str = str.replace(/(\[(?:(?!\[).)*?\])(\((?:(?!\().)*?\))/g, function(all, fst, sec, pos){
+			var url = sec.slice(1, -1);
+			if (url.indexOf("http") != 0) url = "http://" + url;
+			var txt = fst.slice(1, -1);
+			return '<a href="' + url + '">' + txt + '</a>';
 		});
 		
 		return str;
@@ -1046,9 +1083,16 @@ LCDGame.Game.prototype = {
 		this.canvas.style["touch-action"] = "none"; // no text select on touch
 		this.canvas.style["user-select"] = "none"; // no text select on touch
 		this.canvas.style["-webkit-tap-highlight-color"] = "rgba(0, 0, 0, 0)"; // not sure what this does 
+		
+		// center infobox
+		this.resizeInfobox(this.infobox);
+		this.resizeInfobox(this.scorebox);
 	},
 	
 	resizeInfobox: function(box) {
+
+		// set visible, else width height doesn't work
+		box.style.display = "inherit";
 
 		// determine screen/frame size
 		var w = box.offsetWidth;
@@ -1067,6 +1111,9 @@ LCDGame.Game.prototype = {
 		box.style["margin-right"] = -xmargin+"px";
 		box.style["margin-top"] = ymargin+"px";
 		box.style["margin-bottom"] = -ymargin+"px";
+		
+		// reset visibility
+		box.style.display = "none";
 	},
 
 	// -------------------------------------
@@ -1124,10 +1171,11 @@ LCDGame.Game.prototype = {
 			document.attachEvent("keyup",   this.onkeyup.bind(this));
 		};
 
+		// real time resize
+		window.addEventListener("resize", this.resizeCanvas.bind(this), false);
+
 		// center position
 		this.resizeCanvas();
-		this.resizeInfobox(this.infobox);
-		this.resizeInfobox(this.scorebox);
 		
 		hideInfobox();
 		hideScorebox();
@@ -1195,6 +1243,10 @@ LCDGame.Game.prototype = {
 		console.log("loadSoundEffects - TODO load sound effects");
 	},
 
+	setSoundMute: function (value) {
+		this.soundmute = value;
+	},
+
 	soundIndexByName: function (name) {
 		var idx = 0;
 		for (var i = 0; i < this.gamedata.sounds.length; i++) {
@@ -1206,18 +1258,22 @@ LCDGame.Game.prototype = {
 	},
 
 	playSoundEffect: function (name) {
-		// get sound index from name
-		var idx = this.soundIndexByName(name);
 		
-		// if sound exists
-		if (idx >= 0) {
-			// if sound is playing then stop it now
-			if (this.gamedata.sounds[idx].audio.paused == false) {
-				this.gamedata.sounds[idx].audio.pause();
-				this.gamedata.sounds[idx].audio.currentTime = 0;
+		// device sound is not muted
+		if (!this.soundmute) {
+			// get sound index from name
+			var idx = this.soundIndexByName(name);
+			
+			// if sound exists
+			if (idx >= 0) {
+				// if sound is playing then stop it now
+				if (this.gamedata.sounds[idx].audio.paused == false) {
+					this.gamedata.sounds[idx].audio.pause();
+					this.gamedata.sounds[idx].audio.currentTime = 0;
+				};
+				// start playing sound
+				this.gamedata.sounds[idx].audio.play();
 			};
-			// start playing sound
-			this.gamedata.sounds[idx].audio.play();
 		};
 	},
 
@@ -1236,12 +1292,15 @@ LCDGame.Game.prototype = {
 	},
 
 	setShapeByName: function(filename, value) {
-		// find shape 
-		for (var i = 0; i < this.gamedata.frames.length; i++) {
-			if (this.gamedata.frames[i].filename == filename) {
-				this.gamedata.frames[i].value = value;
-				this._refresh = true;
-				return true;
+		// if called too soon
+		if (this.gamedata.frames) {
+			// find shape 
+			for (var i = 0; i < this.gamedata.frames.length; i++) {
+				if (this.gamedata.frames[i].filename == filename) {
+					this.gamedata.frames[i].value = value;
+					this._refresh = true;
+					return true;
+				};
 			};
 		};
 		return false;
@@ -1353,13 +1412,28 @@ LCDGame.Game.prototype = {
 			// if pos is -1, then last last position
 			if (pos == -1) {pos = this.gamedata.sequences[seqidx].ids.length-1};
 
-			// set value for first shape in sequence
-			var shape1 = this.gamedata.sequences[seqidx].ids[pos];
-			this.gamedata.frames[shape1].value = value;
+			// if pos out of bound of sequence array
+			if (pos < this.gamedata.sequences[seqidx].ids.length) {
+				// set value for position shape in sequence
+				var shape1 = this.gamedata.sequences[seqidx].ids[pos];
+				this.gamedata.frames[shape1].value = value;
 
-			// refresh display
-			this._refresh = true;
+				// refresh display
+				this._refresh = true;
+			};
 		}
+	},
+
+	shapeVisible: function(name) {
+		// find shape 
+		for (var i = 0; i < this.gamedata.frames.length; i++) {
+			if (this.gamedata.frames[i].filename == name) {
+				if (this.gamedata.frames[i].value == true) {
+					return true;
+				};
+			};
+		};
+		return false;
 	},
 	
 	sequenceShapeVisible: function(name, pos) {
@@ -1380,10 +1454,13 @@ LCDGame.Game.prototype = {
 			// if pos is -1, then last last position
 			if (pos == -1) {pos = this.gamedata.sequences[seqidx].ids.length-1};
 			
-			// check if shape is visible (value==true)
-			var shape1 = this.gamedata.sequences[seqidx].ids[pos];
-			if (this.gamedata.frames[shape1].value == true) {
-				return true;
+			// if pos out of bound of sequence array
+			if (pos < this.gamedata.sequences[seqidx].ids.length) {
+				// check if shape is visible (value==true)
+				var shape1 = this.gamedata.sequences[seqidx].ids[pos];
+				if (this.gamedata.frames[shape1].value == true) {
+					return true;
+				};
 			};
 		};
 		return false;
@@ -1414,6 +1491,9 @@ LCDGame.Game.prototype = {
 	// function for digits
 	// -------------------------------------
 	digitsDisplay: function(name, str, rightalign) {
+		// not loaded yet
+		if (!this.gamedata.digits) return;
+
 		// get sequence
 		var digidx = -1;
 		for (var i = 0; i < this.gamedata.digits.length; i++) {
@@ -1509,6 +1589,8 @@ LCDGame.Game.prototype = {
 				};
 			};
 			
+			this.drawDebugText();
+
 			// debugging show button areas
 			//for (var i=0; i < this.gamedata.buttons.length; i++) {
 			//	var x1 = this.gamedata.buttons[i].area.x1;
@@ -1543,21 +1625,30 @@ LCDGame.Game.prototype = {
 		//this.context2d.fillText(index, this.gamedata.frames[index].xpos, this.gamedata.frames[index].ypos);
 	},
 
-	debugText: function(str, x, y) {
-		// set font
-		this.context2d.font = "bold 16px sans-serif";
+	debugText: function(str) {
+		// set text
+		this.debugtxt = str;
+	},
 
-		var lineheight = 15;		
-		var lines = str.split('\n');
+	drawDebugText: function() {
+		if (this.debugtxt) {
+			// set font and position
+			this.context2d.font = "bold 24px sans-serif";
+			var x = 50;
+			var y = 50;
 
-		for (var i = 0; i<lines.length; i++) {
-			// shadow text
-			this.context2d.fillStyle = "#000";
-			this.context2d.fillText(lines[i], x+2, y+2);
-			// white text
-			this.context2d.fillStyle = "#fff";
-			this.context2d.fillText(lines[i], x, y);
-			y = y + lineheight;
+			var lineheight = 15;		
+			var lines = this.debugtxt.split('\n');
+
+			for (var i = 0; i<lines.length; i++) {
+				// shadow text
+				this.context2d.fillStyle = "#000";
+				this.context2d.fillText(lines[i], x+2, y+2);
+				// white text
+				this.context2d.fillStyle = "#fff";
+				this.context2d.fillText(lines[i], x, y);
+				y = y + lineheight;
+			};
 		};
 	},
 
@@ -1656,15 +1747,30 @@ LCDGame.Game.prototype = {
 				switch(this.gamedata.buttons[i].type) {
 					case "updown":
 						// two direction button up/down
-						var half = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
+						var yhalf = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
 						// up or down
-						btnidx = (y < this.gamedata.buttons[i].area.y1 + half ? 0 : 1);
+						btnidx = (y < this.gamedata.buttons[i].area.y1 + yhalf ? 0 : 1);
 						break;
 					case "leftright":
 						// two direction button left/right
-						var half = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
+						var xhalf = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
 						// left or right
-						btnidx = (x < this.gamedata.buttons[i].area.x1 + half ? 0 : 1);
+						btnidx = (x < this.gamedata.buttons[i].area.x1 + xhalf ? 0 : 1);
+						break;
+					case "dpad":
+						// four direction button up/down/left/right
+						var xhalf = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
+						var yhalf = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
+						// distance to center
+						var xdist = x - this.gamedata.buttons[i].area.x1 - xhalf;
+						var ydist = y - this.gamedata.buttons[i].area.y1 - yhalf;
+						if (Math.abs(xdist) < Math.abs(ydist)) {
+							// up or down
+							btnidx = (ydist < 0 ? 0 : 1); // 0=up, 1=down
+						} else {
+							// left or right
+							btnidx = (xdist < 0 ? 2 : 3); // 2=left, 3=right
+						};
 						break;
 					//default: // case "button":
 					//	// simple button
@@ -1709,6 +1815,21 @@ LCDGame.Game.prototype = {
 						var half = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
 						// left or right
 						btnidx = (x < this.gamedata.buttons[i].area.x1 + half ? 0 : 1);
+						break;
+					case "dpad":
+						// four direction button up/down/left/right
+						var xhalf = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
+						var yhalf = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
+						// distance to center
+						var xdist = x - this.gamedata.buttons[i].area.x1 - xhalf;
+						var ydist = y - this.gamedata.buttons[i].area.y1 - yhalf;
+						if (Math.abs(xdist) < Math.abs(ydist)) {
+							// up or down
+							btnidx = (ydist < 0 ? 0 : 1); // 0=up, 1=down
+						} else {
+							// left or right
+							btnidx = (xdist < 0 ? 2 : 3); // 2=left, 3=right
+						};
 						break;
 					//default: // case "button":
 					//	// simple button
