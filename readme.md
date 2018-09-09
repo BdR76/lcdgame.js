@@ -1,19 +1,21 @@
 lcdgame.js
 ==========
-lcdgame.js is a JavaScript library with the goal of creating high quality LCD 
-game simulators that can run in any browser. 
+lcdgame.js is a JavaScript library for creating high quality LCD game
+simulators that can run in any browser. It is compatible with most modern
+browsers and several games are fully playable on pc's, laptops, mobile phones
+and tablets.
 
-Work in progress
-----------------
-At this point the lcdgame.js library is very much a work-in-progress project. 
-The games "Highway", "Mario Bros" and "Sea Ranger" are playable in browsers on
-pc's and laptops. It doesn't work properly yet on mobile or tablets. 
+The lcdgame.js library will be updated regularly bug fixes and possibly
+additional game devices, so in that sense it remains work in progress.
 
 ![preview screenshot](/lcdgamejs_preview.png?raw=true "preview")
 
-[play Highway here](http://bdrgames.nl/lcdgames/highway)  
-[play Mario Bros here](http://bdrgames.nl/lcdgames/mariobros)  
-[play Sea Ranger here](http://bdrgames.nl/lcdgames/searanger/)
+[play the LCD games here](http://bdrgames.nl/lcdgames/)  
+
+[Highway](http://bdrgames.nl/lcdgames/highway) :: 
+[Mario Bros](http://bdrgames.nl/lcdgames/mariobros) :: 
+[Sea Ranger](http://bdrgames.nl/lcdgames/searanger/) :: 
+[Tom's Adventure](http://bdrgames.nl/lcdgames/tomsadventure/)
 
 What are LCD games
 ------------------
@@ -29,8 +31,8 @@ Tandy, Radio Shack, Sunwing, Tiger, Tomy started creating their own lcd games
 (sometimes called "card games"). Over the years hundreds, maybe thousands, of
 [different games](http://handheldempire.com/games.jsp) were created.
 
-What is lcdgames.js
---------------------
+What is lcdgame.js
+------------------
 lcdgame.js is a JavaScript library for creating LCD game simulators. It works 
 based on a spritesheet compatible wth json array format, which can be created with a photo editor like GIMP, and the 
 shapes_editor.html which is part of this library, for more info [see here](/utils/).
@@ -66,7 +68,8 @@ still missing features (~~strikethrough~~ is done).
 * ~~add high scores list (local storage)~~
 * ~~add menu overlay in separate dom-elements~~
 * ~~add high scores list (shared online)~~
-* responsive resizing/scaling and display centered
+* ~~responsive resizing/scaling and display centered~~
+* filter options for high score list
 * sound mp3/wav based on browsertype
 * Shapes editor, allow shapes change position, mouse drag/move
 * Shapes editor, support/preview/edit types (normal shape, digit, digit position, button)
