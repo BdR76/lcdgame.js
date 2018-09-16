@@ -10,6 +10,7 @@
 
 from gimpfu import *
 import os
+import re
 
 COORDs = ""
 
@@ -19,12 +20,28 @@ def repl(s, chars):
 		str = str.replace(n, "")
 	return str
 
+def layer_set_visible(img, layername, vis):
+	
+	# iterate all layers and check for name
+	for l in gimp.image_list()[0].layers:
+		if l.name == layername:
+			l.visible = vis
+	return
+
 def save_selection(image, img_path, vect, postfix):
 	# variables
 	global COORDs
 
+	# path name can contain layer name, for example "btn_left [layer dpad LEFT button]"
+	path_name = vect.name;
+	layer_name = '';
+	pos = path_name.find('[')
+	if pos >= 0:
+		layer_name = re.search('\[([^\]]+)', path_name).group(1);
+		path_name = path_name[:pos].strip();
+
 	# prepare export filename based on path name
-	img_name = vect.name.replace(" ", "_") + postfix
+	img_name = path_name.replace(" ", "_") + postfix
 	img_name = repl(img_name, "#<>,'\"/=%?¿!¡") # remove illegal chars
 	filename = "%s\%s.%s" % (img_path, img_name, "png")
 
@@ -38,6 +55,10 @@ def save_selection(image, img_path, vect, postfix):
 	if (COORDs != ""): COORDs = COORDs + ",\n"
 	COORDs = COORDs+("\t\t{\"filename\":\"%s\", \"spriteSourceSize\":{\"x\": %d, \"y\": %d, \"w\": %d, \"h\": %d}}"  % (img_name , x1, y1, (x2-x1), (y2-y1)))
 
+	# if layer is specified, make the layer visible
+	if layer_name != '':
+		layer_set_visible(image, layer_name, True);
+	
 	# copy and paste as new temporary image
 	# pdb.gimp_edit_copy(image.layers[0])
 	pdb.gimp_edit_copy_visible(image)
@@ -46,6 +67,10 @@ def save_selection(image, img_path, vect, postfix):
 	# save to file and clean up temporary image
 	pdb.gimp_file_save(tmp_img, tmp_img.active_layer, filename, filename)
 	pdb.gimp_image_delete(tmp_img)
+	
+	# if layer was specified, reset layer visibility
+	if layer_name != '':
+		layer_set_visible(image, layer_name, False);
 
 	return
 	

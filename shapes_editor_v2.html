@@ -147,6 +147,49 @@
 			// output
 			document.getElementById("jsonastext").value = str;
 		}
+		
+		// -------------------------------------
+		// guess sequences JSON to save type work
+		// -------------------------------------
+		function guessSequencesJson() {
+			var str = '{\r\n\tsequences": [';
+			var seq = [];
+
+			// check all frame names and quick guess the sequence name
+			// example "dkjr_01" -> sequence = "dkjr"
+			for (var i = 0; i < sprjsondata.frames.length; i++) {
+				var framename = sprjsondata.frames[i].filename;
+				var seqname = (/[^_]*/.exec(framename)[0] || framename);
+				
+				if (!seq[seqname]) {
+					seq[seqname] = [];
+				};
+				seq[seqname].push(framename);
+			};
+
+			// print all sequences
+			for (var s in seq) {
+				if (seq.hasOwnProperty(s)) {
+					var frames = '';
+					seq[s] = seq[s].sort();
+					for (var i = 0; i < seq[s].length; i++) {
+						frames = frames + '"' + seq[s][i] + '",';
+					};
+					// remove last comma
+					frames = frames.substring(0, frames.length-1);
+					str = str + '\r\n\t\t{"name":"' + s + '","frames":[' + frames + ']},';
+				};
+			};
+
+			// remove last comma
+			str = str.substring(0, str.length-1) + '\r\n}';
+			
+			// slightly more prettify?
+			//str = str.replace(/\",\"/g, '", "');
+
+			// output
+			document.getElementById("jsonastext").value = str;
+		}
 
 		// -------------------------------------
 		// get offset position of element within document
@@ -966,6 +1009,7 @@
 		N=next shape, B=prev.shape<br/>
 		<input id="displayindex" type="checkbox" onclick="imagerefresh()" />display indexes<br/>
 		<input type="button" value="Output JSON data" onclick="javascript:prettyPrintJson(sprjsondata);">
+		<input type="button" value="Guess Sequences" onclick="javascript:guessSequencesJson();">
 		<br/>
 		copy/paste into shapes.js<br/>
 		<textarea id="jsonastext" rows="16" cols="96"></textarea><br/>
