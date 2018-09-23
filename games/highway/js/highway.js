@@ -106,12 +106,12 @@ highway.ClockMode.prototype = {
 		// change of new road objects appearing
 		this.objfreqs = [10, 33, 33, 33, 10]; // 10%, 25% etc.
 		for (var i=0; i < this.objfreqs.length; i++) {
-			var o = Math.floor(Math.random() * 100) + 1; //1..100
+			var o = this.lcdgame.randomInteger(1, 100);
 			if (o <= this.objfreqs[i]) {this.objfreqs[i]=1} else {this.objfreqs[i]=0}; // 1=appears, 0=doesn't appear
 		};
 		// exception, objects in 3 middle lanes (dog, sign, tree) may never ALL appear at once because then player can't go anywhere
 		if ( (this.objfreqs[1] == 1) && (this.objfreqs[2] == 1) && (this.objfreqs[3] == 1)) {
-			var idx = Math.floor(Math.random() * 3) + 1; //1..3
+			var idx = this.lcdgame.randomInteger(1, 3);
 			this.objfreqs[idx] = 0; // erase one of the three
 		};
 		// girl appears not more than once at a time
@@ -548,7 +548,7 @@ highway.MainGame.prototype = {
 		var strTESTING = "";
 		this.objfreqs = [10, 33, 33, 33, 10]; // 10%, 25% etc.
 		for (var i=0; i < this.objfreqs.length; i++) {
-			var o = Math.floor(Math.random() * 100) + 1; //1..100
+			var o = this.lcdgame.randomInteger(1, 100);
 			if (o <= this.objfreqs[i]) {this.objfreqs[i]=1} else {this.objfreqs[i]=0}; // 1=appears, 0=doesn't appear
 			
 			// TESTING!!
@@ -557,7 +557,7 @@ highway.MainGame.prototype = {
 		console.log("updateRoad - random stuff -> " + strTESTING);
 		// exception, objects in 3 middle lanes (dog, sign, tree) may never ALL appear at once because then player can't go anywhere
 		if ( (this.objfreqs[1] == 1) && (this.objfreqs[2] == 1) && (this.objfreqs[3] == 1)) {
-			var idx = Math.floor(Math.random() * 3) + 1; //1..3
+			var idx = this.lcdgame.randomInteger(1, 3);
 			this.objfreqs[idx] = 0; // erase one of the three
 		};
 		// girl appears not more than once at a time

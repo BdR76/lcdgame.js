@@ -82,10 +82,10 @@ searanger.ClockMode.prototype = {
 			this.lcdgame.sequenceShift("lifesaver");
 			
 			// add random new shapes
-			var r1 = Math.floor(Math.random() * 100) + 1; //1..100
-			var r2 = Math.floor(Math.random() * 100) + 1; //1..100
-			var r3 = Math.floor(Math.random() * 100) + 1; //1..100
-			var r4 = Math.floor(Math.random() * 100) + 1; //1..100
+			var r1 = this.lcdgame.randomInteger(1, 100); //1..100
+			var r2 = this.lcdgame.randomInteger(1, 100); //1..100
+			var r3 = this.lcdgame.randomInteger(1, 100); //1..100
+			var r4 = this.lcdgame.randomInteger(1, 100); //1..100
 			if (r1 < 25) {this.lcdgame.sequenceSetPos("coconut", 0, true)}; this.lcdgame.setShapeByName("monkey", (r1 < 25));
 			if (r2 < 25) {this.lcdgame.sequenceSetPos("shark", 0, true) };
 			if (r3 < 25) {this.lcdgame.sequenceSetPos("ship", 0, true) };
@@ -257,7 +257,7 @@ searanger.MainGame.prototype = {
 			// score points
 			this.scorePoints(10);
 			// randomly play long or short beep
-			var r = Math.floor(Math.random() * 3);
+			var r = this.lcdgame.randomInteger(0, 2);
 			var str = (r == 1 ? "scorelong" : "scoremedium");
 			console.log("scoer points!! str = "+str);
 			this.lcdgame.playSoundEffect(str);
@@ -322,7 +322,7 @@ searanger.MainGame.prototype = {
 		this.lcdgame.sequenceShift(seq);
 
 		// new random event, based on description of Plane & Tank -> http://handheldempire.com/game.jsp?game=2158
-		if (frame == 0) this.randevt = Math.floor(Math.random() * 15); //0..14
+		if (frame == 0) this.randevt = this.lcdgame.randomInteger(0, 14);
 		if (this.lcdgame.score < 100) {
 			if (this.randevt <= 4) this.randevt = 0;
 		};

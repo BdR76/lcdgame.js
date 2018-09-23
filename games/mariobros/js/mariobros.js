@@ -392,9 +392,9 @@ mariobros.MainGame.prototype = {
 						// at start of game wait longer
 						if ( (this.lcdgame.level == 1) && (this.truckcases <= 1) ) waitmin = 35;
 						// random waiting
-						this.caseadd = Math.floor(Math.random() * (waitmax-waitmin)) + waitmin;
+						this.caseadd = this.lcdgame.randomInteger(waitmin, waitmax);
 						// add 1..3 in bulk
-						this.caseaddbulk = Math.floor(Math.random() * 2) + 1; 
+						this.caseaddbulk = this.lcdgame.randomInteger(1, 3);
 					};					
 				};
 			};
