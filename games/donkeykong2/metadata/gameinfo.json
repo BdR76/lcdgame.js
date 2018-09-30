@@ -1,0 +1,22 @@
+{
+	"gameinfo": {
+		"device": {
+			"title": "Donkey Kong II",
+			"model": "JR-55",
+			"manufacturer": "Nintendo",
+			"releasedate": "1983",
+			"type": "LCD"
+		},
+		"simulation": {
+			"program": "Bas de Reuver",
+			"photoedit": "Bas de Reuver",
+			"deviceprovided": "J.F. Everts"
+		},
+		"gametypes": [
+			"game A", "game B"
+		],
+		"instructions": {
+			"en": "Move Donkey Kong Jr. up the platforms and avoid crocodiles, sparks and birds. Climb the rope and grab the key to unlock all 4 chains to free Donkey Kong.\n\nStart the game by pressing [Game A] or [Game B].\nUse [D-pad] to move and [Jump] to jump.\nYou can also press keyboard cursors to move and [Z] to jump."
+		}
+	}
+}
