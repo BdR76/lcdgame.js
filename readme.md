@@ -8,7 +8,7 @@ and tablets.
 The lcdgame.js library will be updated regularly bug fixes and possibly
 additional game devices, so in that sense it remains work in progress.
 
-![preview screenshot](/lcdgamejs_preview.png?raw=true "preview")
+![preview screenshot](/lcdgamejs_preview.jpg?raw=true "preview")
 
 [play the LCD games here](http://bdrgames.nl/lcdgames/)  
 
