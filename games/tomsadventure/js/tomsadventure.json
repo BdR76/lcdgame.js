@@ -1,5 +1,5 @@
 {
-	"imgback": "img/toms_adventure_back.png",
+	"imgback": "img/toms_adventure_back.jpg",
 	"imgshapes": "img/toms_adventure_shapes.png",
 	"frames":[
 		{"filename":"btn_start","frame":{"x":186,"y":0,"w":149,"h":83},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":1487,"y":240,"w":149,"h":83},"sourceSize":{"w":149,"h":83}},

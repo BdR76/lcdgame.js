@@ -666,6 +666,7 @@ donkeykong2.MainGame.prototype = {
 				// add score before continueing, +1 point at 800ms, 900ms, 1000ms, 1100ms, 1200ms
 				if (this.unlockmiss == true) {
 					if ( (t >= 8) && (t <= 12) ) {
+						this.lcdgame.playSoundEffect("beep1");
 						this.scorePoints(1);
 					};
 					// continue after adding score

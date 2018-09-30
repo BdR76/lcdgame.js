@@ -1,5 +1,5 @@
 {
-	"imgback": "img/donkeykong2_back.png",
+	"imgback": "img/donkeykong2_back.jpg",
 	"imgshapes": "img/donkeykong2_shapes.png",
 	"frames": [
 		{"filename":"croc1_03","frame":{"x":426,"y":289,"w":25,"h":22},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":495,"y":831,"w":25,"h":22},"sourceSize":{"w":25,"h":22}},
