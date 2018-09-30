@@ -1,5 +1,5 @@
 {
-	"imgback": "img/highway_back.png",
+	"imgback": "img/highway_back.jpg",
 	"imgshapes": "img/highway_shapes.png",
 	"frames": [
 		{"filename":"digit_place5","frame":{"x":280,"y":118,"w":44,"h":58},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":631,"y":181,"w":44,"h":58},"sourceSize":{"w":44,"h":58}},
