@@ -78,6 +78,20 @@ still missing features (~~strikethrough~~ is done).
 * allow button/keys re-mapping
 * and of course, add more games ;)
 
+Simulation vs emulation
+-----------------------
+Why create simulations when you could also create emulators? Handheld LCD games
+typically use a wide range of 4-bit microprocessors (MCU) of which there isn't
+much information. Also, the ROMs in these devices are usually embedded in the
+MCU, meaning they need to be
+["decapped"](https://arstechnica.com/gaming/2017/07/mame-devs-are-cracking-open-arcade-chips-to-get-around-drm/)
+to extract the data. This involves taking a microscope image and visually
+decoding the zeros and ones. Although feasible, this process is very expensive,
+especially considering the sheer amount and variety of different LCD games.
+Therefor it is more practical to create simulations instead of emulators.
+Also, a simulator can recreate the entire device, including buttons and
+artwork, and not just the screen.
+
 History
 -------
 01-jul-2018 v0.3.1 menu, infobox, online highscores   

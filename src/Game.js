@@ -1030,21 +1030,21 @@ LCDGame.Game.prototype = {
 
 		evt.preventDefault();
 
-        //  evt.changedTouches is changed touches in this event, not all touches at this moment
-        for (var i = 0; i < event.changedTouches.length; i++)
-        {
+		//  evt.changedTouches is changed touches in this event, not all touches at this moment
+		for (var i = 0; i < event.changedTouches.length; i++)
+		{
 			this.onmousedown(event.changedTouches[i]);
-        }
+		}
 	},
 	
 	ontouchend: function(evt) {
 		evt.preventDefault();
 
-        //  evt.changedTouches is changed touches in this event, not all touches at this moment
-        for (var i = 0; i < evt.changedTouches.length; i++)
-        {
+		//  evt.changedTouches is changed touches in this event, not all touches at this moment
+		for (var i = 0; i < evt.changedTouches.length; i++)
+		{
 			this.onmouseup(evt.changedTouches[i]);
-        }
+		}
 	},
 
 	onmousedown: function(evt) {

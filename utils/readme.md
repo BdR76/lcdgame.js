@@ -24,27 +24,31 @@ Recommended workflow
 The recommended workflow to get from high-resolution photographs to a working
 lcdgame.js game is as follows.
 
-1. Edit and arrange high resolution photos in GIMP
-2. Export pngs and json
-3. Create sprite sheet
-4. Merge coordinate.json in shapeseditor
-
 ![recommended workflow](/utils/workflow.png?raw=true "preview")
 
-Create photos and import them into [GIMP v2](https://www.gimp.org/), which is
+#### 1. Edit and arrange photos in GIMP ####
+Create high resolution photos and import them into [GIMP](https://www.gimp.org/), which is
 a free and open-source image editor. Create one layer with the device turned
 off, so no segments are visible. Create another layer with all segments
 visible. Arrange the layers so that they overlap and align perfectly.
-Select each individual shape and save the selection as a "path" in GIMP.
-Give the path a useful name, like "boatguy_1", "boatguy_2", "coconut_1" etc.
+Select each individual shape and use the menu option "Select > To path" to save
+the selection as a "path" in GIMP. Open the Paths dialog under "Windows >
+Dockable Dialogs > Paths" and give the path a useful name, like "boatguy_1",
+"boatguy_2", "coconut_1" etc.
 
+#### 2. Export pngs and json ####
 Export all paths to .png files, using the plug-in explained below.
+Remember to always back-up the original image in as high resolution as possible,
+even if final result will be in a lower resolution. If necessary create a
+separate lower resolution file before exporting.
 
+#### 3. Create sprite sheet ####
 Pack all .png into a spritesheet in the JSON-array format,
 using [Leshy SpriteSheet Tool](https://www.leshylabs.com/apps/sstool/)
 or another tool like [TexturePacker](https://www.codeandweb.com/texturepacker)
 or [Phaser Editor](http://phasereditor.boniatillo.com/).
 
+#### 4. Merge coordinate.json in shapeseditor ####
 Use the lcdgames.js Shapeeditor to merge the orgcoords.json created in step 2
 with the .json file created in step 3. This will add the original x/y
 positions of each shape into the spritesheet JSON file, so that the lcdgame.js
