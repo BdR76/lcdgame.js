@@ -4,15 +4,16 @@
 var donkeykong2 = {};
 
 // constants
-var STATE_PLAYING = 0;
-var WAIT_STARTANIM = 1; // mario+dk+chain appear
-var WAIT_LOSEANIM = 2;
-var WAIT_MOVEKEY1 = 3;
-var WAIT_MOVEKEY2 = 4;
-var WAIT_LOCKANIM = 5;
-var WAIT_WINANIM1 = 6; // climb down
-var WAIT_WINANIM2 = 7; // catch Donkey Kong, add points
-var STATE_GAMEOVER = 8;
+var STATE_NONE = 0;
+var STATE_PLAYING = 1;
+var WAIT_STARTANIM = 2; // mario+dk+chain appear
+var WAIT_LOSEANIM = 3;
+var WAIT_MOVEKEY1 = 4;
+var WAIT_MOVEKEY2 = 5;
+var WAIT_LOCKANIM = 6;
+var WAIT_WINANIM1 = 7; // climb down
+var WAIT_WINANIM2 = 8; // catch Donkey Kong, add points
+var STATE_GAMEOVER = 9;
 
 var DIR_NONE = 0;
 var DIR_UP = 1;
@@ -46,7 +47,7 @@ var MoveCollide = [	{"move":[+1,   0,   0,    0,   0], "collide":[        "",   
 					{"move":[ 0,   0,   0,   -2,  +1], "collide":[        "",         "", "spark1_2", "spark1_3",         ""], },
 					{"move":[+1,  -1,   0,    0,   0], "collide":["spark2_5",         "",         "",         "",         ""], },
 					{"move":[ 0,  -1,   0,   +2,  +1], "collide":[        "",         "",         "",  "croc2_6",         ""], }, // top row (dkjr_21..38)
-					{"move":[ 0,   0,   0,    0,   0], "collide":["spark2_4",         "",         "",         "",  "croc2_6"], },
+					{"move":[ 0,   0,   0,    0,   0], "collide":[        "",         "",         "",         "",  "croc2_6"], },
 					{"move":[ 0,   0,  -2,   +4,  +1], "collide":[        "",         "",  "croc2_6",  "croc2_5",         ""], }, // below rope 1 (left-most)
 					{"move":[+1,  -1,   0,    0,   0], "collide":[        "",         "",  "bird3_1",         "",         ""], },
 					{"move":[+1,  -1,   0,    0,   0], "collide":[        "",         "",         "",  "bird2_4",         ""], },
@@ -158,6 +159,7 @@ donkeykong2.MainGame = function(lcdgame) {
 	this.waittimer = null;
 	this.pushtimer = null;
 	this.sparktimer = null;
+	this.chancetimer = null;
 	
 	this.dkjrpos;
 	this.jumping;
@@ -187,6 +189,7 @@ donkeykong2.MainGame.prototype = {
 		
 		this.waittimer = this.lcdgame.addtimer(this, this.onTimerWait, 100, false); // key animation, death animation, dk free animation
 		this.pushtimer = this.lcdgame.addtimer(this, this.onTimerPush, 12500, true); // idle time out after 12.5 sec
+		this.chancetimer = this.lcdgame.addtimer(this, this.onTimerChance, 250, true);
 		
 		// start of spark animation
 		this.sparktimer = this.lcdgame.addtimer(this, this.onTimerSpark, 40, true);
@@ -207,6 +210,7 @@ donkeykong2.MainGame.prototype = {
 		// reset game specific variables
 		this.lcdgame.gameReset(this.lcdgame.gametype);
 		this.lives = 3;
+		this.chancetime = false;
 		this.lcdgame.setShapeByName("dkjr_life_1", true);
 		this.lcdgame.setShapeByName("dkjr_life_2", true);
 		this.spark1 = false;
@@ -246,11 +250,10 @@ donkeykong2.MainGame.prototype = {
 	continueGame: function() {
 		// reset variables
 		this.dkjrpos = 0;
-		this.scorePoints(0);
-		this.chancetime = false;
 		this.unlockmiss = false;
 		this.jumping = 0;
 		this.jumpover = "";
+		this.scorePoints(0);
 
 		// reset timers
 		this.waittimer.pause();
@@ -338,7 +341,6 @@ donkeykong2.MainGame.prototype = {
 		// limit max.speed. NOTE: not verified so not sure that this limit was also on actual device
 		//if (msecs < 62.5) {msecs = 62.5};
 
-		//console.log("initNextLevel, lcdgame.gametype="+this.lcdgame.gametype+" level="+this.lcdgame.level+" tick millisecs="+msecs);
 		this.gametimer.interval = msecs;
 		this.gametimer.start();
 	},
@@ -375,7 +377,7 @@ donkeykong2.MainGame.prototype = {
 			this.lcdgame.setShapeByName("dkjr_hand_1", false);
 		};
 
-		// test moving collisions
+		// check collisions by moving into enemy
 		if (coll != "") {
 			var hit = this.lcdgame.shapeVisible(coll);
 			// collision
@@ -437,7 +439,7 @@ donkeykong2.MainGame.prototype = {
 				// can move down, so DkJr is on rope
 				var collLeft  = MoveCollide[this.dkjrpos].collide[2];
 				var collRight = MoveCollide[this.dkjrpos].collide[3];
-				// collision
+				// bird collision
 				if ( (this.lcdgame.shapeVisible(collLeft)) || (this.lcdgame.shapeVisible(collRight)) ) {
 					this.doWait(WAIT_LOSEANIM);
 					return;
@@ -465,7 +467,7 @@ donkeykong2.MainGame.prototype = {
 	refreshScore: function(s) {
 		// device will not display scores over 1000
 		// for example 1003 will display as "3" (not "1003" or "003")
-		s = (s % 1000);
+		if (s != "") s = (s % 1000);
 		this.lcdgame.digitsDisplay("digits", ""+s, true);
 	},
 	
@@ -480,16 +482,20 @@ donkeykong2.MainGame.prototype = {
 		// pass 300 for bonus
 		if ( (this.lcdgame.score-pts < 300) && (this.lcdgame.score >= 300) ) {
 			if (this.lives == 3) {
-				// score >300 can occur either during game (belttimer) or during cutscene (animatetimer)
-				this.gametimer.pause();
-
-				// reset misses
-				//this.resettimer.start(9);
-			} else {
 				// reach 300 points without any misses
 				this.chancetime = true; // score doubler
-				//this.bonustimer.start();
-			}
+			} else {
+				// reach 300 points with misses; add lives
+				this.lives = 3;
+			};
+			// score >300 can occur either during game or during cutscene
+			this.waittimer.pause();
+			this.gametimer.pause();
+			
+			// set this.waitmode to STATE_NONE, so it diables button input
+			if (this.waitmode == STATE_PLAYING) this.waitmode = STATE_NONE;
+		
+			this.chancetimer.start();
 		}
 	},
 
@@ -505,6 +511,9 @@ donkeykong2.MainGame.prototype = {
 				this.waittimer.interval = 100;
 				// lose a life
 				this.lives--;
+				// stop chance time
+				this.chancetime = false;
+				this.scorePoints(0);
 				break;
 			case WAIT_MOVEKEY1:
 				this.waittimer.interval = 100;
@@ -528,8 +537,6 @@ donkeykong2.MainGame.prototype = {
 				// etc.
 				var deduct = Math.floor(msecs / 15000);    // divide by 15 seconds and round down
 				this.unlockbonus = Math.max(15 - deduct, 5); // maximum is 15 points, minimum bonus is 5 points
-				// DEBUGGING
-				console.log("== UNLOCK BONUS == msecs=" + msecs + " sec=" + Math.floor(msecs / 1000) + " deduct=" + deduct + " this.unlockbonus=" + this.unlockbonus)
 
 				break;
 			case WAIT_WINANIM1:
@@ -607,7 +614,6 @@ donkeykong2.MainGame.prototype = {
 				// blink on/off at 200ms 300ms 600ms 900ms 1200ms 1500ms
 				if ( (t <= 14) && ((t+1) % 3 == 0) ) {
 					var o = ((t+1) % 6 == 0); // on at 0ms 600ms 1200ms
-					console.log("lose animation -- t=" + t + " o=" + o);
 					this.lcdgame.sequenceSetPos('dkjr', this.dkjrpos, o);
 					// beep 
 					if (t > 3) this.lcdgame.playSoundEffect("lose2");
@@ -845,6 +851,32 @@ donkeykong2.MainGame.prototype = {
 		};
 	},
 	
+	onTimerChance: function() {
+
+		
+		// blink lives on/off
+		var b = (this.chancetimer.counter % 2 == 0);
+		this.lcdgame.setShapeByName("dkjr_life_1", (b || this.chancetime)); // when no misses, only dkj_lives_2 is blinking
+		this.lcdgame.setShapeByName("dkjr_life_2", b);
+		
+		// play sound
+		if (!b) this.lcdgame.playSoundEffect("beep1");
+
+		// continue regular game or cut scene
+		if (this.chancetimer.counter > 5) {
+			this.chancetimer.pause();
+		
+			// continue game or cutscene
+			if (this.waitmode == STATE_NONE) {
+				this.waitmode = STATE_PLAYING;
+				this.gametimer.unpause();
+			} else {
+				this.waittimer.unpause();
+			};
+		};
+	},
+
+	
 	onTimerSpark: function() {
 		// idle time out; if player does nothing, push DkJr into the game
 		var t = (this.sparktimer.counter % 2 == 0);
@@ -865,20 +897,22 @@ donkeykong2.MainGame.prototype = {
 			} else {
 				this.lcdgame.sequenceSetPos("key", this.keypos, true);
 			};
-			// chance time blink score while playing
-			if (this.chancetime) {
-				var s = (tmr.counter % 2 != 0 ? this.lcdgame.score : "");
-				this.refreshScore(s);
-			}
 		};
+		// chance time blink score while playing
+		if (this.chancetime) {
+			var s = (this.keytimer.counter % 2 == 0 ? this.lcdgame.score : "");
+			this.refreshScore(s);
+		}
+
 	},
 
 	onTimerGame: function() {
 		// update moving enemies
 		var t = this.gametimer.counter;
-		console.log('onTimerGame -- ' + t);
-		
-		this.lcdgame.playSoundEffect("pulse1");
+
+		// different pulse sound when on top screen
+		var pls = ((t % 2 == 0) && (this.dkjrpos > 19) ? "pulse2" : "pulse1");
+		this.lcdgame.playSoundEffect(pls);
 		
 		// check collisions
 		var hit       = false;

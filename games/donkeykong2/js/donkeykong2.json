@@ -162,7 +162,6 @@
 	],
 	"sounds": [
 		{"name":"beep1","filename":"snd/beep1.wav"},
-		{"name":"beep2","filename":"snd/beep2.wav"},
 		{"name":"gameover","filename":"snd/gameover.wav"},
 		{"name":"jump","filename":"snd/jump.wav"},
 		{"name":"lose1","filename":"snd/lose1.wav"},
@@ -170,6 +169,7 @@
 		{"name":"move","filename":"snd/move.wav"},
 		{"name":"movekey","filename":"snd/movekey.wav"},
 		{"name":"pulse1","filename":"snd/pulse1.wav"},
+		{"name":"pulse2","filename":"snd/pulse2.wav"},
 		{"name":"start1","filename":"snd/start1.wav"},
 		{"name":"win1","filename":"snd/win1.wav"},
 		{"name":"win2","filename":"snd/win2.wav"}
