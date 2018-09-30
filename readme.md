@@ -15,7 +15,8 @@ additional game devices, so in that sense it remains work in progress.
 [Highway](http://bdrgames.nl/lcdgames/highway) :: 
 [Mario Bros](http://bdrgames.nl/lcdgames/mariobros) :: 
 [Sea Ranger](http://bdrgames.nl/lcdgames/searanger/) :: 
-[Tom's Adventure](http://bdrgames.nl/lcdgames/tomsadventure/)
+[Tom's Adventure](http://bdrgames.nl/lcdgames/tomsadventure/) :: 
+[Donkey Kong II](http://bdrgames.nl/lcdgames/donkeykong2/)
 
 What are LCD games
 ------------------
