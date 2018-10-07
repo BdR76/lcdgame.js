@@ -73,6 +73,11 @@ donkeykong2.ClockMode = function(lcdgame) {
 	this.lcdgame = lcdgame;
 	this.demotimer = null;
 	this.democount;
+	
+	this.demospawn;
+	this.demodkjr;
+	this.demokey;
+	this.demochains;
 }
 donkeykong2.ClockMode.prototype = {
 	init: function(){
@@ -81,12 +86,15 @@ donkeykong2.ClockMode.prototype = {
 		this.democount = 0;
 
 		this.demotimer = this.lcdgame.addtimer(this, this.onTimerDemo, 500, false);
-
+		
 		// start demo mode
+		this.demospawn = {"croc1": -1, "spark1": -1, "spark2": -1, "croc2": -1, "bird": -1};
+		this.resetDemo();
 		this.demotimer.start();
 	},
 
 	update: function() {
+
 	},
 	
 	press: function(btn) {
@@ -114,10 +122,141 @@ donkeykong2.ClockMode.prototype = {
 	onTimerDemo: function() {
 		// update clock
 		this.updatecock();
+		
+		// update demo animation
+		this.updateDemo();
 
-		// update fake gameplay
-		this.lcdgame.setShapeByName("gamea", (this.demotimer.counter % 2 == 0));
-		this.lcdgame.setShapeByName("gameb", (this.demotimer.counter % 2 != 0));
+		// hack
+		if (this.lcdgame.shapeVisible("mario") == false) {
+			this.resetDemo();
+		};
+	},
+
+	resetDemo: function() {
+		// reset donkey kong and mario
+		this.lcdgame.setShapeByName("mario", true);
+		this.lcdgame.setShapeByName("dk_1", true);
+
+		this.lcdgame.setShapeByName("chain_1", true);
+		this.lcdgame.setShapeByName("chain_2", true);
+		this.lcdgame.setShapeByName("chain_3", true);
+		this.lcdgame.setShapeByName("chain_4", true);
+
+		// reset variables
+		//this.demodkjr = 0;
+		//this.demokey = 0;
+		//this.demochains = [4, 5, 6, 7];
+	},
+		
+	moveDkjrDemo: function() {
+/*
+		var jump = false;
+
+		// jump to first key 
+		if ( ( (this.demokey == 0) && (this.demodkjr == 2) )	// jump to first key
+			|| ( (this.demokey == 2) && (this.demodkjr == 21) )	// jump to second key
+			) {
+			jump = true;
+		};
+		
+		// jump to first key 
+		if (jump) {
+			
+		} else if (this.jumping) {
+		} else {
+			// moving left or right
+			if () {
+				
+			}
+		}
+		if ( (this.demokey == 0) && (this.demodkjr == 2) )		// jump to first key
+		|| ( (this.demokey == 2) && (this.demodkjr == 21) ) {	// jump to second key
+			jump = true;
+		};
+		
+	
+		this.demodkjr = 0;
+		this.demokey = 0;
+		this.demochains = [4, 5, 6, 7];
+*/		
+	},
+
+	updateDemo: function() {
+		// update moving enemies
+		var t = this.demotimer.counter;
+
+		// move the enemies
+		if (t % 2 == 0) {
+			// from top row birds to middle row birds
+			if (this.lcdgame.sequenceShapeVisible("bird1", -1) == true) {
+				this.lcdgame.sequenceSetFirst("bird2", true);
+			};
+			this.lcdgame.sequenceShift("bird1");
+			this.lcdgame.sequenceShift("bird3");
+			this.lcdgame.sequenceShift("croc1");
+			
+			// top row sparks move slower
+			if (t % 4 == 0) this.lcdgame.sequenceShift("spark2");
+		} else {
+			// from middle row birds to bottom row birds
+			if (this.lcdgame.sequenceShapeVisible("bird2", -1) == true) {
+				this.lcdgame.sequenceSetFirst("bird3", true);
+			};
+	
+			this.lcdgame.sequenceShift("croc2");
+			this.lcdgame.sequenceShift("bird2");
+			this.lcdgame.sequenceShift("spark1");
+		};
+		
+		// NOTE: this is best guess of randomisation of enemies, on the real device there may be a pattern but couldn't find it
+		if (t % 2 == 0) {
+			// count down and spawn enemy
+			this.demospawn.croc1--;
+			this.demospawn.bird--;
+			if (this.demospawn.croc1  == 0) this.lcdgame.sequenceSetFirst("croc1", true);
+			if (this.demospawn.bird   == 0) this.lcdgame.sequenceSetFirst("bird1", true);
+			
+			// reset spawn count down
+			if (this.demospawn.croc1  <= 0) this.demospawn.croc1  = this.lcdgame.randomInteger(2, 8);
+			if (this.demospawn.bird   <= 0) this.demospawn.bird   = this.lcdgame.randomInteger(4, 12);
+			// add new enemies
+			if (t % 4 == 0) {
+				// after blink animation, add spark2 on second position
+				if (this.spark2) {
+					this.spark2 = false;
+					this.lcdgame.sequenceSetPos("spark2", 0, true);
+					this.lcdgame.setShapeByName("spark2_1", false);
+				};
+				// count down and spawn enemy
+				this.demospawn.spark2--;
+				this.spark2 = (this.demospawn.spark2 == 0); // spark blink animation
+
+				// reset spawn count down
+				if (this.demospawn.spark2 <= 0) this.demospawn.spark2 = this.lcdgame.randomInteger(4, 12);
+			};
+		} else {
+			// after blink animation, add spark1 on second position
+			if (this.spark1) {
+				this.spark1 = false;
+				this.lcdgame.sequenceSetPos("spark1", 0, true);
+				this.lcdgame.setShapeByName("spark1_1", false);
+			};
+			// count down and spawn enemy
+			this.demospawn.croc2--;
+			this.demospawn.spark1--;
+			if (this.demospawn.croc2  == 0) this.lcdgame.sequenceSetFirst("croc2", true);
+			this.spark1 = (this.demospawn.spark1 == 0);  // spark blink animation
+
+			// reset spawn count down
+			//if (this.demospawn.croc2  <= 0) this.demospawn.croc2  = this.lcdgame.randomInteger(2, 8);
+			//if (this.demospawn.spark1 <= 0) this.demospawn.spark1 = this.lcdgame.randomInteger(4, 12);
+			
+			// reset spawn count down
+			if (this.demospawn.croc2  <= 0) this.demospawn.croc2  = this.lcdgame.randomInteger(2, 4);
+			if (this.demospawn.spark1 <= 0) this.demospawn.spark1 = this.lcdgame.randomInteger(4, 6);
+		};
+		
+		this.moveDkjrDemo();
 	},
 	
 	updatecock: function() {
@@ -378,7 +517,7 @@ donkeykong2.MainGame.prototype = {
 		};
 
 		// check collisions by moving into enemy
-		if (coll != "") {
+		if ( (move != 0) && (coll != "") ) {
 			var hit = this.lcdgame.shapeVisible(coll);
 			// collision
 			if (hit) {
@@ -396,54 +535,49 @@ donkeykong2.MainGame.prototype = {
 			// jumping
 			if (dir == DIR_JUMP) {
 				this.lcdgame.playSoundEffect("jump");
-				
-				// check jumping collision
-				coll = MoveCollide[this.dkjrpos].collide[0];
-				if (coll != "") {
-					var hit = this.lcdgame.shapeVisible(coll);
-					// collision
-					if (hit) {
-						this.doWait(WAIT_LOSEANIM);
-						return;
-					};
-				};
-			
-				// if jumping position doesn't have a "can move down with dpad" value, then fall down from that position, else jump into rope/vine but don't fall
-				if (MoveCollide[this.dkjrpos].move[1] == 0) {
-					this.jumping = 2;
-
-					// check if jump over enemy
-					var en = MoveCollide[this.dkjrpos].collide[4];
-					this.jumpover = (this.lcdgame.shapeVisible(en) ? en : "");
-
-					// jump at first position to advance key on bottom screen
-					if ( (this.dkjrpos == 2) && (this.keypos == 0) ) {
-						this.jumping = 1; // shorter jump
-						this.doWait(WAIT_MOVEKEY1);
-					};
-
-					// jump at 21th position to advance key on top screen
-					if ( (this.dkjrpos == 21) && (this.keypos == 2) ) {
-						this.jumping = 1; // shorter jump
-						this.doWait(WAIT_MOVEKEY2);
-					};
-					this.lcdgame.setShapeByName("dkjr_hand_1", (this.dkjrpos == 21));
-				};
 			} else {
 				this.lcdgame.playSoundEffect("move");
 			};
+
 			// Exception when DkJr on rope:
 			// When bird moves to position directly next to DkJr -> not collide yet, only collide when bird passes through DkJr
 			// When DkJr moves to position directly next to bird -> then collide immediately (exception in code below)
+			var collLeft  = "";
+			var collRight = "";
 			if ( (this.dkjrpos > 22) && (MoveCollide[this.dkjrpos].move[1] < 0) ) {
 				// can move down, so DkJr is on rope
 				var collLeft  = MoveCollide[this.dkjrpos].collide[2];
 				var collRight = MoveCollide[this.dkjrpos].collide[3];
-				// bird collision
-				if ( (this.lcdgame.shapeVisible(collLeft)) || (this.lcdgame.shapeVisible(collRight)) ) {
-					this.doWait(WAIT_LOSEANIM);
-					return;
-				}
+			};
+
+			// check collision up, for when jumping or moving vertically
+			var collUp = MoveCollide[this.dkjrpos].collide[0];
+			// check any collision
+			if ( (this.lcdgame.shapeVisible(collUp)) || (this.lcdgame.shapeVisible(collLeft))  || (this.lcdgame.shapeVisible(collRight)) ) {
+				this.doWait(WAIT_LOSEANIM);
+				return;
+			};
+			
+			// if jumping position doesn't have a "can move down with dpad" value, then fall down from that position, else jump into rope/vine but don't fall (same as moving)
+			if ( (dir == DIR_JUMP) && (MoveCollide[this.dkjrpos].move[1] == 0) ) {
+				this.jumping = 2;
+
+				// check if jump over enemy
+				var en = MoveCollide[this.dkjrpos].collide[4];
+				this.jumpover = (this.lcdgame.shapeVisible(en) ? en : "");
+
+				// jump at first position to advance key on bottom screen
+				if ( (this.dkjrpos == 2) && (this.keypos == 0) ) {
+					this.jumping = 1; // shorter jump
+					this.doWait(WAIT_MOVEKEY1);
+				};
+
+				// jump at 21th position to advance key on top screen
+				if ( (this.dkjrpos == 21) && (this.keypos == 2) ) {
+					this.jumping = 1; // shorter jump
+					this.doWait(WAIT_MOVEKEY2);
+				};
+				this.lcdgame.setShapeByName("dkjr_hand_1", (this.dkjrpos == 21));
 			};
 		} else {
 			// exception; move up on top position of rope to grab key
@@ -827,8 +961,7 @@ donkeykong2.MainGame.prototype = {
 				
 				// 5000ms Mario+DK re-appear
 				if (t == 50) {
-					//.............
-					this.doWait(WAIT_STARTANIM);
+					this.nextLevel();
 				};
 	
 				break;
@@ -999,7 +1132,7 @@ donkeykong2.MainGame.prototype = {
 				this.spark2 = (this.enemyspawn.spark2 == 0); // spark blink animation
 
 				// reset spawn count down
-				if (this.enemyspawn.spark2 <= 0) this.enemyspawn.spark2 = this.lcdgame.randomInteger(4, 12);
+				if (this.enemyspawn.spark2 <= 0) this.enemyspawn.spark2 = this.lcdgame.randomInteger(4, 6);
 			};
 		} else {
 			// after blink animation, add spark1 on second position
