@@ -3,6 +3,8 @@
 
 var SCORE_HTML = 
 		'<div class="infobox" id="scorebox">' +
+		'  <div id="scoreheader">' +
+		'  </div>' +
 		'  <div id="scorecontent">' +
 		'    One moment...' +
 		'  </div>' +
@@ -35,6 +37,7 @@ LCDGame.HighScores = function (lcdgame, gametitle, gametypes) {
 	// display variables
 	this.gametitle = gametitle;
 	this.gametypes = gametypes;
+	this.gametype = 1;
 
 	// highscore variables
 	this._scorecache = [];
@@ -47,8 +50,7 @@ LCDGame.HighScores.prototype = {
     getGametype: function () {
 		var res = "";
 		if (this.gametypes) {
-			this.lcdgame.gametype-1
-			res = this.gametypes[this.lcdgame.gametype-1];
+			res = this.gametypes[this.gametype-1];
 		};
 		return res;
 	},
@@ -132,6 +134,9 @@ LCDGame.HighScores.prototype = {
 			};
 			var language = navigator.language;
 			var clientguid  = this.getClientGUID();
+
+			// set gametype for higscores
+			this.gametype = typ;
 			
 			// reserved characters in url
 			//var gametitle = gametitle.replace(/\&/g, "%26"); // & -> %26
@@ -216,7 +221,7 @@ LCDGame.HighScores.prototype = {
 	refreshGlobalHS: function () {
 		var url = HS_URL + "geths.php" +
 			"?gamename=" + this.gametitle +  // highscore data
-			"&gametype=" + this.lcdgame.gametype;
+			"&gametype=" + this.gametype;
 
 		var xmlHttp = new XMLHttpRequest();
 		xmlHttp.open("GET", url, true); // true for asynchronous 
@@ -243,6 +248,38 @@ LCDGame.HighScores.prototype = {
 		this.refreshHTML();
 	},
 
+	onFilterButton: function (dv) {
+		var label = dv.currentTarget.innerHTML;
+
+		if (dv.currentTarget.dataset) {
+			var typ = parseInt(dv.currentTarget.dataset.gametype);
+
+			if (this.gametype != typ) {
+				this.gametype = typ;
+				this.refreshGlobalHS();
+			};
+		};
+	},
+		
+	buildHeaderHTML: function () {
+
+		// game name and column headers
+		var str = '<h1 id="scoretitle">' + this.gametitle + '</h1>';
+		
+		for (var i = this.gametypes.length-1; i >= 0; i--) {
+			str = str + '<a class="filter" data-gametype="' + (i + 1) + '" id="filtertype' + i + '">' + this.gametypes[i] + '</a>';
+		};
+
+		// refresh score filter buttons
+		document.getElementById("scoreheader").innerHTML = str;
+		
+		// attach click events to all buttons
+		for (var i = 0; i < this.gametypes.length; i++) {
+			var btn = document.getElementById("filtertype"+i);
+			btn.addEventListener("click", this.onFilterButton.bind(this));
+		};
+	},
+
 	refreshHTML: function () {
 		// build highscore rows
 		var rows = "";
@@ -257,10 +294,7 @@ LCDGame.HighScores.prototype = {
 		};
 
 		// game name and column headers
-		var mod = this.getGametype();
-		mod = (mod == "" ? mod : " (" + mod + ")");
 		var str =
-			"<h1>" + this.gametitle + mod + "</h1>" +
 			"<table>" +
 			"      <tr><td>Rk.</td><td>Name</td><td>Score</td></tr>" +
 			rows +
@@ -268,6 +302,10 @@ LCDGame.HighScores.prototype = {
 			
 		// refresh html content
 		this.lcdgame.scorecontent.innerHTML = str;
+
+		// refresh header html
+		str = this.gametitle + ' (' + this.getGametype() + ')';
+		document.getElementById("scoretitle").innerHTML = str;
     },
 
 	//uuidv4: function () {

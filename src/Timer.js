@@ -51,7 +51,7 @@ LCDGame.Timer.prototype = {
 		
 		// timer tick
 		if (delta >= this.interval) {
-			console.log("LCDGame.Timer<"+varname+">.update() -> delta="+delta+" this.interval="+this.interval+" this.lasttime="+this.lasttime+" this.waitfirst="+this.waitfirst);
+			//console.log("LCDGame.Timer<"+varname+">.update() -> delta="+delta+" this.interval="+this.interval+" this.lasttime="+this.lasttime+" this.waitfirst="+this.waitfirst);
 			//this.lasttime = timestamp;
 			this.lasttime = this.lasttime + this.interval;
 			// game callbacks
@@ -90,5 +90,12 @@ LCDGame.Timer.prototype = {
 	pause: function() {
 		// initialise variables
 		this.enabled = false;
+	},
+
+	// unpause the timer; continue but do not reset the counter
+	unpause: function() {
+		this.lasttime = (this.context.lcdgame.raf.raftime || 0);
+		if (this.waitfirst == false) this.lasttime -= this.interval;
+		this.enabled = true;
 	}
 };

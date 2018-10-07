@@ -345,6 +345,7 @@ LCDGame.Game.prototype = {
 
 		// highscores
 		this.highscores = new LCDGame.HighScores(this, title, gametypes);
+		this.highscores.buildHeaderHTML();
 		this.highscores.loadHighscores(this.gametype);
 		this.highscores.refreshGlobalHS();
 	},
@@ -491,8 +492,7 @@ LCDGame.Game.prototype = {
 		// center position
 		this.resizeCanvas();
 		
-		hideInfobox();
-		hideScorebox();
+		displayInfobox();
 
 		this.raf.start();
 
@@ -583,7 +583,10 @@ LCDGame.Game.prototype = {
 				// if sound is playing then stop it now
 				if (this.gamedata.sounds[idx].audio.paused == false) {
 					this.gamedata.sounds[idx].audio.pause();
-					this.gamedata.sounds[idx].audio.currentTime = 0;
+					// fix for IE11
+					if (!isNaN(this.gamedata.sounds[idx].audio.duration)) {
+						this.gamedata.sounds[idx].audio.currentTime = 0;
+					};
 				};
 				// start playing sound
 				this.gamedata.sounds[idx].audio.play();
