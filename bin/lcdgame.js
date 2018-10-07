@@ -237,6 +237,8 @@ LCDGame.Menu = function (lcdgame, name) {
 
 var SCORE_HTML = 
 		'<div class="infobox" id="scorebox">' +
+		'  <div id="scoreheader">' +
+		'  </div>' +
 		'  <div id="scorecontent">' +
 		'    One moment...' +
 		'  </div>' +
@@ -269,6 +271,7 @@ LCDGame.HighScores = function (lcdgame, gametitle, gametypes) {
 	// display variables
 	this.gametitle = gametitle;
 	this.gametypes = gametypes;
+	this.gametype = 1;
 
 	// highscore variables
 	this._scorecache = [];
@@ -281,8 +284,7 @@ LCDGame.HighScores.prototype = {
     getGametype: function () {
 		var res = "";
 		if (this.gametypes) {
-			this.lcdgame.gametype-1
-			res = this.gametypes[this.lcdgame.gametype-1];
+			res = this.gametypes[this.gametype-1];
 		};
 		return res;
 	},
@@ -366,6 +368,9 @@ LCDGame.HighScores.prototype = {
 			};
 			var language = navigator.language;
 			var clientguid  = this.getClientGUID();
+
+			// set gametype for higscores
+			this.gametype = typ;
 			
 			// reserved characters in url
 			//var gametitle = gametitle.replace(/\&/g, "%26"); // & -> %26
@@ -450,7 +455,7 @@ LCDGame.HighScores.prototype = {
 	refreshGlobalHS: function () {
 		var url = HS_URL + "geths.php" +
 			"?gamename=" + this.gametitle +  // highscore data
-			"&gametype=" + this.lcdgame.gametype;
+			"&gametype=" + this.gametype;
 
 		var xmlHttp = new XMLHttpRequest();
 		xmlHttp.open("GET", url, true); // true for asynchronous 
@@ -477,6 +482,38 @@ LCDGame.HighScores.prototype = {
 		this.refreshHTML();
 	},
 
+	onFilterButton: function (dv) {
+		var label = dv.currentTarget.innerHTML;
+
+		if (dv.currentTarget.dataset) {
+			var typ = parseInt(dv.currentTarget.dataset.gametype);
+
+			if (this.gametype != typ) {
+				this.gametype = typ;
+				this.refreshGlobalHS();
+			};
+		};
+	},
+		
+	buildHeaderHTML: function () {
+
+		// game name and column headers
+		var str = '<h1 id="scoretitle">' + this.gametitle + '</h1>';
+		
+		for (var i = this.gametypes.length-1; i >= 0; i--) {
+			str = str + '<a class="filter" data-gametype="' + (i + 1) + '" id="filtertype' + i + '">' + this.gametypes[i] + '</a>';
+		};
+
+		// refresh score filter buttons
+		document.getElementById("scoreheader").innerHTML = str;
+		
+		// attach click events to all buttons
+		for (var i = 0; i < this.gametypes.length; i++) {
+			var btn = document.getElementById("filtertype"+i);
+			btn.addEventListener("click", this.onFilterButton.bind(this));
+		};
+	},
+
 	refreshHTML: function () {
 		// build highscore rows
 		var rows = "";
@@ -491,10 +528,7 @@ LCDGame.HighScores.prototype = {
 		};
 
 		// game name and column headers
-		var mod = this.getGametype();
-		mod = (mod == "" ? mod : " (" + mod + ")");
 		var str =
-			"<h1>" + this.gametitle + mod + "</h1>" +
 			"<table>" +
 			"      <tr><td>Rk.</td><td>Name</td><td>Score</td></tr>" +
 			rows +
@@ -502,6 +536,10 @@ LCDGame.HighScores.prototype = {
 			
 		// refresh html content
 		this.lcdgame.scorecontent.innerHTML = str;
+
+		// refresh header html
+		str = this.gametitle + ' (' + this.getGametype() + ')';
+		document.getElementById("scoretitle").innerHTML = str;
     },
 
 	//uuidv4: function () {
@@ -1031,6 +1069,7 @@ LCDGame.Game.prototype = {
 
 		// highscores
 		this.highscores = new LCDGame.HighScores(this, title, gametypes);
+		this.highscores.buildHeaderHTML();
 		this.highscores.loadHighscores(this.gametype);
 		this.highscores.refreshGlobalHS();
 	},
@@ -1177,8 +1216,7 @@ LCDGame.Game.prototype = {
 		// center position
 		this.resizeCanvas();
 		
-		hideInfobox();
-		hideScorebox();
+		displayInfobox();
 
 		this.raf.start();
 
@@ -1269,12 +1307,24 @@ LCDGame.Game.prototype = {
 				// if sound is playing then stop it now
 				if (this.gamedata.sounds[idx].audio.paused == false) {
 					this.gamedata.sounds[idx].audio.pause();
-					this.gamedata.sounds[idx].audio.currentTime = 0;
+					// fix for IE11
+					if (!isNaN(this.gamedata.sounds[idx].audio.duration)) {
+						this.gamedata.sounds[idx].audio.currentTime = 0;
+					};
 				};
 				// start playing sound
 				this.gamedata.sounds[idx].audio.play();
 			};
 		};
+	},
+
+	// -------------------------------------
+	// random integer
+	// -------------------------------------
+	randomInteger: function(min, max) {
+		max = max - min + 1;
+		var r = Math.floor(Math.random() * max) + min;
+		return r;
 	},
 
 	// -------------------------------------
@@ -1707,21 +1757,21 @@ LCDGame.Game.prototype = {
 
 		evt.preventDefault();
 
-        //  evt.changedTouches is changed touches in this event, not all touches at this moment
-        for (var i = 0; i < event.changedTouches.length; i++)
-        {
+		//  evt.changedTouches is changed touches in this event, not all touches at this moment
+		for (var i = 0; i < event.changedTouches.length; i++)
+		{
 			this.onmousedown(event.changedTouches[i]);
-        }
+		}
 	},
 	
 	ontouchend: function(evt) {
 		evt.preventDefault();
 
-        //  evt.changedTouches is changed touches in this event, not all touches at this moment
-        for (var i = 0; i < evt.changedTouches.length; i++)
-        {
+		//  evt.changedTouches is changed touches in this event, not all touches at this moment
+		for (var i = 0; i < evt.changedTouches.length; i++)
+		{
 			this.onmouseup(evt.changedTouches[i]);
-        }
+		}
 	},
 
 	onmousedown: function(evt) {
@@ -2016,7 +2066,7 @@ LCDGame.Timer.prototype = {
 		
 		// timer tick
 		if (delta >= this.interval) {
-			console.log("LCDGame.Timer<"+varname+">.update() -> delta="+delta+" this.interval="+this.interval+" this.lasttime="+this.lasttime+" this.waitfirst="+this.waitfirst);
+			//console.log("LCDGame.Timer<"+varname+">.update() -> delta="+delta+" this.interval="+this.interval+" this.lasttime="+this.lasttime+" this.waitfirst="+this.waitfirst);
 			//this.lasttime = timestamp;
 			this.lasttime = this.lasttime + this.interval;
 			// game callbacks
@@ -2055,5 +2105,12 @@ LCDGame.Timer.prototype = {
 	pause: function() {
 		// initialise variables
 		this.enabled = false;
+	},
+
+	// unpause the timer; continue but do not reset the counter
+	unpause: function() {
+		this.lasttime = (this.context.lcdgame.raf.raftime || 0);
+		if (this.waitfirst == false) this.lasttime -= this.interval;
+		this.enabled = true;
 	}
 };
