@@ -3,7 +3,7 @@
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
-var LCDGAME_VERSION = "0.3.2";
+var LCDGAME_VERSION = "0.3.3";
 
 // namespace
 var LCDGame = LCDGame || {
@@ -87,7 +87,8 @@ LCDGame.State.prototype.constructor = LCDGame.State;
 // -------------------------------------
 LCDGame.StateManager = function (lcdgame) {
     this.lcdgame = lcdgame;
-    this._currentState;
+    this._currentState = "";
+    this._pendingState = "";
 	this.states = {}; // hold all states
 };
 
@@ -97,7 +98,7 @@ LCDGame.StateManager.prototype = {
 		//state.game = this.game;
         this.states[key] = new state(this.lcdgame);
 
-		this._currentState = key;
+		this._pendingState = key;
 	
         return state;
     },
@@ -109,14 +110,23 @@ LCDGame.StateManager.prototype = {
 		if (this._currentState && (this._currentState != key) ) {
 			this.states[this._currentState].destroy;
 		};
-		this._currentState = key;
-		this.states[this._currentState].init();
+		this._pendingState = key;
+		//this._currentState = key;
+		//this.states[this._currentState].init();
     },
 
     currentState: function () {
 
 		if (this._currentState) {
 			return this.states[this._currentState];
+		};
+    },
+
+    checkSwitch: function () {
+		// switch to next state
+		if (this._currentState != this._pendingState) {
+			this._currentState = this._pendingState;
+			this.states[this._currentState].init();
 		};
     }
 
@@ -178,6 +188,9 @@ LCDGame.AnimationFrame.prototype = {
 	},
 	
     updateAnimFrame: function (rafTime) {
+		// check if switch to pending new state
+		this.lcdgame.state.checkSwitch();
+
 		// floor the rafTime to make it equivalent to the Date.now() provided by updateSetTimeout (just below)
 		this.raftime = Math.floor(rafTime);
 		this.lcdgame.updateloop(this.raftime);
@@ -186,6 +199,9 @@ LCDGame.AnimationFrame.prototype = {
 	},
 	
     updateSetTimeout: function () {
+		// check if switch to pending new state
+		this.lcdgame.state.checkSwitch();
+
 		this.raftime = Date.now();
 		this.lcdgame.updateloop(this.raftime);
 
@@ -483,7 +499,6 @@ LCDGame.HighScores.prototype = {
 	},
 
 	onFilterButton: function (dv) {
-		var label = dv.currentTarget.innerHTML;
 
 		if (dv.currentTarget.dataset) {
 			var typ = parseInt(dv.currentTarget.dataset.gametype);
@@ -1375,7 +1390,10 @@ LCDGame.Game.prototype = {
 		return -1;
 	},
 
-	sequenceClear: function(name) {
+	sequenceResetAll: function(name, value) {
+		// value position is optional, default false
+		if (typeof value === "undefined") value = false;
+
 		// get sequence index of name
 		var seqidx = this.sequenceIndexByName(name);
 
@@ -1384,10 +1402,15 @@ LCDGame.Game.prototype = {
 			// get shape index in this sequence
 			var shape = this.gamedata.sequences[seqidx].ids[i];
 			// clear all shapes in sequence
-			this.gamedata.frames[shape].value = false;
+			this.gamedata.frames[shape].value = value;
 		};
 		// refresh display
 		this._refresh = true;
+	},
+
+	sequenceClear: function(name) {
+		// reset sequence to false
+		this.sequenceResetAll(name);
 	},
 
 	sequenceShift: function(name, max) {
@@ -1402,10 +1425,15 @@ LCDGame.Game.prototype = {
 
 		// shift shape values one place DOWN
 		var i;
+		var ret = false;
 		for (i = max-1; i > 0; i--) {
 			// get shape indexes of adjacent shapes in this sequence
 			var shape1 = this.gamedata.sequences[seqidx].ids[i-1];
 			var shape2 = this.gamedata.sequences[seqidx].ids[i];
+			
+			// return value
+			if (i == (max-1)) ret = this.gamedata.frames[shape2].value;
+
 			// shift shape values DOWN one place in sequence
 			this.gamedata.frames[shape2].value = this.gamedata.frames[shape1].value;
 		};
@@ -1415,6 +1443,9 @@ LCDGame.Game.prototype = {
 
 		// refresh display
 		this._refresh = true;
+		
+		// return value, was the last value that was "shifted-out" true or false
+		return ret;
 	},
 
 	sequenceShiftReverse: function(name, min) {
