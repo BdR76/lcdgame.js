@@ -16,7 +16,8 @@ additional game devices, so in that sense it remains work in progress.
 [Mario Bros](http://bdrgames.nl/lcdgames/mariobros) :: 
 [Sea Ranger](http://bdrgames.nl/lcdgames/searanger/) :: 
 [Tom's Adventure](http://bdrgames.nl/lcdgames/tomsadventure/) :: 
-[Donkey Kong II](http://bdrgames.nl/lcdgames/donkeykong2/)
+[Donkey Kong II](http://bdrgames.nl/lcdgames/donkeykong2/) :: 
+[Jungle Kong](http://bdrgames.nl/lcdgames/junglekong/)
 
 What are LCD games
 ------------------
@@ -95,6 +96,7 @@ artwork, and not just the screen.
 
 History
 -------
+08-oct-2018 v0.3.2 more games and better browser compatibility
 01-jul-2018 v0.3.1 menu, infobox, online highscores   
 23-jun-2018 v0.3 added statemanager, preliminary touch and scale   
 27-apr-2017 v0.2 Mario bros and Sea Ranger playable, better compatibility, utilities and tools   
