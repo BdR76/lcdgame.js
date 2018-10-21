@@ -96,7 +96,7 @@ artwork, and not just the screen.
 
 History
 -------
-08-oct-2018 v0.3.2 more games and better browser compatibility
+08-oct-2018 v0.3.2 more games and better browser compatibility   
 01-jul-2018 v0.3.1 menu, infobox, online highscores   
 23-jun-2018 v0.3 added statemanager, preliminary touch and scale   
 27-apr-2017 v0.2 Mario bros and Sea Ranger playable, better compatibility, utilities and tools   
