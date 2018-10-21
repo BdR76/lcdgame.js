@@ -1,0 +1,22 @@
+{
+	"gameinfo": {
+		"device": {
+			"title": "Jungle Kong",
+			"model": "",
+			"manufacturer": "Cresta",
+			"releasedate": "1982",
+			"type": "LCD"
+		},
+		"simulation": {
+			"program": "Bas de Reuver",
+			"photoedit": "Bas de Reuver",
+			"deviceprovided": "Bas de Reuver"
+		},
+		"gametypes": [
+			"game A", "game B"
+		],
+		"instructions": {
+			"en": "Move the jungle hunter, jump over barrels and avoid the birds. Climb up the vines to the highest platform, then\npress [LEFT] to axe the 3 bridge parts to defeat the gorilla.\n\nStart the game by pressing [Mode],\nthen [Left] or [Right] to select Game A or Game B,\nthen press [Start] to start the game. You can use the keyboard cursors to move and up to jump."
+		}
+	}
+}

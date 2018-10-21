@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>Jungle Kong LCD game</title>
+		<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+	</head>
+	<link rel="stylesheet" type="text/css" href="../../css/lcdstyle.css">
+	<script type="text/javascript" src="../../bin/lcdgame.js"></script>
+	<script type="text/javascript" src="js/junglekong.js"></script>
+
+<body>
+	<script>
+		(function() {
+			// initialize the framework
+			var game = new LCDGame.Game('js/junglekong.json');
+
+			// add game states
+			game.state.add('clock', junglekong.ClockMode);
+			game.state.add('select', junglekong.SelectMode);
+			game.state.add('maingame', junglekong.MainGame);
+
+			// start the clock state
+			game.state.start('clock');
+	
+		})();
+	</script>
+</body>
+</html>
