@@ -249,7 +249,6 @@ LCDGame.HighScores.prototype = {
 	},
 
 	onFilterButton: function (dv) {
-		var label = dv.currentTarget.innerHTML;
 
 		if (dv.currentTarget.dataset) {
 			var typ = parseInt(dv.currentTarget.dataset.gametype);

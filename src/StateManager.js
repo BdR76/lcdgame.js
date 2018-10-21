@@ -6,7 +6,8 @@
 // -------------------------------------
 LCDGame.StateManager = function (lcdgame) {
     this.lcdgame = lcdgame;
-    this._currentState;
+    this._currentState = "";
+    this._pendingState = "";
 	this.states = {}; // hold all states
 };
 
@@ -16,7 +17,7 @@ LCDGame.StateManager.prototype = {
 		//state.game = this.game;
         this.states[key] = new state(this.lcdgame);
 
-		this._currentState = key;
+		this._pendingState = key;
 	
         return state;
     },
@@ -28,14 +29,23 @@ LCDGame.StateManager.prototype = {
 		if (this._currentState && (this._currentState != key) ) {
 			this.states[this._currentState].destroy;
 		};
-		this._currentState = key;
-		this.states[this._currentState].init();
+		this._pendingState = key;
+		//this._currentState = key;
+		//this.states[this._currentState].init();
     },
 
     currentState: function () {
 
 		if (this._currentState) {
 			return this.states[this._currentState];
+		};
+    },
+
+    checkSwitch: function () {
+		// switch to next state
+		if (this._currentState != this._pendingState) {
+			this._currentState = this._pendingState;
+			this.states[this._currentState].init();
 		};
     }
 

@@ -55,6 +55,9 @@ LCDGame.AnimationFrame.prototype = {
 	},
 	
     updateAnimFrame: function (rafTime) {
+		// check if switch to pending new state
+		this.lcdgame.state.checkSwitch();
+
 		// floor the rafTime to make it equivalent to the Date.now() provided by updateSetTimeout (just below)
 		this.raftime = Math.floor(rafTime);
 		this.lcdgame.updateloop(this.raftime);
@@ -63,6 +66,9 @@ LCDGame.AnimationFrame.prototype = {
 	},
 	
     updateSetTimeout: function () {
+		// check if switch to pending new state
+		this.lcdgame.state.checkSwitch();
+
 		this.raftime = Date.now();
 		this.lcdgame.updateloop(this.raftime);
 
