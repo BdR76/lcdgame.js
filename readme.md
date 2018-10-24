@@ -12,12 +12,12 @@ additional game devices, so in that sense it remains work in progress.
 
 [play the LCD games here](http://bdrgames.nl/lcdgames/)  
 
-[Highway](http://bdrgames.nl/lcdgames/highway) :: 
-[Mario Bros](http://bdrgames.nl/lcdgames/mariobros) :: 
-[Sea Ranger](http://bdrgames.nl/lcdgames/searanger/) :: 
-[Tom's Adventure](http://bdrgames.nl/lcdgames/tomsadventure/) :: 
-[Donkey Kong II](http://bdrgames.nl/lcdgames/donkeykong2/) :: 
-[Jungle Kong](http://bdrgames.nl/lcdgames/junglekong/)
+[Highway](http://bdrgames.nl/lcdgames/games/highway) :: 
+[Mario Bros](http://bdrgames.nl/lcdgames/games/mariobros) :: 
+[Sea Ranger](http://bdrgames.nl/lcdgames/games/searanger/) :: 
+[Tom's Adventure](http://bdrgames.nl/lcdgames/games/tomsadventure/) :: 
+[Donkey Kong II](http://bdrgames.nl/lcdgames/games/donkeykong2/) :: 
+[Jungle Kong](http://bdrgames.nl/lcdgames/games/junglekong/)
 
 What are LCD games
 ------------------
