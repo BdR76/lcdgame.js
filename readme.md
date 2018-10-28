@@ -17,7 +17,8 @@ additional game devices, so in that sense it remains work in progress.
 [Sea Ranger](http://bdrgames.nl/lcdgames/games/searanger/) :: 
 [Tom's Adventure](http://bdrgames.nl/lcdgames/games/tomsadventure/) :: 
 [Donkey Kong II](http://bdrgames.nl/lcdgames/games/donkeykong2/) :: 
-[Jungle Kong](http://bdrgames.nl/lcdgames/games/junglekong/)
+[Jungle Kong](http://bdrgames.nl/lcdgames/games/junglekong/) :: 
+[Eagle n Chicken](http://bdrgames.nl/lcdgames/games/eaglenchicken/)
 
 What are LCD games
 ------------------

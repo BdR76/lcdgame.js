@@ -1,0 +1,22 @@
+{
+	"gameinfo": {
+		"device": {
+			"title": "Eagle n Chicken",
+			"model": "TC20-U02",
+			"manufacturer": "Commodoor",
+			"releasedate": "198?",
+			"type": "LCD"
+		},
+		"simulation": {
+			"program": "Bas de Reuver",
+			"photoedit": "Bas de Reuver",
+			"deviceprovided": "Bas de Reuver"
+		},
+		"gametypes": [
+			"game 1", "game 2"
+		],
+		"instructions": {
+			"en": "Defend the chicks on the ground from the eagles above. Move left and right to block the eagles.\n\nStart the game by pressing [Game 1/Game 2]\nto select G1 or G2 mode, then [Start] to start the game.\nYou can also press keyboard cursors left and right to move."
+		}
+	}
+}
