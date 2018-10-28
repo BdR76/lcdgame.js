@@ -13,6 +13,18 @@ LCDGame.Game = function (configfile, metadatafile) {
 	this.gametype = 0;
 	this.level = 0;
 	this.soundmute = false;
+	
+	// site lock, enable for no hotlinking
+/*
+	var domain = document.domain;
+	siteLock = false;
+	var siteLock = (domain.indexOf("bdrgames.nl") == -1);
+	if (siteLock) {
+		document.write('To play LCD game simulations, please visit: <a href="http://www.bdrgames.nl/lcdgames/">http://www.bdrgames.nl/lcdgames/</a>');
+		console.log('%c To play LCD game simulations, please visit: http://www.bdrgames.nl/lcdgames/', 'background: #000; color: #0f0'); // cool hax0r colors ;)
+		return;
+	};
+*/
 
 	// initialise object
 	this.countimages = 0;
