@@ -8,6 +8,8 @@ var SCORE_HTML =
 		'  <div id="scorecontent">' +
 		'    One moment...' +
 		'  </div>' +
+		'  <a class="mybutton btnnext" id="btnprev" data-offset="-10">&lt;&lt;</a>' +
+		'  <a class="mybutton btnnext" id="btnnext" data-offset="+10">&gt;&gt;</a>' +
 		'  <a class="mybutton btnpop" onclick="hideScorebox();">Ok</a>' +
 		'</div>';
 		
@@ -38,6 +40,7 @@ LCDGame.HighScores = function (lcdgame, gametitle, gametypes) {
 	this.gametitle = gametitle;
 	this.gametypes = gametypes;
 	this.gametype = 1;
+	this.offset = 0;
 
 	// highscore variables
 	this._scorecache = [];
@@ -46,6 +49,19 @@ LCDGame.HighScores = function (lcdgame, gametitle, gametypes) {
 };
 
 LCDGame.HighScores.prototype = {
+
+    init: function (tp) {
+		// hook event to prev next buttons
+		var btnprev = document.getElementById("btnprev");
+		var btnnext = document.getElementById("btnnext");
+		btnprev.addEventListener("click", this.onPrevNextButton.bind(this));
+		btnnext.addEventListener("click", this.onPrevNextButton.bind(this));
+
+		// init first highscores
+		this.buildHeaderHTML();
+		this.loadHighscores(tp);
+		this.refreshGlobalHS();
+	},
 
     getGametype: function () {
 		var res = "";
@@ -76,10 +92,6 @@ LCDGame.HighScores.prototype = {
 			this._scorecache = [];
 		};
 	},
-
-    save: function () {
-		window.localStorage.setItem(this._namecache, JSON.stringify(this._scorecache));
-    },
 	
     scoreIndex: function (sc, typ) {
 		// refresh cache if needed
@@ -112,8 +124,10 @@ LCDGame.HighScores.prototype = {
 				this._scorecache.splice(s);
 			};
 
-			this.save();
+			// save
+			window.localStorage.setItem(this._namecache, JSON.stringify(this._scorecache));
 		};
+		window.localStorage.setItem("lcdgame_highscore_name", plr);
     },
 
     saveOnline: function (plr, sc, lvl, typ) {
@@ -205,7 +219,8 @@ LCDGame.HighScores.prototype = {
 		
 		if (sc > 0) {
 			// input name
-			var plr = prompt("New highscore, enter your name and press enter to submit or press cancel.", "");
+			var lastname = (window.localStorage.getItem("lcdgame_highscore_name") || "");
+			var plr = prompt("New highscore, enter your name and press enter to submit or press cancel.", lastname);
 
 			// not null (cancel) or empty string
 			if (plr != null) {
@@ -221,7 +236,8 @@ LCDGame.HighScores.prototype = {
 	refreshGlobalHS: function () {
 		var url = HS_URL + "geths.php" +
 			"?gamename=" + this.gametitle +  // highscore data
-			"&gametype=" + this.gametype;
+			"&gametype=" + this.gametype +
+			"&offset=" + this.offset;
 
 		var xmlHttp = new XMLHttpRequest();
 		xmlHttp.open("GET", url, true); // true for asynchronous 
@@ -255,11 +271,32 @@ LCDGame.HighScores.prototype = {
 
 			if (this.gametype != typ) {
 				this.gametype = typ;
+				this.offset = 0;
 				this.refreshGlobalHS();
 			};
 		};
 	},
-		
+
+	onPrevNextButton: function (dv) {
+		if (dv.currentTarget.dataset) {
+			// calculate new offset value
+			var move = parseInt(dv.currentTarget.dataset.offset);
+			var ofs = this.offset + move;
+
+			// prev on first page
+			if (ofs < 0) ofs = 0;
+			
+			// next button, but already on last page
+			if ( (move > 0) && (this._scorecache.length < 10) ) ofs = this.offset;
+
+			// only refresh when offset changed
+			if (this.offset != ofs) {
+				this.offset = ofs;
+				this.refreshGlobalHS();
+			};
+		};
+	},
+
 	buildHeaderHTML: function () {
 
 		// game name and column headers
@@ -286,10 +323,11 @@ LCDGame.HighScores.prototype = {
 			var rec = this._scorecache[i];
 			
 			if (typeof rec === "undefined") {
-				rec = {"player":".....", "score":0, "level":1};
+				var rk = this.offset + (i+1);
+				rec = {"rank":rk, "player":".....", "score":0, "level":1};
 			};
 			
-			rows = rows + "      <tr><td>" + (i+1) + ".</td><td>" + rec.player + "</td><td>" + rec.score + "</td></tr>";
+			rows = rows + "      <tr><td>" + rec.rank + ".</td><td>" + rec.player + "</td><td>" + rec.score + "</td></tr>";
 		};
 
 		// game name and column headers

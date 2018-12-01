@@ -936,7 +936,8 @@
 			var beats =   parseFloat(document.getElementById("txtbeats").value);
 			var beatsec = parseFloat(document.getElementById("txtbeatsec").value);
 			var bpm =     parseFloat(document.getElementById("txtbpm").value);
-			var msec =    parseFloat(document.getElementById("txtmsec").value);
+			var strms  =  document.getElementById("txtmsec").value;
+			var msec =    parseFloat(strms);
 
 			switch(btn.id) {
 				case "btnbeatsec":
@@ -951,6 +952,13 @@
 					beatsec = (60 / bpm);
 					break;
 				case "btnmsec":
+					// optionally as format msecs/beats, so for example " 5220/9" which is 580 msec/beat
+					var i = strms.indexOf("/");
+					if (i > 0) {
+						var s = strms.substring(0, i); // milliseconds
+						var b = strms.substring(i+1, strms.length) // beats/ticks
+						msec = s / b;
+					};
 					// milliseconds, calculate other values
 					bpm =     (1000 / msec) * 60;
 					beats =   1;
@@ -998,7 +1006,7 @@
 		y: <input id="txtshapeyoffset" size="3" onchange="propertyonchange(this)"><br/>
 		<hr>
 		Beats per minute helper tool<br/>
-		description <input id="txtbpmdesc" size="15" value="Game A level 1"><br/>
+		description <input id="txtbpmdesc" size="25" value="Game A level 1"><br/>
 		<input id="txtbeats" size="3" value="4">beats per <input id="txtbeatsec" size="3" value="2.5">sec.<input id="btnbeatsec" type="button" value="=" onclick="javascript:calculateBPM(this);"><br/>
 		BPM <input id="txtbpm" size="3"><input id="btnbpm" type="button" value="=" onclick="javascript:calculateBPM(this);"><br/>
 		msec <input id="txtmsec" size="3"><input id="btnmsec" type="button" value="=" onclick="javascript:calculateBPM(this);"><br/>

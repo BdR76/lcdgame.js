@@ -7,41 +7,41 @@ table{
 }
 
 tr:nth-child(1) {
-    font-weight: bold;
+	font-weight: bold;
 	border-bottom:1pt solid black;
 }
 
 td:nth-child(1) {
-    width: 10%;
+	width: 10%;
 }
 td:nth-child(2) {
-    width: 50%;
+	width: 50%;
 }
 td:nth-child(3) {
-    width: 40%;
-    text-align: right;
+	width: 40%;
+	text-align: right;
 }
 
 btn {
-    display: inline-block;
-    margin: 0 .1em;
-    padding: .1em .6em;
-    font-family: Arial,"Helvetica Neue",Helvetica,sans-serif;
-    line-height: 1.4;
-    color: #242729;
-    text-shadow: 0 1px 0 #FFF;
-    background-color: #e1e3e5;
-    border: 1px solid #adb3b9;
-    border-radius: 3px;
-    box-shadow: 0 1px 0 rgba(12,13,14,0.2), 0 0 0 2px #FFF inset;
-    white-space: nowrap;
+	display: inline-block;
+	margin: 0 .1em;
+	padding: .1em .6em;
+	font-family: Arial,"Helvetica Neue",Helvetica,sans-serif;
+	line-height: 1.4;
+	color: #242729;
+	text-shadow: 0 1px 0 #FFF;
+	background-color: #e1e3e5;
+	border: 1px solid #adb3b9;
+	border-radius: 3px;
+	box-shadow: 0 1px 0 rgba(12,13,14,0.2), 0 0 0 2px #FFF inset;
+	white-space: nowrap;
 }
 
 .container {
 }
 
 .gamecvs {
-    position: absolute;
+	position: absolute;
 }
 
 .infobox{
@@ -96,17 +96,23 @@ btn {
 }
 
 .btnmenu {
-  position: relative;
+	position: relative;
 }
 
 .btnpop {
-  position: relative;
-  float: right;
+	display: inline-block;
+	margin:0 auto;
+}
+
+.btnnext {
+	width: 40px;
+	position: relative;
+	float: left;
 }
 
 .btnselect {
-  position: relative;
-  float: right;
+	position: relative;
+	float: right;
 	width: 80px;
-  line-height: 30px;
+	line-height: 30px;
 }

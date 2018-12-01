@@ -72,12 +72,12 @@ still missing features (~~strikethrough~~ is done).
 * ~~add menu overlay in separate dom-elements~~
 * ~~add high scores list (shared online)~~
 * ~~responsive resizing/scaling and display centered~~
-* filter options for high score list
+* ~~filter options for high score list~~
 * sound mp3/wav based on browsertype
 * Shapes editor, allow shapes change position, mouse drag/move
 * Shapes editor, support/preview/edit types (normal shape, digit, digit position, button)
 * Shapes editor, copy shape (for digit positions)
-* add key hints (separate dom-elements?)
+* add key hints and/or tutorial elements (separate dom-elements?)
 * allow button/keys re-mapping
 * and of course, add more games ;)
 
@@ -88,16 +88,17 @@ typically use a wide range of 4-bit microprocessors (MCU) of which there isn't
 much information. Also, the ROMs in these devices are usually embedded in the
 MCU, meaning they need to be
 ["decapped"](https://arstechnica.com/gaming/2017/07/mame-devs-are-cracking-open-arcade-chips-to-get-around-drm/)
-to extract the data. This involves taking a microscope image and visually
-decoding the zeros and ones. Although feasible, this process is very expensive,
-especially considering the sheer amount and variety of different LCD games.
-Therefor it is more practical to create simulations instead of emulators.
-Also, a simulator can recreate the entire device, including buttons and
-artwork, and not just the screen.
+to extract the code and data. This involves taking a microscope image and
+visually decoding the zeros and ones. Although feasible, this process is very
+time consuming and expensive, especially considering the sheer amount and
+variety of different LCD games. Therefor it is more practical to create
+simulations instead of emulators. Also, a simulator can recreate the entire
+device, including buttons and artwork, and not just the screen.
 
 History
 -------
-08-oct-2018 v0.3.2 more games and better browser compatibility   
+02-dec-2018 v0.3.3 added Jungle Kong, Eagle n Chicken, added highscore filter options   
+08-oct-2018 v0.3.2 added Donkey Kong II, Tom's Adventure, better browser compatibility   
 01-jul-2018 v0.3.1 menu, infobox, online highscores   
 23-jun-2018 v0.3 added statemanager, preliminary touch and scale   
 27-apr-2017 v0.2 Mario bros and Sea Ranger playable, better compatibility, utilities and tools   
