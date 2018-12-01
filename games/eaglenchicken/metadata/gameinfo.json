@@ -16,7 +16,7 @@
 			"game 1", "game 2"
 		],
 		"instructions": {
-			"en": "Defend the chicks on the ground from the eagles above. Move left and right to block the eagles.\n\nStart the game by pressing [Game 1/Game 2]\nto select G1 or G2 mode, then [Start] to start the game.\nYou can also press keyboard cursors left and right to move."
+			"en": "Defend the chicks on the ground from the eagles above. Move left and right to block the eagles.\n\nStart the game by pressing [Game 1/Game 2]\nto select G1 or G2 mode, then [Start] to start the game.\nYou can also press keyboard cursors left and right to move.\n\n(Note: sound is missing in this game simulation)"
 		}
 	}
 }

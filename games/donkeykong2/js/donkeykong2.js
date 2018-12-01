@@ -82,7 +82,7 @@ donkeykong2.ClockMode = function(lcdgame) {
 donkeykong2.ClockMode.prototype = {
 	init: function(){
 		// startup clear all
-		this.lcdgame.shapesDisplayAll(true);
+		this.lcdgame.shapesDisplayAll(false);
 		this.democount = 0;
 
 		this.demotimer = this.lcdgame.addtimer(this, this.onTimerDemo, 500, false);
@@ -121,7 +121,7 @@ donkeykong2.ClockMode.prototype = {
 
 	onTimerDemo: function() {
 		// update clock
-		this.updatecock();
+		this.updateclock();
 		
 		// update demo animation
 		this.updateDemo();
@@ -259,7 +259,7 @@ donkeykong2.ClockMode.prototype = {
 		this.moveDkjrDemo();
 	},
 	
-	updatecock: function() {
+	updateclock: function() {
 		// get time as 12h clock with PM
 		var datenow = new Date();
 		//var str = datenow.toLocaleTimeString();
