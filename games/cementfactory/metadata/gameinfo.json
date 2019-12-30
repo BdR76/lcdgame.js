@@ -1,0 +1,24 @@
+{
+	"gameinfo": {
+		"device": {
+			"title": "Mario's Cement Factory",
+			"model": "ML-102",
+			"manufacturer": "Nintendo",
+			"releasedate": "1983",
+			"type": "LCD"
+		},
+		"simulation": {
+			"program": "Bas de Reuver",
+			"photoedit": "Bas de Reuver",
+			"deviceprovided": "Andrew Hatelt"
+		},
+		"gametypes": [
+			"game A", "game B"
+		],
+		"instructions": {
+			"en": "Move Mario around the factory and pull levers to open the valves. Jump on the lifts to move between the 4 hoppers. Don't fall off the lift and don't let the cement overflow.\n\nStart the game by pressing [Game A] or [Game B].\nUse [control] buttons to move left and right and [Open] to pull the levers.\nYou can use the keyboard cursors to move and [Z] to open."
+		}
+	}
+}
+
+
