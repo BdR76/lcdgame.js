@@ -244,7 +244,8 @@ cementfactory.MainGame.prototype = {
 		this.warntimer = this.lcdgame.addtimer(this, this.onTimerWarning, 250, false);
 		
 		this.waittimer = this.lcdgame.addtimer(this, this.onTimerWait, 500, true); // fall animation, spill over animation
-		this.chancetimer = this.lcdgame.addtimer(this, this.onTimerChance, 250, true);
+		this.bonustimer = this.lcdgame.addtimer(this, this.onTimerBonus, 250, true);
+		this.chancetimer = this.lcdgame.addtimer(this, this.onTimerChance, 500);
 		
 		// start new game
 		this.newGame();
@@ -537,29 +538,20 @@ cementfactory.MainGame.prototype = {
 		// update score
 		this.lcdgame.score = this.lcdgame.score + (this.chancetime ? pts*2 : pts);
 		// display score
-		if (!this.chancetime) {
-			this.refreshScore(this.lcdgame.score);
-		};
+		this.refreshScore(this.lcdgame.score);
 
 		// pass 300 for bonus
 		if ( (this.lcdgame.score-pts < 300) && (this.lcdgame.score >= 300) ) {
-			if (this.misses == 0) {
-				// reach 300 points without any misses
-				this.chancetime = true; // score doubler
-			} else {
-				// reach 300 points with misses; add lives
-				this.misses = 0;
-			};
-			// score >300 can occur either during game or during cutscene
+
+			// score >300 occurs during normal game
 			this.waittimer.pause();
 			this.lifttimer.pause();
 			this.bucktimer.pause();
 			this.warntimer.pause();
-			
+
 			// set this.waitmode to STATE_NONE, so it diables button input
-			if (this.waitmode == STATE_PLAYING) this.waitmode = STATE_NONE;
-		
-			this.chancetimer.start();
+			this.waitmode = STATE_NONE;
+			this.bonustimer.start(9);
 		}
 	},
 
@@ -570,6 +562,13 @@ cementfactory.MainGame.prototype = {
 		this.bucktimer.pause();
 		this.warntimer.pause();
 		this.waittimer.pause();
+		
+		// cancel chance time
+		if (this.chancetime) {
+			this.chancetimer.pause();
+			this.chancetime = false;
+			this.scorePoints(0);
+		};
 
 		// initiate new game state
 		switch(code) {
@@ -577,9 +576,6 @@ cementfactory.MainGame.prototype = {
 				this.waittimer.interval = 500;
 				// add a miss
 				this.misses++;
-				// stop chance time
-				this.chancetime = false;
-				this.scorePoints(0);
 
 				// sound effect
 				this.lcdgame.playSoundEffect("miss_start");
@@ -594,8 +590,6 @@ cementfactory.MainGame.prototype = {
 				this.waittimer.interval = 500;
 				// add a miss
 				this.misses++;
-				// stop chance time
-				this.chancetime = false;
 
 				// display overflow
 				this.lcdgame.sequenceSetPos('overflow1', 0, (this.miss_overflow == 1)); // top left
@@ -733,30 +727,40 @@ cementfactory.MainGame.prototype = {
 		this.lcdgame.sequenceClear("cement_hopper2");
 	},
 
-	onTimerChance: function() {
-
-		// blink lives on/off
-		var b = (this.chancetimer.counter % 2 == 0);
-		this.lcdgame.setShapeByName("miss_1", (b || this.chancetime)); // when no misses, only dkj_lives_2 is blinking
-		this.lcdgame.setShapeByName("miss_2", b);
-		this.lcdgame.setShapeByName("miss_3", b);
+	onTimerBonus: function(tmr) {
+	
+		// short pause when getting 300 points bonus
+		// blink misses (if any), beep and then continue
+		var m = (tmr.counter % 2 == 0 ? this.misses : 0);
+		this.refreshMiss(m);
 		
 		// play sound
-		if (!b) this.lcdgame.playSoundEffect("beep1");
+		this.lcdgame.playSoundEffect("bonus");
 
-		// continue regular game or cut scene
-		if (this.chancetimer.counter > 5) {
-			this.chancetimer.pause();
-		
-			// continue game or cutscene
-			if (this.waitmode == STATE_NONE) {
-				this.waitmode = STATE_PLAYING;
-				this.gametimer.unpause();
-			} else {
-				this.waittimer.unpause();
+		// on last blink, reset counter
+		if (tmr.counter == tmr.max) {
+			// continue game
+			tmr.pause();
+
+			// if no misses then change time (score doubler)
+			if (this.misses == 0) {
+				this.chancetime = true;
+				this.chancetimer.start();
 			};
+
+			// continue game
+			this.waitmode = STATE_PLAYING;
+			this.refreshGameSpeed();
+			this.checkFullWarning();		
 		};
 	},
+	
+	onTimerChance: function(tmr) {
+		// blink score while playing
+		var s = (tmr.counter % 2 == 0 ? this.lcdgame.score : "");
+		this.refreshScore(s);
+	},
+
 		
 	onTimerLift: function() {
 		// update lifts

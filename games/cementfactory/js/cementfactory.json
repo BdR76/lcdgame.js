@@ -169,7 +169,8 @@
 		{"name":"move","filename":"snd/move.wav"},
 		{"name":"lever","filename":"snd/lever.wav"},
 		{"name":"miss_start","filename":"snd/miss_start.wav"},
-		{"name":"miss_cont","filename":"snd/miss_cont.wav"}
+		{"name":"miss_cont","filename":"snd/miss_cont.wav"},
+		{"name":"bonus","filename":"snd/bonus.wav"}
 	],
 	"meta": {"app":"https://www.leshylabs.com/apps/sstool/","version":"Leshy SpriteSheet Tool v0.8.4","image":"sprites.png","size":{"w":628,"h":617},"scale":1}
 }
