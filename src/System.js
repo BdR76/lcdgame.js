@@ -1,7 +1,7 @@
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
-var LCDGAME_VERSION = "0.3.3";
+var LCDGAME_VERSION = "0.3.4";
 
 // namespace
 var LCDGame = LCDGame || {

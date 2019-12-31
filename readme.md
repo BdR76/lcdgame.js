@@ -18,7 +18,8 @@ additional game devices, so in that sense it remains work in progress.
 [Tom's Adventure](http://bdrgames.nl/lcdgames/games/tomsadventure/) :: 
 [Donkey Kong II](http://bdrgames.nl/lcdgames/games/donkeykong2/) :: 
 [Jungle Kong](http://bdrgames.nl/lcdgames/games/junglekong/) :: 
-[Eagle n Chicken](http://bdrgames.nl/lcdgames/games/eaglenchicken/)
+[Eagle n Chicken](http://bdrgames.nl/lcdgames/games/eaglenchicken/) :: 
+[Cement Factory](http://bdrgames.nl/lcdgames/games/cementfactory/)
 
 What are LCD games
 ------------------
@@ -97,6 +98,7 @@ device, including buttons and artwork, and not just the screen.
 
 History
 -------
+31-dec-2019 v0.3.4 added Cement Factory and small improvements
 02-dec-2018 v0.3.3 added Jungle Kong, Eagle n Chicken, added highscore filter options   
 08-oct-2018 v0.3.2 added Donkey Kong II, Tom's Adventure, better browser compatibility   
 01-jul-2018 v0.3.1 menu, infobox, online highscores   

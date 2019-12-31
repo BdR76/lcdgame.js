@@ -209,6 +209,8 @@ LCDGame.Game.prototype = {
 				var filename = this.gamedata.buttons[b].frames[f];
 				var idx = this.shapeIndexByName(filename);
 				this.gamedata.buttons[b].ids.push(idx);
+				// flag image frame as button
+				this.gamedata.frames[idx].type = "button";
 				// keep track of position and width/height
 				var spr = this.gamedata.frames[idx].spriteSourceSize;
 				if (spr.x < xmin)         xmin = spr.x;
@@ -638,6 +640,7 @@ LCDGame.Game.prototype = {
 					return true;
 				};
 			};
+			throw "lcdgames.js - "+arguments.callee.caller.toString()+", no frame with filename '" + filename + "'";
 		};
 		return false;
 	},
@@ -816,6 +819,21 @@ LCDGame.Game.prototype = {
 			};
 		};
 		return false;
+	},
+
+	sequenceAllVisible: function(name, value) {
+		// get sequence
+		var seqidx = this.sequenceIndexByName(name);
+
+		// check if all visible same as value
+		for (var i = 0; i < this.gamedata.sequences[seqidx].ids.length; i++) {
+			// check if all shapes same visible
+			var shape1 = this.gamedata.sequences[seqidx].ids[i];
+			if (this.gamedata.frames[shape1].value != value) {
+				return false;
+			};
+		};
+		return true;
 	},
 
 	shapesDisplayAll: function(value) {
@@ -1036,7 +1054,15 @@ LCDGame.Game.prototype = {
 			
 			// key code
 			k = k.toUpperCase();
-			if (k.indexOf("UP") > -1) {
+			if (k.indexOf("PGUP") > -1) {
+				c = 33;
+			} else if (k.indexOf("PGDN") > -1) {
+				c = 34;
+			} else if (k.indexOf("END") > -1) {
+				c = 35;
+			} else if (k.indexOf("HOME") > -1) {
+				c = 36;		
+			} else if (k.indexOf("UP") > -1) {
 				c = 38;
 			} else if (k.indexOf("DOWN") > -1) {
 				c = 40;
@@ -1225,6 +1251,14 @@ LCDGame.Game.prototype = {
 	onButtonDown: function(btnidx, diridx) {
 		// pass input to game
 		var name = this.gamedata.buttons[btnidx].name;
+
+		// alternative buttons, i.e. if more keyboard buttons then buttons frames
+		// for example if 2 button frames (left/right) and 4 keyboard buttons (left, right, A, D) then A=same as LEFT and D=same as RIGHT
+		if (diridx >= this.gamedata.buttons[btnidx].ids.length) {
+			diridx = (diridx % this.gamedata.buttons[btnidx].ids.length);
+		};
+
+		// handle button press
 		this.state.currentState().press(name, diridx);
 
 		// show button down on screen
