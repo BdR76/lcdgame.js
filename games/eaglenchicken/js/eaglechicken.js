@@ -860,7 +860,6 @@ eaglechicken.GameMode2.prototype = {
 			this.gamestate = WAIT_RESETANIM;
 			this.waittimer.start();
 		}
-
 	},
 
 	refreshScoreSecs: function() {

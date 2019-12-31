@@ -90,8 +90,8 @@
 	"buttons": [
 		{"name":"start","type":"button","frames":["btn_start"],"defaultkeys":["1"]},
 		{"name":"game","type":"button","frames":["btn_game"],"defaultkeys":["2"]},
-		{"name":"left","type":"button","frames":["btn_left"],"defaultkeys":["left"]},
-		{"name":"right","type":"button","frames":["btn_right"],"defaultkeys":["right"]}
+		{"name":"left","type":"button","frames":["btn_left"],"defaultkeys":["left","a","q"]},
+		{"name":"right","type":"button","frames":["btn_right"],"defaultkeys":["right","d","e"]}
 	],
 	"sounds": [
 	],

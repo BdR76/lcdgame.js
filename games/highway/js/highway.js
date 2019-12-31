@@ -276,9 +276,6 @@ highway.MainGame.prototype = {
 	},
 
 	onTimerRoad: function() {
-
-		//console.log(".. highway.onTimerRoad() called!! this.roadcount=" + this.roadcount);
-
 		// move all road objects
 		this.updateRoad();
 
@@ -289,7 +286,6 @@ highway.MainGame.prototype = {
 	onTimerWait: function() {
 		var d = new Date();
 		var n = d.toLocaleTimeString() + '.' + ("000"+d.getMilliseconds()).substr(-3);
-		console.log("onTimerWait - time="+n+ " waittimer.counter="+this.waittimer.counter+" waittimer.max="+this.waittimer.max+" this.gamestate="+this.gamestate);
 		// determine where to continue
 		switch (this.gamestate) {
 			case STATE_GAMEPICK:
@@ -303,7 +299,6 @@ highway.MainGame.prototype = {
 				this.roadtimer.start();
 				break;
 			case STATE_GAMEDROP:
-				console.log("onTimerWait - STATE_GAMEDROP");
 				// remove hitchhiker and drop off sign
 				this.lcdgame.setShapeByName("girl_dropoff", false);
 				this.lcdgame.sequenceShift("signdrop");
@@ -342,7 +337,6 @@ highway.MainGame.prototype = {
 		// flash crash animation on/off
 		var b = (this.crashtimer.counter % 2 == 0);
 		var p = (this.carpos % 5) - 1;
-		console.log("onTimerCrash - this.crashtimer.counter="+this.crashtimer.counter+" ==> p="+p+" b="+b);
 		this.lcdgame.sequenceSetPos("crash", p, b);
 	},
 
@@ -352,7 +346,7 @@ highway.MainGame.prototype = {
 	toggleSound: function() {
 		// determine state of gameplay
 		this.sound_onoff = !(this.sound_onoff);
-		this.lcdgame.setShapeByName("alarm_onoff", this.sound_onoff);
+		//this.lcdgame.setShapeByName("alarm_onoff", this.sound_onoff);
 	},
 
 	// -------------------------------------
@@ -381,8 +375,6 @@ highway.MainGame.prototype = {
 		if (this.lcdgame.gametype == 2) {msecs = 500 - (this.lcdgame.level-1) * 62.5}; // game2
 		// limit max.speed. NOTE: not verified so not sure that this limit was also on actual device
 		if (msecs < 62.5) {msecs = 62.5};
-
-		//console.log("initNextLevel, lcdgame.gametype="+this.lcdgame.gametype+" level="+this.lcdgame.level+" tick millisecs="+msecs);
 
 		// reset player
 		this.initCarPos();
@@ -426,7 +418,6 @@ highway.MainGame.prototype = {
 	},
 
 	initWait: function(msecs, max) {
-		console.log("initWait("+msecs+", "+max+").. ok");
 		this.waittimer.pause();
 		this.waittimer.counter = 0;
 		// short pause when picking up/dropping off hitchhiker, before/after gas bonus game etc.
@@ -459,7 +450,6 @@ highway.MainGame.prototype = {
 
 	updateRoad: function() {
 		this.roadcount++;
-		//console.log(".. highway.onTimerRoad() called!! this.roadcount=" + this.roadcount);
 
 		// score count
 		var girl = this.lcdgame.sequenceShapeVisible("girl",  3);
@@ -469,9 +459,9 @@ highway.MainGame.prototype = {
 		var drop = this.lcdgame.sequenceShapeVisible("signdrop",  3);
 
 		// check collision
-		if ( (this.carpos == 1) && dog )  {this.initCrash(); console.log("highway.onTimerRoad - CRASH into dog");};
-		if ( (this.carpos == 2) && sign ) {this.initCrash(); console.log("highway.onTimerRoad - CRASH into sign")};
-		if ( (this.carpos == 3) && tree ) {this.initCrash(); console.log("highway.onTimerRoad - CRASH into tree")};
+		if ( (this.carpos == 1) && dog )  this.initCrash();
+		if ( (this.carpos == 2) && sign ) this.initCrash();
+		if ( (this.carpos == 3) && tree ) this.initCrash();
 		// stop road update when crashed
 		if (this.gamestate != STATE_GAMEPLAY) {
 			return false;
@@ -545,16 +535,12 @@ highway.MainGame.prototype = {
 		};
 
 		// change of new road objects appearing
-		var strTESTING = "";
 		this.objfreqs = [10, 33, 33, 33, 10]; // 10%, 25% etc.
 		for (var i=0; i < this.objfreqs.length; i++) {
 			var o = this.lcdgame.randomInteger(1, 100);
 			if (o <= this.objfreqs[i]) {this.objfreqs[i]=1} else {this.objfreqs[i]=0}; // 1=appears, 0=doesn't appear
-			
-			// TESTING!!
-			strTESTING = strTESTING + this.objfreqs[i] + ",";
 		};
-		console.log("updateRoad - random stuff -> " + strTESTING);
+
 		// exception, objects in 3 middle lanes (dog, sign, tree) may never ALL appear at once because then player can't go anywhere
 		if ( (this.objfreqs[1] == 1) && (this.objfreqs[2] == 1) && (this.objfreqs[3] == 1)) {
 			var idx = this.lcdgame.randomInteger(1, 3);
@@ -716,7 +702,6 @@ highway.BonusGame.prototype = {
 	},
 
 	bonusWait: function(msecs, max) {
-		console.log("initWait("+msecs+", "+max+").. ok");
 		this.waittimer.pause();
 		this.waittimer.counter = 0;
 		// short pause when picking up/dropping off hitchhiker, before/after gas bonus game etc.
@@ -757,9 +742,7 @@ highway.BonusGame.prototype = {
 				break;
 			case STATE_BONUSEND:
 				// alarm sound before and after bonus game
-				console.log("STATE_BONUSEND -> this.waittimer.counter="+this.waittimer.counter + " this.waittimer.lasttime="+this.waittimer.lasttime);
 				if (this.waittimer.counter <= 3) {
-					console.log("STATE_BONUSEND -> PLAY!!");
 					this.lcdgame.playSoundEffect("bonusalarm");
 				} else {
 					// continue normal game

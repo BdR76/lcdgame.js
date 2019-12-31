@@ -678,7 +678,6 @@ cementfactory.MainGame.prototype = {
 				// driver on floor, blink on/off
 				if (t >= 1) {
 					this.lcdgame.setShapeByName("driver_fall" + this.miss_overflow, ((t % 2) != 0));
-					console.log("driver " + this.miss_overflow + " t="+t+" blink on/off=" + ((t % 2) == 0));
 				};
 
 				// sound effect or continue game
@@ -710,7 +709,6 @@ cementfactory.MainGame.prototype = {
 	},
 	
 	doSpillCement: function(buck) {
-		//console.log("set spill cement_flow_" + buck + " ON");
 		this.lcdgame.setShapeByName("cement_flow_" + buck, true);
 		var i = this.spillcement[buck-1];
 		this.spillcement[buck-1] = (this.spillcement[buck-1] | 32); // set 8th bit
@@ -789,8 +787,6 @@ cementfactory.MainGame.prototype = {
 				if (this.liftvars.pattern == 1) this.liftvars.wait1 = 3;
 				if (this.liftvars.pattern == 3) this.liftvars.wait1 = 2;
 				if (this.liftvars.pattern == 4) this.liftvars.wait1 = 4;
-				
-				//console.log("LIFT"+this.liftvars.index2+":\t" + this.liftvars.wait1 + "");
 		
 				//Report[repidx] = "" + this.liftvars.wait1;
 				if (this.liftvars.pattern == 0) this.liftvars.index1++;
@@ -836,8 +832,6 @@ cementfactory.MainGame.prototype = {
 				if (this.liftvars.pattern == 2) this.liftvars.wait2 = 3;
 				if (this.liftvars.pattern == 3) this.liftvars.wait2 = 4;
 				if (this.liftvars.pattern == 4) this.liftvars.wait2 = 2;
-				
-				//console.log("LIFT"+this.liftvars.index2+":\t\t" + this.liftvars.wait2 + "\t" + (this.liftvars.pattern == 0 ?  "" : "**"));
 
 				//Report[repidx] = "\t" + this.liftvars.wait2 + "\t pattern=" + pattern + "\tidx2=" + this.liftvars.index2;
 				if (this.liftvars.pattern == 0) this.liftvars.index2++;
@@ -888,7 +882,6 @@ cementfactory.MainGame.prototype = {
 					this.checkFullWarning();
 				} else {
 					// miss because cement overflow
-					console.log('CEMENT OVERFLOW at hopper ' + s);
 					this.miss_overflow = s;
 					this.doWait(WAIT_CEMENT_MISS);
 				};
@@ -983,11 +976,6 @@ cementfactory.MainGame.prototype = {
 					this.bucketvars.bucket2 = ((this.bucketvars.nibble >> (this.bucketvars.index-1+this.bucketvars.pref)) & 1);
 					full = this.bucketvars.bucket2;
 					this.bucketvars.count = this.bucketvars.count - this.bucketvars.bucket2;
-
-					//console.log((this.bucketvars.bucket1 == 1 ? "x" : ".") + "\t" + (this.bucketvars.bucket2 == 1 ? "x" : "."));
-					//debugger;
-					//this.bucketvars.TOTAL = this.bucketvars.TOTAL + 2;
-					//this.bucketvars.FILLED = this.bucketvars.FILLED + this.bucketvars.bucket1 + this.bucketvars.bucket2;
 				};
 
 				// set full or empty

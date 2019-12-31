@@ -409,7 +409,6 @@ tomsadventure.MainGame.prototype = {
 	},
 
 	onTimerWait: function() {
-		console.log("onTimerWait -- " + this.waittimer.counter)
 		// disable wait timer
 		this.waittimer.pause();
 
@@ -428,7 +427,6 @@ tomsadventure.MainGame.prototype = {
 	onTimerGame: function() {
 		// update moving enemies
 		var t = this.gametimer.counter - 1;
-		console.log("onTimerGame -- " + t);
 		
 		// move the thief
 		if ((t % 4) == 0) {

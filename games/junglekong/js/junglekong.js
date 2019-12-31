@@ -797,7 +797,6 @@ junglekong.MainGame.prototype = {
 			// every 3 seconds, slightly speed up the game
 			// (speed increase on actual device might possibly be linked to climbing up a vine, but not sure)
 			this.gametimer.interval = this.gametimer.interval - 4;
-			console.log("Increase speed -- this.gametimer.interval" + this.gametimer.interval);
 		};
 
 		// Game B, also make birds appear

@@ -159,7 +159,7 @@
 	"buttons": [
 		{"name":"left","type":"button","frames":["btn_left"],"defaultkeys":["left","a","q"]},
 		{"name":"right","type":"button","frames":["btn_right"],"defaultkeys":["right","d","e"]},
-		{"name":"open","type":"button","frames":["btn_open"],"defaultkeys":["down","s","z"]},
+		{"name":"open","type":"button","frames":["btn_open"],"defaultkeys":["down","s","z","m"]},
 		{"name":"game_a","type":"button","frames":["btn_game_a"],"defaultkeys":["1"]},
 		{"name":"game_b","type":"button","frames":["btn_game_b"],"defaultkeys":["2"]},
 		{"name":"time","type":"button","frames":["btn_time"],"defaultkeys":["3"]}

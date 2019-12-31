@@ -166,25 +166,6 @@ mariobros.MainGame.prototype = {
 		this.lcdgame.setShapeByName("truck", true);
 	
 		this.nextLevel();
-		
-		// TESTING! start with cases in truck and on top belt
-		//this.misscount = 2;
-		//this.refreshMiss(2);
-		//this.lcdgame.score = 280;
-		//this.lcdgame.sequenceSetPos("case10", 1, true);
-		//this.lcdgame.sequenceSetPos("case10", 3, true);
-		//this.lcdgame.sequenceSetPos("case11", 0, true);
-		//this.lcdgame.sequenceSetPos("case11", 2, true);
-		
-		// testing
-		//this.truckcases = 0;
-		//for (var c = 0; c < 6; c++) {
-		//	this.dropcase[c].dropped = 1;
-		//	this.dropcase[c].falling = false;
-		//	this.lcdgame.sequenceSetPos(this.dropcase[c].seq, this.dropcase[c].max, true);
-		//	this.truckcases++;
-		//};
-		// TESTING!!
 	},
 	
 	// go to next level, possibly after cutscene
@@ -259,7 +240,6 @@ mariobros.MainGame.prototype = {
 
 			// simulatneously drop last case, and another case is falling
 			if (this.gamestate == STATE_GAMEWIN) {
-				//console.log("onTimerBelt -- this.gamestate == STATE_GAMEWIN!!");
 				return;
 			};
 		};
@@ -296,7 +276,6 @@ mariobros.MainGame.prototype = {
 			};
 			// oh noes! dropped a case
 			if (this.misscase != 0) {
-				console.log("onTimerBelt -- this.misscase != 0");
 				// mario or luigi
 				this.misswho = (moveleft ? "luigi" : "mario");
 				this.gamestate = STATE_GAMEDROP;
@@ -376,7 +355,6 @@ mariobros.MainGame.prototype = {
 			// TODO: random generator unknown, add cases more like the original game device
 			if (moveleft) {
 				this.caseadd--;
-				console.log("move belt -- count down to next" + this.caseadd);
 				if (this.caseadd <= 0) {
 					// add new case
 					this.lcdgame.sequenceSetPos("case1", 0, true);
@@ -398,20 +376,8 @@ mariobros.MainGame.prototype = {
 					};					
 				};
 			};
-			//if (this.gamestate == STATE_GAMEPLAY) {
-			//	if (this.belttimer.counter % 24 == 0) {
-			//		this.lcdgame.sequenceSetFirst("case1", true);
-			//		this.lcdgame.sequenceSetFirst("case1", true);
-			//	};
-			//};
 		};
 		
-		//TESTING
-		//var str = "";
-		//for (var c = 0; c <= 11; c++) {
-		//	str = str + "holdcase["+c+"]" + this.holdcase[c] + "\n";
-		//}
-		//this.lcdgame.debugText(str, 10, 10);
 	},
 	
 	doCheckGrabCase: function() {
@@ -498,7 +464,6 @@ mariobros.MainGame.prototype = {
 		// find an ampty spot
 		for (var c = 0; c < 8; c++) {
 			if ( (this.dropcase[c].dropped == 0) && (this.dropcase[c].falling == false) ){
-				console.log("doDropCase -- found non-dropped case, c=" + c + " frame="+this.dropcase[c].frame + " seq="+this.dropcase[c].seq);
 				this.dropcase[c].falling = true;
 				this.dropcase[c].fallsync = ((this.belttimer.counter-1) % 4);
 				this.truckdrop = true;
@@ -707,7 +672,6 @@ mariobros.MainGame.prototype = {
 	// -------------------------------------
 	press: function(btn, idx) {
 		// determine state of gameplay
-		console.log("mario bros -- handleInput " + btn + ", idx=" + idx + " this.gamestate="+this.gamestate);
 
 		// button press sounds		
 		//if ( (btn == "luigi") || (btn == "mario") ) {

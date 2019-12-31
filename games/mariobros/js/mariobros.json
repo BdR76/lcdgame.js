@@ -156,8 +156,8 @@
 		{"name": "digits", "frames": ["digit_0", "digit_1", "digit_2", "digit_3", "digit_4", "digit_5", "digit_6", "digit_7", "digit_8", "digit_9"], "locations": ["digitpos_1", "digitpos_2", "digitpos_3", "digitpos_4"], "max": "1888"}
 	],
 	"buttons": [
-		{"name": "luigi", "type": "updown", "frames": ["btn_luigi_up", "btn_luigi_dn"], "defaultkeys": ["Q", "A"]},
-		{"name": "mario", "type": "updown", "frames": ["btn_mario_up", "btn_mario_dn"], "defaultkeys": ["P", "L"]},
+		{"name": "luigi", "type": "updown", "frames": ["btn_luigi_up", "btn_luigi_dn"], "defaultkeys": ["q","a","i","k","Home","End"]},
+		{"name": "mario", "type": "updown", "frames": ["btn_mario_up", "btn_mario_dn"], "defaultkeys": ["p","l","e","d","PgUp","PgDn"]},
 		{"name": "gamea", "type": "button", "frames": ["btn_gamea"], "defaultkeys": "1"},
 		{"name": "gameb", "type": "button", "frames": ["btn_gameb"], "defaultkeys": "2"},
 		{"name": "time",  "type": "button", "frames": ["btn_time"], "defaultkeys": "3"}

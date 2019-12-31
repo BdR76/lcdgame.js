@@ -154,8 +154,8 @@
 		{"name": "digits", "frames": ["digit_0", "digit_1", "digit_2", "digit_3", "digit_4", "digit_5", "digit_6", "digit_7", "digit_8", "digit_9"], "locations": ["digit_pos1", "digit_pos2", "digit_pos3", "digit_pos4"], "max": "1888"}
 	],
 	"buttons": [
-		{"name":"dpad","type":"dpad","frames":["dpad_up","dpad_down","dpad_left","dpad_right"],"defaultkeys":["up","down","left","right"]},
-		{"name":"jump","type":"button","frames":["btn_jump"],"defaultkeys":["z"]},
+		{"name":"dpad","type":"dpad","frames":["dpad_up","dpad_down","dpad_left","dpad_right"],"defaultkeys":["up","down","left","right","w","s","a","d"]},
+		{"name":"jump","type":"button","frames":["btn_jump"],"defaultkeys":["z","m"]},
 		{"name":"gamea","type":"button","frames":["btn_gamea"],"defaultkeys":["1"]},
 		{"name":"gameb","type":"button","frames":["btn_gameb"],"defaultkeys":["2"]},
 		{"name":"time","type":"button","frames":["btn_time"],"defaultkeys":["3"]}

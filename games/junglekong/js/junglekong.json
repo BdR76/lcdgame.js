@@ -105,7 +105,7 @@
 		{"name": "digits", "frames": ["digit_0", "digit_1", "digit_2", "digit_3", "digit_4", "digit_5", "digit_6", "digit_7", "digit_8", "digit_9"], "locations": ["digit_pos1", "digit_pos2", "digit_pos3", "digit_pos4"], "max": "1888"}
 	],
 	"buttons": [
-		{"name":"dpad","type":"dpad","frames":["dpad_up","dpad_down","dpad_left","dpad_right"],"defaultkeys":["up","down","left","right"]},
+		{"name":"dpad","type":"dpad","frames":["dpad_up","dpad_down","dpad_left","dpad_right"],"defaultkeys":["up","down","left","right","w","s","a","d"]},
 		{"name":"mode","type":"button","frames":["btn_mode"],"defaultkeys":["1"]},
 		{"name":"start","type":"button","frames":["btn_start"],"defaultkeys":["2"]}
 	],

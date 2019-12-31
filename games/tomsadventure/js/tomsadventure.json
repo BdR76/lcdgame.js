@@ -67,8 +67,8 @@
 		{"name":"digits","frames":["digit_0","digit_1","digit_2","digit_3","digit_4","digit_5","digit_6","digit_7","digit_8","digit_9"], "locations": ["_digitpos_1", "_digitpos_2", "_digitpos_3", "_digitpos_4"], "max": "1888"}
 	],
 	"buttons": [
-		{"name": "left", "type": "button", "frames": ["btn_left"], "defaultkeys":["left"]},
-		{"name": "right", "type": "button", "frames": ["btn_right"], "defaultkeys":["right"]},
+		{"name": "left", "type": "button", "frames": ["btn_left"], "defaultkeys":["left","a","q"]},
+		{"name": "right", "type": "button", "frames": ["btn_right"], "defaultkeys":["right","d","e"]},
 		{"name": "start", "type": "button", "frames": ["btn_start"], "defaultkeys":["1"]},
 		{"name": "melody", "type": "button", "frames": ["btn_melody"], "defaultkeys":["2"]},
 		{"name": "select", "type": "button", "frames": ["btn_select"], "defaultkeys":["3"]}

@@ -105,8 +105,8 @@
 		{"name":"digitbonus","frames":["digbon_0","digbon_1","digbon_2","digbon_3"],"locations":["digbonpos_1","digbonpos_2","digbonpos_3"],"max":"111"}
 	],
 	"buttons": [
-		{"name":"left","type":"button","frames":["btnleft"],"defaultkeys":["left"]},
-		{"name":"right","type":"button","frames":["btnright"],"defaultkeys":["right"]},
+		{"name":"left","type":"button","frames":["btnleft"],"defaultkeys":["left","a","q"]},
+		{"name":"right","type":"button","frames":["btnright"],"defaultkeys":["right","d","e"]},
 		{"name":"sound","type":"button","frames":["btnsound"],"defaultkeys":["2"]},
 		{"name":"mode","type":"button","frames":["btnmode"],"defaultkeys":["1"]},
 		{"name":"set","type":"button","frames":["btnset"],"defaultkeys":["3"]}

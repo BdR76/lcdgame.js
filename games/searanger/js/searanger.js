@@ -259,7 +259,6 @@ searanger.MainGame.prototype = {
 			// randomly play long or short beep
 			var r = this.lcdgame.randomInteger(0, 2);
 			var str = (r == 1 ? "scorelong" : "scoremedium");
-			console.log("scoer points!! str = "+str);
 			this.lcdgame.playSoundEffect(str);
 			// reset guy
 			this.resetGuy();
