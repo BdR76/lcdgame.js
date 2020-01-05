@@ -12,6 +12,10 @@ LCDGame.Game = function (configfile, metadatafile) {
 	this.score = 0;
 	this.gametype = 0;
 	this.level = 0;
+
+	this.buttonpress = 0;
+	this.playtimestart = null;
+
 	this.soundmute = false;
 	
 	// site lock, enable for no hotlinking
@@ -559,6 +563,8 @@ LCDGame.Game.prototype = {
 		this.score = 0;
 		this.level = 0;
 		this.gametype = gametype;
+		this.buttonpress = 0;
+		this.playtimestart = new Date();
 	},
 
 	// -------------------------------------
@@ -1054,6 +1060,7 @@ LCDGame.Game.prototype = {
 			
 			// key code
 			k = k.toUpperCase();
+
 			if (k.indexOf("PGUP") > -1) {
 				c = 33;
 			} else if (k.indexOf("PGDN") > -1) {
@@ -1073,6 +1080,7 @@ LCDGame.Game.prototype = {
 			} else {
 				c = k.charCodeAt(0);
 			};
+
 			// add
 			result.push(c);
 		};
@@ -1260,6 +1268,9 @@ LCDGame.Game.prototype = {
 
 		// handle button press
 		this.state.currentState().press(name, diridx);
+
+		// keep track of button presses
+		this.buttonpress++;
 
 		// show button down on screen
 		var idx = this.gamedata.buttons[btnidx].ids[diridx];

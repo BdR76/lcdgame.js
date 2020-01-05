@@ -36,6 +36,14 @@ var LCDGame = LCDGame || {
     * @default
     */
 	level: 0,
+    /**
+	* Total number of button presses for highscore heuristics
+    */
+	buttonpress: 0,
+    /**
+	* Start time of a gameplay session for highscore heuristics
+    */
+	playtimestart: null,
 	// events
 	onImageLoaded: null,
 	onImageError: null,

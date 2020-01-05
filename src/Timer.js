@@ -63,9 +63,10 @@ LCDGame.Timer.prototype = {
 	doTimerEvent: function() {
 		// keep track how many times event has fired
 		this.counter++;
-		// do callback function to gameobj, so not to LCDGame.Timer object
 
+		// do callback function to gameobj, so not to LCDGame.Timer object
 		this.callback.call(this.context, this);
+
 		// if maximum of callbacks was set
 		if (typeof this.max !== "undefined") {
 			if (this.counter >= this.max) this.enabled = false;
