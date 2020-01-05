@@ -3,7 +3,7 @@
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
-var LCDGAME_VERSION = "0.3.3";
+var LCDGAME_VERSION = "0.3.4";
 
 // namespace
 var LCDGame = LCDGame || {
@@ -38,6 +38,14 @@ var LCDGame = LCDGame || {
     * @default
     */
 	level: 0,
+    /**
+	* Total number of button presses for highscore heuristics
+    */
+	buttonpress: 0,
+    /**
+	* Start time of a gameplay session for highscore heuristics
+    */
+	playtimestart: null,
 	// events
 	onImageLoaded: null,
 	onImageError: null,
@@ -259,8 +267,8 @@ var SCORE_HTML =
 		'  <div id="scorecontent">' +
 		'    One moment...' +
 		'  </div>' +
-		'  <a class="mybutton btnnext" id="btnprev" data-offset="-10">&lt;&lt;</a>' +
-		'  <a class="mybutton btnnext" id="btnnext" data-offset="+10">&gt;&gt;</a>' +
+		'  <a class="mybutton btnnext" id="btnprev" data-direction="-1">&lt;&lt;</a>' +
+		'  <a class="mybutton btnnext" id="btnnext" data-direction="+1">&gt;&gt;</a>' +
 		'  <a class="mybutton btnpop" onclick="hideScorebox();">Ok</a>' +
 		'</div>';
 		
@@ -283,6 +291,8 @@ function hideScorebox() {
 // -------------------------------------
 // highscores object
 // -------------------------------------
+var RANKS_PER_PAGE = 10;
+
 LCDGame.HighScores = function (lcdgame, gametitle, gametypes) {
 	// save reference to game objects
 	this.lcdgame = lcdgame;
@@ -290,13 +300,12 @@ LCDGame.HighScores = function (lcdgame, gametitle, gametypes) {
 	// display variables
 	this.gametitle = gametitle;
 	this.gametypes = gametypes;
-	this.gametype = 1;
 	this.offset = 0;
 
 	// highscore variables
-	this._scorecache = [];
+	this._scores_local = [];
+	this._scores_global = [];
 	this._scoretype = 0;
-	this._namecache = "";
 };
 
 LCDGame.HighScores.prototype = {
@@ -310,78 +319,85 @@ LCDGame.HighScores.prototype = {
 
 		// init first highscores
 		this.buildHeaderHTML();
-		this.loadHighscores(tp);
-		this.refreshGlobalHS();
+		this.loadLocal(tp); // tp = game A or game B
+		this.loadGlobal();
 	},
 
     getGametype: function () {
 		var res = "";
 		if (this.gametypes) {
-			res = this.gametypes[this.gametype-1];
+			res = this.gametypes[this._scoretype-1];
 		};
 		return res;
 	},
 
-	loadHighscores: function (typ) {
+	loadLocal: function (typ) {
 
 		// clear variables
-		this._scorecache = [];
-		this._scoretype = typ;
-		this._namecache = "lcdgame_"+this.gametitle+"_hs"+typ;
+		this._scores_local = [];
+		this._scoretype = typ; // typ = game type, for example 1 or 2)
+		var namecache = "lcdgame_local_"+this.gametitle+"_hs"+typ;
 
 		// load from localstorage
-		var sc = window.localStorage.getItem(this._namecache);
+		var sc = window.localStorage.getItem(namecache);
 
 		// error checking, localstorage might not exist yet at first time start up
 		try {
-			this._scorecache = JSON.parse(sc);
+			this._scores_local = JSON.parse(sc);
 		} catch (e) {
-			this._scorecache = []; //error in the above string(in this case,yes)!
+			this._scores_local = []; //error in the above string(in this case,yes)!
 		};
 		// error checking just to be sure, if localstorage contains something else then a JSON array (hackers?)
-		if (Object.prototype.toString.call(this._scorecache) !== "[object Array]") {
-			this._scorecache = [];
+		if (Object.prototype.toString.call(this._scores_local) !== "[object Array]") {
+			this._scores_local = [];
 		};
 	},
 	
-    scoreIndex: function (sc, typ) {
-		// refresh cache if needed
+    indexLocal: function (sc, typ) {
+		// refresh local highscores if needed
 		if (typ != this._scoretype) {
-			this.loadHighscores(typ);
+			this.loadLocal(typ);
 		};
 
+		// assume at end
 		var idx = -1;
-		// check if new highscore
-		for (var i = this._scorecache.length-1; i >= 0; i--) {
-			if (sc > this._scorecache[i].score) {
+
+		// check from bottom to top of list
+		for (var i = this._scores_local.length-1; i >= 0; i--) {
+			// where to insert new highscore
+			if (sc > this._scores_local[i].score) {
 				idx = i;
 			} else {
 				break;
 			};
 		};
+
 		return idx;
 	},
 
     saveLocal: function (plr, sc, lvl, typ) {
-		var idx = this.scoreIndex(sc, typ);
-		if (idx >= 0) {
-			// insert new record
-			var rec = {"player":plr, "score":sc, "level":lvl};
-			this._scorecache.splice(idx, 0, rec);
-			
-			// remove last records, keep max 10
-			var s = 10 - this._scorecache.length;
-			if (s < 0) {
-				this._scorecache.splice(s);
-			};
+		// always store local highscore
+		var rec = {"player":plr, "score":sc, "level":lvl};
 
-			// save
-			window.localStorage.setItem(this._namecache, JSON.stringify(this._scorecache));
+		// which place in local highscores
+		var idx = this.indexLocal(sc, typ);
+		if (idx < 0) {
+			// at end
+			this._scores_local.push(rec);
+		} else {
+			// some where in the middle
+			this._scores_local.splice(idx, 0, rec);
 		};
+
+		// save highscores locally
+		var namecache = "lcdgame_local_"+this.gametitle+"_hs"+typ;
+		window.localStorage.setItem(namecache, JSON.stringify(this._scores_local));
+
+		// also save default entry name
 		window.localStorage.setItem("lcdgame_highscore_name", plr);
     },
 
-    saveOnline: function (plr, sc, lvl, typ) {
+    saveGlobal: function (plr, sc, lvl, typ, sec, but) {
 		
 			// additional client info
 			if (platform) {
@@ -401,7 +417,7 @@ LCDGame.HighScores.prototype = {
 			var clientguid  = this.getClientGUID();
 
 			// set gametype for higscores
-			this.gametype = typ;
+			this._scoretype = typ;
 			
 			// reserved characters in url
 			//var gametitle = gametitle.replace(/\&/g, "%26"); // & -> %26
@@ -415,6 +431,8 @@ LCDGame.HighScores.prototype = {
 				"&player=" + plr + 
 				"&score=" + sc +
 				"&level=" + lvl +
+				"&playtime=" + sec +
+				"&buttonpress=" + but +
 				info + // client info
 				"&language=" + language +
 				"&lcdversion=" + LCDGAME_VERSION +
@@ -433,10 +451,15 @@ LCDGame.HighScores.prototype = {
 						// Success!
 						// here you could go to the leaderboard or restart your game
 						console.log('SUCCESS!!\nrequest.status='+ request.status + '\nrequest.response=' + request.response);
-						var test = JSON.parse(request.response);
-						if (test.result == 'OK') {
+						var getjson = JSON.parse(request.response);
+						if (getjson.result == 'OK') {
 							console.log('Highscore sent succesfully');
-							this.refreshGlobalHS();
+							// result contains rank, set offset to corresponding page
+							// for example getjson.rank=23 -> offset=20
+							var rank = (getjson.rank ? (!isNaN(getjson.rank) ? getjson.rank : 1) : 1);
+							this.offset = RANKS_PER_PAGE * Math.floor((rank-1) / RANKS_PER_PAGE);
+							// load highscores
+							this.loadGlobal();
 							displayScorebox();
 						} else {
 							console.log('Highscore sent failed');
@@ -444,29 +467,31 @@ LCDGame.HighScores.prototype = {
 					};
 				} else {
 					// We reached our target server, but it returned an error
-					console.log('Highscore sent failed with error: ' + request.response);
-					resulttxt.text += '\nerror!';
+					console.log('Highscore sent failed with error ' + request.status + ': ' + request.statusText);
 				}
 			}.bind(this); // <- only change
 
-			//debugger;
 			//paramsdata = getUserAgentParams();
 			request.send(paramsdata);
     },
 
     getHighscore: function (typ) {
 		var sc = 0;
-		if (this.lcdgame.highscores._scorecache[0]) {
-			sc = this.lcdgame.highscores._scorecache[0].score;
+		if (this.lcdgame.highscores._scores_global[0]) {
+			sc = this.lcdgame.highscores._scores_global[0].score;
 		};
 		return sc;
 	},
 
     checkScore: function () {
+		// end of game  time
+		var timeend = new Date();
 		// save current score values, because will reset on background when new game starts
 		var sc = this.lcdgame.score;
 		var lvl = this.lcdgame.level;
 		var typ = this.lcdgame.gametype;
+		var sec = Math.floor((timeend - this.lcdgame.playtimestart) / 1000); // round to seconds
+		var but = this.lcdgame.buttonpress;
 		
 		if (sc > 0) {
 			// input name
@@ -478,38 +503,52 @@ LCDGame.HighScores.prototype = {
 				plr = plr.trim();
 				if (plr != "") {
 					this.saveLocal(plr, sc, lvl, typ);
-					this.saveOnline(plr, sc, lvl, typ);
+					this.saveGlobal(plr, sc, lvl, typ, sec, but);
 				};
 			};
 		};
     },
 	
-	refreshGlobalHS: function () {
+	loadGlobal: function () {
 		var url = HS_URL + "geths.php" +
 			"?gamename=" + this.gametitle +  // highscore data
-			"&gametype=" + this.gametype +
-			"&offset=" + this.offset;
+			"&gametype=" + this._scoretype +
+			"&offset=" + this.offset; // 0=first page, 10=second page etc
 
 		var xmlHttp = new XMLHttpRequest();
 		xmlHttp.open("GET", url, true); // true for asynchronous 
 		xmlHttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
 		xmlHttp.onreadystatechange = function() { 
 			if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-				this.afterRefreshGlobalHS(xmlHttp.responseText);
+				this.afterLoadGlobal(xmlHttp.responseText);
 		}.bind(this); // <- only change
 		xmlHttp.send(null);
 	},
 	
-	afterRefreshGlobalHS: function (data) {
+	afterLoadGlobal: function (data) {
 		// error checking, localstorage might not exist yet at first time start up
 		try {
-			this._scorecache = JSON.parse(data);
+			this._scores_global = JSON.parse(data);
 		} catch (e) {
-			this._scorecache = []; //error in the above string(in this case,yes)!
+			this._scores_global = []; //error in the above string(in this case,yes)!
 		};
 		// error checking just to be sure, if data contains something else then a JSON array (hackers?)
-		if (Object.prototype.toString.call(this._scorecache) !== "[object Array]") {
-			this._scorecache = [];
+		if (Object.prototype.toString.call(this._scores_global) !== "[object Array]") {
+			this._scores_global = [];
+		};
+		
+		// flag if also local scores
+		for (var g=0; g < this._scores_global.length; g++) {
+			// add property "local"
+			this._scores_global[g].local = false;
+			// check if corresponding score in local scores
+			for (var l=0; l < this._scores_local.length; l++) {
+				// same name and same score, probably the same -> display as red font
+				if (   (this._scores_global[g].player == this._scores_local[l].player)
+					&& (this._scores_global[g].score == this._scores_local[l].score) ) {
+					this._scores_global[g].local = true;
+				};
+			};
 		};
 
 		this.refreshHTML();
@@ -521,9 +560,9 @@ LCDGame.HighScores.prototype = {
 			var typ = parseInt(dv.currentTarget.dataset.gametype);
 
 			if (this.gametype != typ) {
-				this.gametype = typ;
 				this.offset = 0;
-				this.refreshGlobalHS();
+				this.loadLocal(typ);
+				this.loadGlobal();
 			};
 		};
 	},
@@ -531,19 +570,19 @@ LCDGame.HighScores.prototype = {
 	onPrevNextButton: function (dv) {
 		if (dv.currentTarget.dataset) {
 			// calculate new offset value
-			var move = parseInt(dv.currentTarget.dataset.offset);
-			var ofs = this.offset + move;
+			var dir = parseInt(dv.currentTarget.dataset.direction);
+			var ofs = this.offset + (dir > 0 ? RANKS_PER_PAGE : -1 * RANKS_PER_PAGE);
 
 			// prev on first page
 			if (ofs < 0) ofs = 0;
 			
 			// next button, but already on last page
-			if ( (move > 0) && (this._scorecache.length < 10) ) ofs = this.offset;
+			if ( (dir > 0) && (this._scores_global.length < RANKS_PER_PAGE) ) ofs = this.offset;
 
 			// only refresh when offset changed
 			if (this.offset != ofs) {
 				this.offset = ofs;
-				this.refreshGlobalHS();
+				this.loadGlobal();
 			};
 		};
 	},
@@ -570,15 +609,20 @@ LCDGame.HighScores.prototype = {
 	refreshHTML: function () {
 		// build highscore rows
 		var rows = "";
-		for (var i = 0; i < 10; i++) {
-			var rec = this._scorecache[i];
+		for (var i = 0; i < RANKS_PER_PAGE; i++) {
+			var rec = this._scores_global[i];
 			
+			// get record
 			if (typeof rec === "undefined") {
 				var rk = this.offset + (i+1);
-				rec = {"rank":rk, "player":".....", "score":0, "level":1};
+				rec = {"rank":rk, "player":".....", "score":0, "level":1, "local":false};
 			};
-			
-			rows = rows + "      <tr><td>" + rec.rank + ".</td><td>" + rec.player + "</td><td>" + rec.score + "</td></tr>";
+
+			// mark local scores in red
+			var highlight = (rec.local ? " style=\"color:#f00\"" : "")
+
+			// build html
+			rows = rows + "      <tr"+highlight+"><td>" + rec.rank + ".</td><td>" + rec.player + "</td><td>" + rec.score + "</td></tr>";
 		};
 
 		// game name and column headers
@@ -618,14 +662,14 @@ LCDGame.HighScores.prototype = {
 		}
 		return uuid;
 	},
-		
+
 	getClientGUID: function () {
 		var guid = window.localStorage.getItem("lcdgame_client_guid");
 		if (!guid) {
 			// create one
 			guid = this.uuidv4();
 			window.localStorage.setItem("lcdgame_client_guid", guid);
-		}
+		};
 		return guid;
 	},
 		
@@ -790,6 +834,10 @@ LCDGame.Game = function (configfile, metadatafile) {
 	this.score = 0;
 	this.gametype = 0;
 	this.level = 0;
+
+	this.buttonpress = 0;
+	this.playtimestart = null;
+
 	this.soundmute = false;
 	
 	// site lock, enable for no hotlinking
@@ -987,6 +1035,8 @@ LCDGame.Game.prototype = {
 				var filename = this.gamedata.buttons[b].frames[f];
 				var idx = this.shapeIndexByName(filename);
 				this.gamedata.buttons[b].ids.push(idx);
+				// flag image frame as button
+				this.gamedata.frames[idx].type = "button";
 				// keep track of position and width/height
 				var spr = this.gamedata.frames[idx].spriteSourceSize;
 				if (spr.x < xmin)         xmin = spr.x;
@@ -1335,6 +1385,8 @@ LCDGame.Game.prototype = {
 		this.score = 0;
 		this.level = 0;
 		this.gametype = gametype;
+		this.buttonpress = 0;
+		this.playtimestart = new Date();
 	},
 
 	// -------------------------------------
@@ -1416,6 +1468,7 @@ LCDGame.Game.prototype = {
 					return true;
 				};
 			};
+			throw "lcdgames.js - "+arguments.callee.caller.toString()+", no frame with filename '" + filename + "'";
 		};
 		return false;
 	},
@@ -1594,6 +1647,21 @@ LCDGame.Game.prototype = {
 			};
 		};
 		return false;
+	},
+
+	sequenceAllVisible: function(name, value) {
+		// get sequence
+		var seqidx = this.sequenceIndexByName(name);
+
+		// check if all visible same as value
+		for (var i = 0; i < this.gamedata.sequences[seqidx].ids.length; i++) {
+			// check if all shapes same visible
+			var shape1 = this.gamedata.sequences[seqidx].ids[i];
+			if (this.gamedata.frames[shape1].value != value) {
+				return false;
+			};
+		};
+		return true;
 	},
 
 	shapesDisplayAll: function(value) {
@@ -1814,7 +1882,16 @@ LCDGame.Game.prototype = {
 			
 			// key code
 			k = k.toUpperCase();
-			if (k.indexOf("UP") > -1) {
+
+			if (k.indexOf("PGUP") > -1) {
+				c = 33;
+			} else if (k.indexOf("PGDN") > -1) {
+				c = 34;
+			} else if (k.indexOf("END") > -1) {
+				c = 35;
+			} else if (k.indexOf("HOME") > -1) {
+				c = 36;		
+			} else if (k.indexOf("UP") > -1) {
 				c = 38;
 			} else if (k.indexOf("DOWN") > -1) {
 				c = 40;
@@ -1825,6 +1902,7 @@ LCDGame.Game.prototype = {
 			} else {
 				c = k.charCodeAt(0);
 			};
+
 			// add
 			result.push(c);
 		};
@@ -2003,7 +2081,18 @@ LCDGame.Game.prototype = {
 	onButtonDown: function(btnidx, diridx) {
 		// pass input to game
 		var name = this.gamedata.buttons[btnidx].name;
+
+		// alternative buttons, i.e. if more keyboard buttons then buttons frames
+		// for example if 2 button frames (left/right) and 4 keyboard buttons (left, right, A, D) then A=same as LEFT and D=same as RIGHT
+		if (diridx >= this.gamedata.buttons[btnidx].ids.length) {
+			diridx = (diridx % this.gamedata.buttons[btnidx].ids.length);
+		};
+
+		// handle button press
 		this.state.currentState().press(name, diridx);
+
+		// keep track of button presses
+		this.buttonpress++;
 
 		// show button down on screen
 		var idx = this.gamedata.buttons[btnidx].ids[diridx];
@@ -2158,9 +2247,10 @@ LCDGame.Timer.prototype = {
 	doTimerEvent: function() {
 		// keep track how many times event has fired
 		this.counter++;
-		// do callback function to gameobj, so not to LCDGame.Timer object
 
+		// do callback function to gameobj, so not to LCDGame.Timer object
 		this.callback.call(this.context, this);
+
 		// if maximum of callbacks was set
 		if (typeof this.max !== "undefined") {
 			if (this.counter >= this.max) this.enabled = false;
