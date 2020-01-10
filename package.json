@@ -7,6 +7,7 @@
     "lcdgame": "lcdgame - kopie (2).js"
   },
   "scripts": {
+    "serve:local": "serve ./",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -24,5 +25,8 @@
   "bugs": {
     "url": "https://github.com/BdR76/lcdgame.js/issues"
   },
-  "homepage": "https://github.com/BdR76/lcdgame.js#readme"
+  "homepage": "https://github.com/BdR76/lcdgame.js#readme",
+  "devDependencies": {
+    "serve": "^11.3.0"
+  }
 }
