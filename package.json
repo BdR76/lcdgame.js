@@ -7,6 +7,7 @@
     "lcdgame": "lcdgame - kopie (2).js"
   },
   "scripts": {
+    "minify": "uglifyjs bin/lcdgame.js --comments /^!/ --source-map --mangle --output bin/lcdgame.min.js",
     "serve:local": "serve ./",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -27,6 +28,7 @@
   },
   "homepage": "https://github.com/BdR76/lcdgame.js#readme",
   "devDependencies": {
-    "serve": "^11.3.0"
+    "serve": "^11.3.0",
+    "uglify-js": "^3.7.4"
   }
 }
