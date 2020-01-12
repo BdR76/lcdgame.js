@@ -48,18 +48,11 @@ var MoveCollide = [	{"move":[ 0,   0,   0,    0,   0], "lift":[  1, 2] }, // cru
 cementfactory.ClockMode = function(lcdgame) {
 	this.lcdgame = lcdgame;
 	this.demotimer = null;
-	this.democount;
-	
-	this.demospawn;
-	this.demodkjr;
-	this.demokey;
-	this.demochains;
 }
 cementfactory.ClockMode.prototype = {
 	init: function(){
 		// startup clear all
 		this.lcdgame.shapesDisplayAll(false);
-		this.democount = 0;
 
 		this.demotimer = this.lcdgame.addtimer(this, this.onTimerDemo, 1000, false);
 		
@@ -271,15 +264,15 @@ cementfactory.MainGame.prototype = {
 		this.dropcement = [-1, -1, -1, -1]; // when to drop cement in hoppers, in sync with lift animation frames (top left, top right, bottom left, bottom right)
 		this.spillcement = [0, 0, 0, 0, 0, 0]; // when to spill cement from one hopper to the next
 		
-		// difference between gaem modes:
+		// difference between game modes:
 		// GAME A has more predictable stable lift pattern, and more buckets are empty
 		// GAME B has more erratic lift pattern, and more filled buckets
 		this.liftvars = {"wait1": 0, "wait2": 0, "index1": 0, "index2": 0, "pattern": 0, "chancemax": 0, "chances": []};
 		this.bucketvars = {"bucket1": 0, "bucket2": 0, "nibble": 0, "index": 0, "count": 0, "pref": 0};
 		
-		// NOTE: the lifts and buckets are semi-randomised, the pattern is very hard to figure out,
-		// so the algorithms here is an educated guess based on statistics,
-		// an approximation of the patterns as seen on the real device, but not 100% accurate
+		// NOTE: the lifts and buckets are semi-randomised, the pattern is hard to figure out,
+		// so the algorithms here is an educated guess based on stats,
+		// an approximation of the patterns as seen on the real device, not 100% accurate
 		if (this.lcdgame.gametype == 1) {
 			// Game A, more predictable lift pattern
 			this.liftvars.chances = [3, 50-2-5-5, 50-2-5, 50-2, 50]; // lift-spaces probabilities GAME A
@@ -407,6 +400,7 @@ cementfactory.MainGame.prototype = {
 		
 		this.bucktimer.interval = 0.8 * msec;
 		this.bucktimer.start();
+		this.movebucket = 0; // keep bucket hatch open/close in sync with bucket movement
 	},
 
 	tryMoveMario: function(dir) {
@@ -437,8 +431,8 @@ cementfactory.MainGame.prototype = {
 
 			// move mario
 			this.mariopos = this.mariopos + move;
-			this.lcdgame.sequenceClear('mario');
-			this.lcdgame.sequenceSetPos('mario', this.mariopos, true);
+			this.lcdgame.sequenceClear("mario");
+			this.lcdgame.sequenceSetPos("mario", this.mariopos, true);
 
 			// move sound effect, only when moving left or right
 			if ( (dir == DIR_LEFT) || (dir == DIR_RIGHT) ) {
@@ -503,7 +497,7 @@ cementfactory.MainGame.prototype = {
 				// from hopper 1 to hopper 3
 				// from hopper 2 to hopper 4 etc.
 				this.doSpillCement(arm+2);
-				this.dropcement[arm-1] = ((this.lifttimer.counter) % 4);
+				this.dropcement[arm-1] = ((this.lifttimer.counter-1) % 4);
 				this.flowpoint = 1;
 				// bottom hoppers, score extra point
 				if (arm > 2) {
@@ -580,11 +574,14 @@ cementfactory.MainGame.prototype = {
 				// sound effect
 				this.lcdgame.playSoundEffect("miss_start");
 
-				// can fall from different three different heights; top or middle or crushed (=already at top or bottom)
-				this.miss_count = 1; // already at top/bottom crushed position
-				if (this.mariopos == 11 || this.mariopos == 12) this.miss_count = 2; // middle platform
-				if (this.mariopos ==  5 || this.mariopos ==  6) this.miss_count = 3; // top platform
-
+				// can fall from different heights
+				this.miss_count = 1; // assume already at top/bottom crushed position
+				if ( (this.mariopos > 0) || (this.mariopos < 18) ) {
+					if (this.mariopos >=  1) this.miss_count = 5; // top part (longest fall)
+					if (this.mariopos >=  3) this.miss_count = 4; // top platform
+					if (this.mariopos >=  9) this.miss_count = 3; // bottom platform
+					if (this.mariopos >= 15) this.miss_count = 2; // bottom part
+				};
 				break;
 			case WAIT_CEMENT_MISS:
 				this.waittimer.interval = 500;
@@ -592,10 +589,10 @@ cementfactory.MainGame.prototype = {
 				this.misses++;
 
 				// display overflow
-				this.lcdgame.sequenceSetPos('overflow1', 0, (this.miss_overflow == 1)); // top left
-				this.lcdgame.sequenceSetPos('overflow2', 0, (this.miss_overflow == 2)); // top right
-				this.lcdgame.sequenceSetPos('overflow1', 1, (this.miss_overflow == 3)); // bottom left
-				this.lcdgame.sequenceSetPos('overflow2', 1, (this.miss_overflow == 4)); // bottom right
+				this.lcdgame.sequenceSetPos("overflow1", 0, (this.miss_overflow == 1)); // top left
+				this.lcdgame.sequenceSetPos("overflow2", 0, (this.miss_overflow == 2)); // top right
+				this.lcdgame.sequenceSetPos("overflow1", 1, (this.miss_overflow == 3)); // bottom left
+				this.lcdgame.sequenceSetPos("overflow2", 1, (this.miss_overflow == 4)); // bottom right
 
 				// overflow remember just 1 or 2  (left or right)
 				this.miss_count = (this.miss_overflow == 1 || this.miss_overflow == 2 ? 2 : 1); // can fall from different heights (top or bottom overflow)
@@ -625,18 +622,18 @@ cementfactory.MainGame.prototype = {
 		switch(this.waitmode) {
 			case WAIT_LIFT_MISS:
 				t = t - this.miss_count;
-				
+
 				// bottom or top, or still falling
 				if ( (this.mariopos == 0) || (this.mariopos == 18) ) {
 					// at bottom or top
 					//blink
-					this.lcdgame.sequenceSetPos('mario', this.mariopos, (t % 2 == 0));
+					this.lcdgame.sequenceSetPos("mario", this.mariopos, (t % 2 != 0));
 				} else {
 					// clear mario
-					this.lcdgame.sequenceClear('mario');
+					this.lcdgame.sequenceClear("mario");
 					// move mario once place down
 					this.mariopos = this.mariopos + MoveCollide[this.mariopos].move[1];
-					this.lcdgame.sequenceSetPos('mario', this.mariopos, true);
+					this.lcdgame.sequenceSetPos("mario", this.mariopos, true);
 				};
 				
 				if (t == 1) {
@@ -647,15 +644,17 @@ cementfactory.MainGame.prototype = {
 				if (t < 6) {
 					// sound effect
 					this.lcdgame.playSoundEffect("miss_cont");
-				} else {
+				} else if (t == 6) {
 					// continue game, display misses
 					this.refreshMiss(this.misses);
 					// continue game
 					if (this.misses < 3) {
 						this.continueGame();
-					} else {
+					};
+				} else {
+					// NOTE: highscore pop-up will pause any update/sound so wait a short while between miss refresh and high score check
+					if (this.misses >= 3) {
 						// no move lives, game over
-						// NOTE: highscore pop-up will pause any update/sound so wait a short while between game over sound and high score check
 						this.doGameOver();
 					};
 				};
@@ -684,17 +683,21 @@ cementfactory.MainGame.prototype = {
 				if (t < 8) {
 					// sound effect
 					this.lcdgame.playSoundEffect("miss_cont");
-				} else {
+				} else if (t == 8) {
 					// display misses
 					this.refreshMiss(this.misses);
 					// continue game
 					if (this.misses < 3) {
 						this.continueGame();
-					} else {
+					};
+				} else if (t > 9) { // wait driver falls=visible
+					// NOTE: highscore pop-up will pause any update/sound so wait a short while between miss refresh and high score check
+					if (this.misses >= 3) {
 						// no move lives, game over
 						this.doGameOver();
 					};
-				};
+				};				
+
 				break;
 			case STATE_GAMEOVER:
 				if (this.miss_overflow != 0) {
@@ -702,7 +705,7 @@ cementfactory.MainGame.prototype = {
 					this.lcdgame.setShapeByName("driver_fall" + this.miss_overflow, ((t % 2) != 0));
 				} else {
 					// game over due to fall from lift
-					this.lcdgame.sequenceSetPos('mario', this.mariopos, (t % 2 == 0));
+					this.lcdgame.sequenceSetPos("mario", this.mariopos, (t % 2 == 0));
 				};
 				break;
 		};
@@ -788,9 +791,9 @@ cementfactory.MainGame.prototype = {
 				if (this.liftvars.pattern == 3) this.liftvars.wait1 = 2;
 				if (this.liftvars.pattern == 4) this.liftvars.wait1 = 4;
 		
-				//Report[repidx] = "" + this.liftvars.wait1;
 				if (this.liftvars.pattern == 0) this.liftvars.index1++;
 
+				// close semi random lift patern, back to normal pattern
 				if (this.liftvars.pattern != 0) {
 					this.liftvars.pattern = 0;
 				};
@@ -825,7 +828,6 @@ cementfactory.MainGame.prototype = {
 					if (r > this.liftvars.chances[3]) this.liftvars.pattern = 3; // right lift -> 4 spaces
 				};
 
-				// 
 				// normal (pattern == 0 or 2)
 				this.liftvars.wait2 = (this.liftvars.index2 % 2 == 0 ? 2 : 3);
 				// exceptions
@@ -833,7 +835,6 @@ cementfactory.MainGame.prototype = {
 				if (this.liftvars.pattern == 3) this.liftvars.wait2 = 4;
 				if (this.liftvars.pattern == 4) this.liftvars.wait2 = 2;
 
-				//Report[repidx] = "\t" + this.liftvars.wait2 + "\t pattern=" + pattern + "\tidx2=" + this.liftvars.index2;
 				if (this.liftvars.pattern == 0) this.liftvars.index2++;
 			};
 		};
@@ -877,7 +878,7 @@ cementfactory.MainGame.prototype = {
 				var cem = "cement_hopper" + s + "_1";
 				if (this.lcdgame.shapeVisible(cem) == false) {
 					this.lcdgame.setShapeByName(cem, true);
-					this.dropcement[s-1] = ((this.lifttimer.counter) % 4);
+					this.dropcement[s-1] = ((this.lifttimer.counter-1) % 4);
 					// check if hopper is full
 					this.checkFullWarning();
 				} else {
