@@ -5,7 +5,7 @@ simulators that can run in any browser. It is compatible with most modern
 browsers and several games are fully playable on pc's, laptops, mobile phones
 and tablets.
 
-The lcdgame.js library will be updated regularly bug fixes and possibly
+The lcdgame.js library could be updated with bug fixes or possibly
 additional game devices, so in that sense it remains work in progress.
 
 ![preview screenshot](/lcdgamejs_preview.jpg?raw=true "preview")
@@ -56,8 +56,8 @@ Phaser.js etc.
  
 Roadmap/goals
 -------------
-The lcdgame.js is work-in-progress, here is a goals checklist/roadmap of
-still missing features (~~strikethrough~~ is done).
+The lcdgame.js is largly finished, all the main features have been added, but here is a list of
+possible future improvements (~~strikethrough~~ is done).
 
 * ~~Open source~~
 * ~~Standardised interface and file structure~~
@@ -80,7 +80,7 @@ still missing features (~~strikethrough~~ is done).
 * Shapes editor, copy shape (for digit positions)
 * add key hints and/or tutorial elements (separate dom-elements?)
 * allow button/keys re-mapping
-* and of course, add more games ;)
+* add more games
 
 Simulation vs emulation
 -----------------------
@@ -98,7 +98,7 @@ device, including buttons and artwork, and not just the screen.
 
 History
 -------
-31-dec-2019 v0.3.4 added Cement Factory and small improvements  
+31-dec-2019 v0.3.4 added Cement Factory, minor fixes in GUI and highscores
 02-dec-2018 v0.3.3 added Jungle Kong, Eagle n Chicken, added highscore filter options   
 08-oct-2018 v0.3.2 added Donkey Kong II, Tom's Adventure, better browser compatibility   
 01-jul-2018 v0.3.1 menu, infobox, online highscores   
