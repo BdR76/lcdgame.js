@@ -22,8 +22,17 @@ mariobros.ClockMode = function(lcdgame) {
 }
 mariobros.ClockMode.prototype = {
 	init: function(){
+		// startup clear all
+		this.lcdgame.shapesDisplayAll(false);
+
 		// clock timer
 		this.demotimer = this.lcdgame.addtimer(this, this.onTimerDemo, 500);
+		
+		this.lcdgame.setShapeByName("truck", true);
+		
+		// demo positions
+		this.demoluigi = 1;
+		this.demomario = 1;
 
 		// start demo mode
 		this.demotimer.start();
@@ -54,7 +63,40 @@ mariobros.ClockMode.prototype = {
 	close: function() {
 	},
 
-	onTimerDemo: function() {
+	onTimerDemo: function(tmr) {
+		// update clock
+		this.updateclock();
+		
+		// random move up or down
+		var move = this.lcdgame.randomInteger(0, 1);
+		move = (move == 0 ? -1 : +1);
+		
+		// update demo animation
+		if (tmr.counter % 4 == 0) {
+			this.demoluigi = this.demoluigi + move;
+			if (this.demoluigi > 2) this.demoluigi = this.demoluigi - 2;
+			if (this.demoluigi < 0) this.demoluigi = this.demoluigi + 2;
+		}
+		if ((tmr.counter+2) % 4 == 0) {
+			this.demomario = this.demomario + move;
+			if (this.demomario > 2) this.demomario = this.demomario - 2;
+			if (this.demomario < 0) this.demomario = this.demomario + 2;
+		};
+		
+		// refresh luigi
+		this.lcdgame.sequenceClear("luigi_body");
+		this.lcdgame.sequenceClear("luigi_arms");
+		this.lcdgame.sequenceSetPos("luigi_body", this.demoluigi, true);
+		this.lcdgame.sequenceSetPos("luigi_arms", (this.demoluigi*2), true);
+		
+		// refresh mario
+		this.lcdgame.sequenceClear("mario_body");
+		this.lcdgame.sequenceClear("mario_arms");
+		this.lcdgame.sequenceSetPos("mario_body", this.demomario, true);
+		this.lcdgame.sequenceSetPos("mario_arms", (this.demomario*2), true);
+	},
+
+	updateclock: function() {
 		// get time as 12h clock with PM
 		var datenow = new Date();
 		//var str = datenow.toLocaleTimeString();
@@ -353,7 +395,7 @@ mariobros.MainGame.prototype = {
 			};
 
 			// TODO: random generator unknown, add cases more like the original game device
-			if (moveleft) {
+			if (!moveleft) {
 				this.caseadd--;
 				if (this.caseadd <= 0) {
 					// add new case
