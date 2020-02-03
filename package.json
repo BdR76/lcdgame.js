@@ -1,0 +1,34 @@
+{
+  "name": "lcdgame",
+  "version": "0.3.4",
+  "description": "LCD game library in html5/javascript, to recreate simulations of 80s Game & Watch by Nintendo and other electronic handheld games like Tandy, Sunwing, Mini Arcade etc.",
+  "main": "bin/lcdgame.js",
+  "bin": {
+    "lcdgame": "lcdgame - kopie (2).js"
+  },
+  "scripts": {
+    "minify": "uglifyjs bin/lcdgame.js --comments /^!/ --source-map --mangle --output bin/lcdgame.min.js",
+    "serve:local": "serve ./",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BdR76/lcdgame.js.git"
+  },
+  "keywords": [
+    "lcd",
+    "game",
+    "80s",
+    "handheld"
+  ],
+  "author": "Bas de Reuver <bdr1976@gmail.com>",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "bugs": {
+    "url": "https://github.com/BdR76/lcdgame.js/issues"
+  },
+  "homepage": "https://github.com/BdR76/lcdgame.js#readme",
+  "devDependencies": {
+    "serve": "^11.3.0",
+    "uglify-js": "^3.7.4"
+  }
+}

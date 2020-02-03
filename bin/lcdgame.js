@@ -1,4 +1,4 @@
-/* LCD game JavaScript library -- by BdR 2018 */
+/*! LCD game JavaScript library -- by BdR 2018 */
 
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
