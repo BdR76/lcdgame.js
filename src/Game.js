@@ -24,9 +24,9 @@ const Game = function (configfile, metadatafile) {
 	this.playtimestart = null;
 
 	this.soundmute = false;
-	
+
 	// site lock, enable for no hotlinking
-/*
+	/*
 	var domain = document.domain;
 	siteLock = false;
 	var siteLock = (domain.indexOf("bdrgames.nl") == -1);
@@ -60,9 +60,9 @@ const Game = function (configfile, metadatafile) {
 		this.imageShapes.attachEvent("error", this.onImageError.bind(this));
 	}
 
-// create canvas element and add to document
+	// create canvas element and add to document
 	var str =
-		MENU_HTML + 
+		MENU_HTML +
 		SCORE_HTML;
 
 	document.write(str);
@@ -72,10 +72,10 @@ const Game = function (configfile, metadatafile) {
 	this.scorebox = document.getElementById("scorebox");
 	this.infocontent = document.getElementById("infocontent");
 	this.scorecontent = document.getElementById("scorecontent");
-	
+
 	// get context of canvas element
 	this.context2d = this.canvas.getContext("2d");
-		
+
 	// state manager
 	this.state = new StateManager(this);
 
@@ -88,13 +88,13 @@ const Game = function (configfile, metadatafile) {
 	this.loadConfig(configfile);
 	metadatafile = (metadatafile || "metadata/gameinfo.json");
 	this.loadMetadata(metadatafile);
-	
+
 	// mouse or touch input
 	this._touchdevice = false;
 	//this._mousedevice = false
 
 	return this;
-}
+};
 
 Game.prototype = {
 	// -------------------------------------
@@ -118,7 +118,7 @@ Game.prototype = {
 	// load a game configuration file
 	// -------------------------------------
 	loadConfig: function(path) {
-		
+
 		var xhrCallback = function()
 		{
 			if (xhr.readyState === XMLHttpRequest.DONE) {
@@ -129,7 +129,7 @@ Game.prototype = {
 				}
 			}
 		};
-	
+
 		var xhr = new XMLHttpRequest();
 		xhr.onreadystatechange = xhrCallback.bind(this);
 
@@ -147,14 +147,14 @@ Game.prototype = {
 		// set images locations will trigger event onImageLoaded
 		this.imageBackground.src = data.imgback;
 		this.imageShapes.src = data.imgshapes;
-	
+
 		// add custom lcdgame.js properties for use throughout the library
 		for (var i = 0; i < this.gamedata.frames.length; i++) {
 
 			// add current/previous values to all shape objects
 			this.gamedata.frames[i].value = false;
 			this.gamedata.frames[i].valprev = false;
-			
+
 			// add type
 			this.gamedata.frames[i].type = "shape";
 		}
@@ -198,17 +198,17 @@ Game.prototype = {
 			// set max
 			var str = this.gamedata.digits[d].max || "";
 			if (str == "") {
-				for (var c = 0; c < this.gamedata.digits[d].locids.length; c++) { str += "8"} // for example "8888"
+				for (var c = 0; c < this.gamedata.digits[d].locids.length; c++) { str += "8";} // for example "8888"
 				this.gamedata.digits[d].max = str;
 			}
 		}
-		
+
 		// prepare buttons keycodes
 		for (var b=0; b < this.gamedata.buttons.length; b++) {
-		
+
 			// shape indexes
 			this.gamedata.buttons[b].ids = [];
-			
+
 			// button area
 			var xmin = 1e4;
 			var ymin = 1e4;
@@ -251,7 +251,7 @@ Game.prototype = {
 			}
 			this.gamedata.buttons[b].keycodes = this.determineKeyCodes(defkey);
 		}
-		
+
 		// fix overlaps in button touch areas
 		for (var b1=0; b1 < this.gamedata.buttons.length-1; b1++) {
 			for (var b2=b1+1; b2 < this.gamedata.buttons.length; b2++) {
@@ -267,7 +267,7 @@ Game.prototype = {
 					var yc1 = this.gamedata.buttons[b1].area.yc;
 					var xc2 = this.gamedata.buttons[b2].area.xc;
 					var yc2 = this.gamedata.buttons[b2].area.yc;
-					
+
 					// rectract to left, right, up, down
 					if ( Math.abs(xc1 - xc2) > Math.abs(yc1 - yc2) ) {
 						if (xc1 > xc2) { // b1 is to the right of b2
@@ -314,7 +314,7 @@ Game.prototype = {
 				}
 			}
 		};
-	
+
 		var xhr = new XMLHttpRequest();
 		xhr.onreadystatechange = xhrCallback.bind(this);
 
@@ -330,17 +330,17 @@ Game.prototype = {
 		str = str.replace(/\*.*?\*/g, function(foo){
 			return "<b>"+foo.slice(1, -1)+"</b>";
 		});
-		
+
 		// _italic_ => <i>italic</i>
 		str = str.replace(/\_.*?\_/g, function(foo){
 			return "<i>"+foo.slice(1, -1)+"</i>";
 		});
-		
+
 		// [button] => <btn>button</btn>
 		str = str.replace(/\[(?:(?!\[).)*?\](?!\()/g, function(foo){
 			return "<btn>"+foo.slice(1, -1)+"</btn>";
 		});
-		
+
 		// hyperlinks [url text](www.test.com) => <a href="http://www.test.com">url text</a>
 		str = str.replace(/(\[(?:(?!\[).)*?\])(\((?:(?!\().)*?\))/g, function(all, fst, sec, pos){
 			var url = sec.slice(1, -1);
@@ -348,7 +348,7 @@ Game.prototype = {
 			var txt = fst.slice(1, -1);
 			return '<a href="' + url + '">' + txt + '</a>';
 		});
-		
+
 		return str;
 	},
 
@@ -358,13 +358,13 @@ Game.prototype = {
 	onMetadataLoad: function(data) {
 		// load all from JSON data
 		this.metadata = data;
-		
+
 		// infobox content
 		var instr = this.tinyMarkDown(data.gameinfo.instructions.en);
 		this.infocontent.innerHTML = "<h1>How to play</h1><br/>" + instr;
 
 		// get info from metadata
-		var title = data.gameinfo.device.title
+		var title = data.gameinfo.device.title;
 		var gametypes = data.gameinfo.gametypes;
 		this.gametype = (typeof gametypes === "undefined" ? 0 : 1);
 
@@ -383,7 +383,7 @@ Game.prototype = {
 		// determine which is limiting factor for current window/frame size; width or height
 		var scrratio = window.innerWidth / window.innerHeight;
 		var imgratio = this.canvas.width / this.canvas.height;
-		
+
 		// determine screen/frame size
 		var w = this.canvas.width;
 		var h = this.canvas.height;
@@ -411,7 +411,7 @@ Game.prototype = {
 			this.canvas.style["margin-right"] = -xmargin+"px";
 			this.canvas.style["margin-top"] = "0px";
 		}
-		
+
 		// set canvas size
 		this.canvas.style.width = w+"px";
 		this.canvas.style.height = h+"px";
@@ -420,13 +420,13 @@ Game.prototype = {
 		this.canvas.style.display = "block";
 		this.canvas.style["touch-action"] = "none"; // no text select on touch
 		this.canvas.style["user-select"] = "none"; // no text select on touch
-		this.canvas.style["-webkit-tap-highlight-color"] = "rgba(0, 0, 0, 0)"; // not sure what this does 
-		
+		this.canvas.style["-webkit-tap-highlight-color"] = "rgba(0, 0, 0, 0)"; // not sure what this does
+
 		// center infobox
 		this.resizeInfobox(this.infobox);
 		this.resizeInfobox(this.scorebox);
 	},
-	
+
 	resizeInfobox: function(box) {
 
 		// set visible, else width height doesn't work
@@ -449,7 +449,7 @@ Game.prototype = {
 		box.style["margin-right"] = -xmargin+"px";
 		box.style["margin-top"] = ymargin+"px";
 		box.style["margin-bottom"] = -ymargin+"px";
-		
+
 		// reset visibility
 		box.style.display = "none";
 	},
@@ -461,26 +461,26 @@ Game.prototype = {
 		// no scrollbars
 		document.body.scrollTop = 0;
 		document.body.style.overflow = 'hidden';
-	
+
 		// initialise canvas
 		this.canvas.width = this.imageBackground.width;
 		this.canvas.height = this.imageBackground.height;
 
 		this.context2d.drawImage(this.imageBackground, 0, 0);
-		
+
 		// prepare sounds
 		for (var i=0; i < this.gamedata.sounds.length; i++) {
 			var strfile = this.gamedata.sounds[i].filename;
 			this.gamedata.sounds[i].audio = new Audio(strfile);
 			this.gamedata.sounds[i].audio.load();
 		}
-		
+
 		// mouse or touch input
 		//if (window.navigator.msPointerEnabled || window.navigator.pointerEnabled)
 		//{
 		//    this._mousedevice = true;
 		//};
-	
+
 		if ('ontouchstart' in document.documentElement || (window.navigator.maxTouchPoints && window.navigator.maxTouchPoints >= 1))
 		{
 			this._touchdevice = true;
@@ -494,7 +494,7 @@ Game.prototype = {
 			// keyboard
 			document.addEventListener("keydown", this.onkeydown.bind(this), false);
 			document.addEventListener("keyup",   this.onkeyup.bind(this), false);
-			
+
 			if (this._touchdevice) {
 				this.canvas.addEventListener("touchstart", this.ontouchstart.bind(this), false);
 				this.canvas.addEventListener("touchend",   this.ontouchend.bind(this), false);
@@ -514,7 +514,7 @@ Game.prototype = {
 
 		// center position
 		this.resizeCanvas();
-		
+
 		displayInfobox();
 
 		this.raf.start();
@@ -536,7 +536,7 @@ Game.prototype = {
 		var tim = new Timer(context, callback, ms, waitfirst);
 
 		this.timers.push(tim);
-		
+
 		return tim;
 	},
 
@@ -548,7 +548,7 @@ Game.prototype = {
 		}
 		this.timers = [];
 	},
-	
+
 	updateloop: function(timestamp) {
 
 		// check all timers
@@ -557,7 +557,7 @@ Game.prototype = {
 				this.timers[t].update(timestamp);
 			}
 		}
-		
+
 		// any shapes updates
 		if (this._refresh) {
 			this.shapesRefresh();
@@ -597,12 +597,12 @@ Game.prototype = {
 	},
 
 	playSoundEffect: function (name) {
-		
+
 		// device sound is not muted
 		if (!this.soundmute) {
 			// get sound index from name
 			var idx = this.soundIndexByName(name);
-			
+
 			// if sound exists
 			if (idx >= 0) {
 				// if sound is playing then stop it now
@@ -645,7 +645,7 @@ Game.prototype = {
 	setShapeByName: function(filename, value) {
 		// if called too soon
 		if (this.gamedata.frames) {
-			// find shape 
+			// find shape
 			for (var i = 0; i < this.gamedata.frames.length; i++) {
 				if (this.gamedata.frames[i].filename == filename) {
 					this.gamedata.frames[i].value = value;
@@ -657,13 +657,13 @@ Game.prototype = {
 		}
 		return false;
 	},
-	
+
 	setShapeByIdx: function(idx, value) {
 		this.gamedata.frames[idx].value = value;
 		this._refresh = true;
 		return true;
 	},
-	
+
 	sequenceIndexByName: function(name) {
 		if (this.gamedata.sequences) {
 			for (var i = 0; i < this.gamedata.sequences.length; i++) {
@@ -703,7 +703,7 @@ Game.prototype = {
 	sequenceShift: function(name, max) {
 		// example start [0] [1] [.] [3] [.] (.=off)
 		//        result [.] [1] [2] [.] [4]
-		
+
 		// get sequence index of name
 		var seqidx = this.sequenceIndexByName(name);
 
@@ -717,7 +717,7 @@ Game.prototype = {
 			// get shape indexes of adjacent shapes in this sequence
 			var shape1 = this.gamedata.sequences[seqidx].ids[i-1];
 			var shape2 = this.gamedata.sequences[seqidx].ids[i];
-			
+
 			// return value
 			if (i == (max-1)) ret = this.gamedata.frames[shape2].value;
 
@@ -730,7 +730,7 @@ Game.prototype = {
 
 		// refresh display
 		this._refresh = true;
-		
+
 		// return value, was the last value that was "shifted-out" true or false
 		return ret;
 	},
@@ -741,7 +741,7 @@ Game.prototype = {
 
 		// get sequence index of name
 		var seqidx = this.sequenceIndexByName(name);
-		
+
 		// min position is optional
 		if (typeof min === "undefined") min = 0;
 
@@ -778,7 +778,7 @@ Game.prototype = {
 			var seqidx = this.sequenceIndexByName(name);
 
 			// if pos is -1, then last last position
-			if (pos == -1) {pos = this.gamedata.sequences[seqidx].ids.length-1}
+			if (pos == -1) {pos = this.gamedata.sequences[seqidx].ids.length-1;}
 
 			// if pos out of bound of sequence array
 			if (pos < this.gamedata.sequences[seqidx].ids.length) {
@@ -793,7 +793,7 @@ Game.prototype = {
 	},
 
 	shapeVisible: function(name) {
-		// find shape 
+		// find shape
 		for (var i = 0; i < this.gamedata.frames.length; i++) {
 			if (this.gamedata.frames[i].filename == name) {
 				if (this.gamedata.frames[i].value == true) {
@@ -803,7 +803,7 @@ Game.prototype = {
 		}
 		return false;
 	},
-	
+
 	sequenceShapeVisible: function(name, pos) {
 		// get sequence
 		var seqidx = this.sequenceIndexByName(name);
@@ -820,8 +820,8 @@ Game.prototype = {
 			}
 		} else {
 			// if pos is -1, then last last position
-			if (pos == -1) {pos = this.gamedata.sequences[seqidx].ids.length-1}
-			
+			if (pos == -1) {pos = this.gamedata.sequences[seqidx].ids.length-1;}
+
 			// if pos out of bound of sequence array
 			if (pos < this.gamedata.sequences[seqidx].ids.length) {
 				// check if shape is visible (value==true)
@@ -885,7 +885,7 @@ Game.prototype = {
 				break;
 			}
 		}
-		
+
 		if (digidx == -1) {
 			console.log("** ERROR ** digitsDisplay('"+name+"') - digits not found.");
 			// if not found return -1
@@ -898,7 +898,7 @@ Game.prototype = {
 			// set value for first shape in sequence
 			var chridx = 0; // index of character in str
 			var firstid = 0; // index of id in shape ids
-			
+
 			// exception for right-align
 			if (rightalign == true) {
 				firstid = this.gamedata.digits[digidx].locids.length - str.length;
@@ -915,12 +915,12 @@ Game.prototype = {
 			// outcome should be
 			// placeholders [.] [4] [5] [6] [.]  (.=empty/invisible)
 			// firstid = index 1-^
-			
+
 			// adjust all shapes of digitplaceholders to display correct digits, and force them to refresh
 			for (var i=0; i < this.gamedata.digits[digidx].locids.length; i++) {
 				// shape of digitplaceholder
 				var locidx = this.gamedata.digits[digidx].locids[i];
-				
+
 				// make non-used digit placeholders invisible
 				if ( (i < firstid) || (chridx >= str.length) ) {
 					// make non-used digit placeholders invisible
@@ -929,10 +929,10 @@ Game.prototype = {
 					// 48 = ascii code for "0"
 					var digit = str.charCodeAt(chridx) - 48;
 
-					// check if valid digit				
+					// check if valid digit
 					if ( (digit >= 0) && (digit < this.gamedata.digits[digidx].ids.length) ) {
 						var digitshape = this.gamedata.digits[digidx].ids[digit]; // shape of digit
-						
+
 						// change the "from" part of the placeholder so it will draw the desired digit shape
 						this.gamedata.frames[locidx].frame.x = this.gamedata.frames[digitshape].frame.x;
 						this.gamedata.frames[locidx].frame.y = this.gamedata.frames[digitshape].frame.y;
@@ -952,26 +952,26 @@ Game.prototype = {
 			this._refresh = true;
 		}
 	},
-	
+
 	// -------------------------------------
-	// function for drawing and redrawing shapes 
+	// function for drawing and redrawing shapes
 	// -------------------------------------
 	shapesRefresh: function() {
 
 		// TODO: implement dirty rectangles?
 		// FOR NOW: simply redraw everything
-	
+
 		if (this.gamedata.frames) {
 			// redraw entire background (=inefficient)
 			this.context2d.drawImage(this.imageBackground, 0, 0);
-			
+
 			// add current/previous values to all shape objects
 			for (var i = 0; i < this.gamedata.frames.length; i++) {
 				if (this.gamedata.frames[i].value == true) {
 					this.shapeDraw(i);
 				}
 			}
-			
+
 			this.drawDebugText();
 
 			// debugging show button areas
@@ -985,7 +985,7 @@ Game.prototype = {
 		}
 		// display was refreshed
 		this._refresh = false;
-		
+
 	},
 
 	shapeDraw: function(index) {
@@ -1020,7 +1020,7 @@ Game.prototype = {
 			var x = 50;
 			var y = 50;
 
-			var lineheight = 15;		
+			var lineheight = 15;
 			var lines = this.debugtxt.split('\n');
 
 			for (var i = 0; i<lines.length; i++) {
@@ -1047,24 +1047,24 @@ Game.prototype = {
 
 		// add button keycodes
 		this.gamedata.buttons[maxidx] = {};
-		
+
 		// set values for button
 		this.gamedata.buttons[maxidx].name = name;
 		this.gamedata.buttons[maxidx].frames = framenames;
 		this.gamedata.buttons[maxidx].defaultkeys = defaultkeys;
-		
+
 		this.gamedata.buttons[maxidx].keycodes = this.determineKeyCodes(defaultkeys);
 	},
-		
+
 	determineKeyCodes: function(keyname) {
 		// variables
 		var result = [];
-		
+
 		// possibly more than 1 keyvariables
 		for (var i = 0; i < keyname.length; i++) {
 			var c = 0;
 			var k = keyname[i];
-			
+
 			// key code
 			k = k.toUpperCase();
 
@@ -1075,7 +1075,7 @@ Game.prototype = {
 			} else if (k.indexOf("END") > -1) {
 				c = 35;
 			} else if (k.indexOf("HOME") > -1) {
-				c = 36;		
+				c = 36;
 			} else if (k.indexOf("UP") > -1) {
 				c = 38;
 			} else if (k.indexOf("DOWN") > -1) {
@@ -1106,7 +1106,7 @@ Game.prototype = {
 			this.onmousedown(event.changedTouches[i]);
 		}
 	},
-	
+
 	ontouchend: function(evt) {
 		evt.preventDefault();
 
@@ -1158,10 +1158,10 @@ Game.prototype = {
 						var xdist = x - this.gamedata.buttons[i].area.x1 - xhalf;
 						var ydist = y - this.gamedata.buttons[i].area.y1 - yhalf;
 						if (Math.abs(xdist) < Math.abs(ydist)) {
-							// up or down
+						// up or down
 							btnidx = (ydist < 0 ? 0 : 1); // 0=up, 1=down
 						} else {
-							// left or right
+						// left or right
 							btnidx = (xdist < 0 ? 2 : 3); // 2=left, 3=right
 						}
 						break;
@@ -1175,12 +1175,12 @@ Game.prototype = {
 			}
 		}
 	},
-	
+
 	onmouseup: function(evt) {
 
 		var x = (evt.offsetX || evt.clientX - evt.target.offsetLeft);
 		var y = (evt.offsetY || evt.clientY - evt.target.offsetTop);
-		
+
 		//var x = evt.layerX;
 		//var y = evt.layerY;
 		var x = x / this.scaleFactor;
@@ -1210,17 +1210,17 @@ Game.prototype = {
 						btnidx = (x < this.gamedata.buttons[i].area.x1 + half ? 0 : 1);
 						break;
 					case "dpad":
-						// four direction button up/down/left/right
+					// four direction button up/down/left/right
 						var xhalf = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
 						var yhalf = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
 						// distance to center
 						var xdist = x - this.gamedata.buttons[i].area.x1 - xhalf;
 						var ydist = y - this.gamedata.buttons[i].area.y1 - yhalf;
 						if (Math.abs(xdist) < Math.abs(ydist)) {
-							// up or down
+						// up or down
 							btnidx = (ydist < 0 ? 0 : 1); // 0=up, 1=down
 						} else {
-							// left or right
+						// left or right
 							btnidx = (xdist < 0 ? 2 : 3); // 2=left, 3=right
 						}
 						break;
@@ -1248,7 +1248,7 @@ Game.prototype = {
 			}
 		}
 	},
-	
+
 	onkeyup: function(e) {
 		// get keycode
 		var keyCode = e.keyCode;
@@ -1262,7 +1262,7 @@ Game.prototype = {
 			}
 		}
 	},
-	
+
 	onButtonDown: function(btnidx, diridx) {
 		// pass input to game
 		var name = this.gamedata.buttons[btnidx].name;
@@ -1283,7 +1283,7 @@ Game.prototype = {
 		var idx = this.gamedata.buttons[btnidx].ids[diridx];
 		this.setShapeByIdx(idx, true);
 	},
-	
+
 	onButtonUp: function(btnidx, diridx) {
 		// TODO: visually update frame so key is in neutral position
 		for (var s=0; s < this.gamedata.buttons[btnidx].ids.length; s++) {
@@ -1318,7 +1318,7 @@ Game.prototype = {
 		if(typeof el.ongesturestart === "function"){
 			return true;
 		}else {
-			return false
+			return false;
 		}
 	}
 };

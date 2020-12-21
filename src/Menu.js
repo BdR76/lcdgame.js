@@ -1,7 +1,7 @@
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
-import { hideScorebox } from './Highscores'
+import { hideScorebox } from './Highscores';
 
 export const MENU_HTML =
 		'<div class="container">' +
@@ -27,7 +27,7 @@ export function hideInfobox() {
 	//var target = event.target || event.srcElement;
 	// filter event handling when the event bubbles
 	//if (event.currentTarget == target) {
-		document.getElementById("infobox").style.display = "none";
+	document.getElementById("infobox").style.display = "none";
 	//}
 }
 
@@ -39,7 +39,7 @@ const Menu = function (lcdgame, name) {
 	this.lcdgame = lcdgame;
 };
 
-Menu.displayInfobox = displayInfobox
-Menu.hideInfobox = hideInfobox
+Menu.displayInfobox = displayInfobox;
+Menu.hideInfobox = hideInfobox;
 
 export default Menu;

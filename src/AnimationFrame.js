@@ -47,7 +47,7 @@ AnimationFrame.prototype = {
 			window.requestAnimationFrame(this.animationLoop);
 		}
 	},
-	
+
 	updateAnimFrame: function (rafTime) {
 		// check if switch to pending new state
 		this.lcdgame.state.checkSwitch();
@@ -58,7 +58,7 @@ AnimationFrame.prototype = {
 
 		window.requestAnimationFrame(this.animationLoop);
 	},
-	
+
 	updateSetTimeout: function () {
 		// check if switch to pending new state
 		this.lcdgame.state.checkSwitch();
@@ -69,6 +69,6 @@ AnimationFrame.prototype = {
 		var ms = Math.floor(1000.0 / 60.0);
 		window.setTimeout(this.animationLoop, ms);
 	}
-}
+};
 
 export default AnimationFrame;

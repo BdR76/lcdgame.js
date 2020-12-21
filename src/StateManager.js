@@ -13,15 +13,15 @@ const StateManager = function (lcdgame) {
 
 StateManager.prototype = {
 
-   add: function (key, state) {
+	add: function (key, state) {
 		//state.game = this.game;
 		this.states[key] = new state(this.lcdgame);
 
 		this._pendingState = key;
-	
+
 		return state;
 	},
-	
+
 	start: function (key) {
 
 		this.lcdgame.cleartimers();

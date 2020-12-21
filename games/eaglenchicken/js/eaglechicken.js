@@ -21,7 +21,7 @@ eaglechicken.ClockMode = function(lcdgame) {
 	this.timemode;
 	this.chickenpos = 3;
 	this.eaglepos = 3;
-}
+};
 eaglechicken.ClockMode.prototype = {
 	init: function(){
 		// startup clear all
@@ -33,7 +33,7 @@ eaglechicken.ClockMode.prototype = {
 
 		// start demo mode
 		this.demotimer.start();
-		
+
 		var tmp = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 		for (var i = 0; i < 1000; i++) {
 			var r = this.lcdgame.randomInteger(1, 8);
@@ -45,12 +45,12 @@ eaglechicken.ClockMode.prototype = {
 				var x = this.lcdgame.randomInteger(0, 7);
 				if (x >= 4) r = 4; // 50% = 4
 				if (x == 0) r = 6; // 12,5% = 6
-			};
-			
+			}
+
 			tmp[r] = tmp[r] + 1;
-		};
+		}
 		console.log(tmp);
-		
+
 		var dropbit = 0;
 		var eaglepos = 2;
 		var eagledrop =  2; // b0101
@@ -65,21 +65,21 @@ eaglechicken.ClockMode.prototype = {
 		console.log("dropbit 2 =" + dropbit);
 		dropbit = (eagledrop >> 3) & 1;
 		console.log("dropbit 3 =" + dropbit);
-		
+
 		tmp = [];
 		for (var i = 0; i < 20; i++) {
 			// drop in current eagle pos, or two places ahead/behind, i.e. at 1&3 or at 2&4
 			var r = this.lcdgame.randomInteger(0, 1);
 			var pos = (eaglepos + (r * 2)) % 4;
 			tmp[i] = pos;
-		};
+		}
 		console.log("random positions");
 		console.log(tmp);
 	},
 
 	update: function() {
 	},
-	
+
 	press: function(btn) {
 		if (btn == "game") {
 			// cycle through modes
@@ -90,7 +90,7 @@ eaglechicken.ClockMode.prototype = {
 				this.lcdgame.setShapeByName("game_g2", false);
 				// pause animation
 				this.demotimer.unpause();
-			};
+			}
 
 			// display month+date
 			if (this.timemode == 1) this.updateClock();
@@ -105,14 +105,14 @@ eaglechicken.ClockMode.prototype = {
 				this.lcdgame.sequenceClear("eagle2");
 				this.lcdgame.sequenceClear("eagle3");
 				this.lcdgame.sequenceClear("eagle4");
-				
+
 				this.lcdgame.digitsDisplay("digits", "0", true);
 
 				// display G1 or G2
 				this.lcdgame.setShapeByName("game_g1", (this.timemode == 2));
 				this.lcdgame.setShapeByName("game_g2", (this.timemode == 3));
-			};
-		};
+			}
+		}
 
 		if (btn == "start") {
 			// start game G1
@@ -121,18 +121,18 @@ eaglechicken.ClockMode.prototype = {
 				this.lcdgame.state.states["gamemode1"].eaglepos   = this.eaglepos;
 				this.lcdgame.state.states["gamemode1"].chickenpos = this.chickenpos;
 				this.lcdgame.state.start("gamemode1");
-			};
-			
+			}
+
 			// start game G2
 			if (this.timemode == 3) {
 				// eagle and chicken pos the same between states
 				this.lcdgame.state.states["gamemode2"].eaglepos   = this.eaglepos;
 				this.lcdgame.state.states["gamemode2"].chickenpos = this.chickenpos;
 				this.lcdgame.state.start("gamemode2");
-			};
-		};
+			}
+		}
 	},
-		
+
 	close: function() {
 	},
 
@@ -163,7 +163,7 @@ eaglechicken.ClockMode.prototype = {
 				this.lcdgame.setShapeByName("time_pm", true);
 			} else {
 				if (ihours == 0) ihours = 12; // weird AM/PM time rule
-			};
+			}
 			// format hour and minute
 			str = ("  "+ihours).substr(-2) + ("00"+imin).substr(-2);
 
@@ -173,12 +173,12 @@ eaglechicken.ClockMode.prototype = {
 
 			// format hour and minute
 			str = ("  "+imonth).substr(-2) + ("  "+iday).substr(-2);
-		};
+		}
 
 		// display time
 		this.lcdgame.digitsDisplay("digits", str, false);
 	},
-	
+
 	updateDemo: function() {
 		// demo mode animations
 		var t = this.demotimer.counter;
@@ -190,11 +190,11 @@ eaglechicken.ClockMode.prototype = {
 		this.lcdgame.sequenceShift("eagle4");
 
 		this.eaglepos = (this.eaglepos + 1) % 4;
-		
+
 		// chicken always visible
-		
+
 		this.lcdgame.sequenceSetPos("chicken", this.chickenpos, true);
-		
+
 		// move big eagle
 		this.lcdgame.sequenceResetAll("eaglebig");
 		this.lcdgame.sequenceSetPos("eaglebig", this.eaglepos, true);
@@ -203,7 +203,7 @@ eaglechicken.ClockMode.prototype = {
 		var r = this.lcdgame.randomInteger(0, 3);
 		if (r == 0) this.lcdgame.sequenceSetFirst("eagle" + (this.eaglepos+1), true);
 	}
-}
+};
 
 
 // =============================================================================
@@ -211,18 +211,18 @@ eaglechicken.ClockMode.prototype = {
 // =============================================================================
 eaglechicken.GameMode1 = function(lcdgame) {
 	this.lcdgame = lcdgame;
-	
+
 	this.gametimer;
 	this.hittimer;
 	this.waittimer;
-		
+
 	this.gamestate;
 	this.chickenpos = 3;
 	this.eaglepos = 3;
 	this.misses;
 
 	this.winghits;
-}
+};
 eaglechicken.GameMode1.prototype = {
 	init: function() {
 		// start game mode
@@ -238,16 +238,16 @@ eaglechicken.GameMode1.prototype = {
 
 	update: function() {
 	},
-		
+
 	close: function() {
 	},
-	
+
 	press: function(btn) {
 		if (this.gamestate == STATE_PLAYING) {
 			if (btn == "left")  this.moveChicken(-1);
 			if (btn == "right") this.moveChicken(+1);
 		}
-		
+
 		if (this.gamestate == STATE_GAMEOVER) {
 			// restart game
 			if (btn == "start") {
@@ -255,7 +255,7 @@ eaglechicken.GameMode1.prototype = {
 				this.lcdgame.state.states[str].eaglepos   = this.eaglepos;
 				this.lcdgame.state.states[str].chickenpos = this.chickenpos;
 				this.lcdgame.state.start(str);
-			};
+			}
 			// back to clock
 			if (btn == "game") {
 				if (this.lcdgame.gametype == 1) {
@@ -276,15 +276,15 @@ eaglechicken.GameMode1.prototype = {
 					this.lcdgame.state.states["clock"].chickenpos = this.chickenpos;
 					this.lcdgame.state.start("clock");
 				}
-			};
-		};
+			}
+		}
 	},
-	
+
 	newGame: function() {
 		// reset game specific variables
 		this.lcdgame.gameReset(1);
 		this.lcdgame.setShapeByName("game_g"+this.lcdgame.gametype, true);
-		
+
 		// new game, reset variables
 		this.misses = 0;
 		this.winghits = [0, 0, 0, 0];
@@ -302,7 +302,7 @@ eaglechicken.GameMode1.prototype = {
 
 		this.continueGame();
 	},
-	
+
 	continueGame: function() {
 
 		this.gamestate = STATE_PLAYING;
@@ -312,7 +312,7 @@ eaglechicken.GameMode1.prototype = {
 		this.gametimer.start();
 		this.hittimer.start();
 	},
-	
+
 	onTimerHit: function() {
 
 		// animate eagle being hit, i=0 is left-most, i=3 is right-most
@@ -334,24 +334,24 @@ eaglechicken.GameMode1.prototype = {
 				if (t == 7) {
 					var p = (i+1);
 					this.lcdgame.setShapeByName("wings_"+p, false);
-				};
-			};
-		};
+				}
+			}
+		}
 	},
-	
+
 	onTimerGame: function() {
 		// demo mode animations
 		var t = this.gametimer.counter;
-		
+
 		// speed-up at 50 points
 		// Note: never played beyond 110 points, unknown if any speed-ups after 110 points
 		if (this.lcdgame.score >= 50) {
 			this.gametimer.interval = 375;
-		};
+		}
 
 		// next eagle position
 		this.eaglepos = (this.eaglepos + 1) % 4; // 0..3
-		
+
 		// move big eagle
 		this.lcdgame.sequenceResetAll("eaglebig");
 		this.lcdgame.sequenceSetPos("eaglebig", this.eaglepos, true);
@@ -369,10 +369,10 @@ eaglechicken.GameMode1.prototype = {
 				var x = this.lcdgame.randomInteger(0, 7);
 				if (x >= 4) r = 4; // 50% = 4
 				if (x == 0) r = 6; // 12,5% = 6
-			};
+			}
 			this.eagledrop = r;
-		};
-		
+		}
+
 		var hit1 = false;
 		var hit2 = false;
 
@@ -387,7 +387,7 @@ eaglechicken.GameMode1.prototype = {
 			if (hit1 || hit2) {
 				this.eagleHasLanded();
 				return;
-			};
+			}
 
 			// check hits
 			this.checkHitEagle(0);
@@ -401,12 +401,12 @@ eaglechicken.GameMode1.prototype = {
 			if (hit1 || hit2) {
 				this.eagleHasLanded();
 				return;
-			};
+			}
 
 			// check hits
 			this.checkHitEagle(1);
 			this.checkHitEagle(3);
-		};
+		}
 
 		// drop new semi-random eagles from big eagle
 		var dropbit = (this.eagledrop >> this.eaglepos) & 1;
@@ -415,13 +415,13 @@ eaglechicken.GameMode1.prototype = {
 			var r = this.lcdgame.randomInteger(0, 1);
 			var pos = (this.eaglepos + (r * 2)) % 4;
 			this.lcdgame.sequenceSetFirst("eagle" + (pos+1), true);
-		};
+		}
 	},
-	
+
 	onTimerWait: function() {
 
 		var t = this.waittimer.counter;
-		
+
 		switch (this.gamestate) {
 			case WAIT_LOSEANIM:
 				// continue game after 2,5s
@@ -429,7 +429,7 @@ eaglechicken.GameMode1.prototype = {
 					// remove eagle and update misses
 					this.lcdgame.setShapeByName("eagle_land", false);
 					this.updateMisses(1);
-						
+
 					// continue game
 					if (this.misses < 3) {
 						this.waittimer.pause();
@@ -437,8 +437,8 @@ eaglechicken.GameMode1.prototype = {
 					} else {
 						// no move lives, game over state and highscore
 						this.gamestate = STATE_GAMEOVER;
-					};
-				};
+					}
+				}
 				break;
 			case STATE_GAMEOVER:
 				// game over, check for highscore
@@ -446,7 +446,7 @@ eaglechicken.GameMode1.prototype = {
 				this.lcdgame.highscores.checkScore();
 
 				break;
-		};
+		}
 	},
 
 	moveChicken: function(step) {
@@ -464,15 +464,15 @@ eaglechicken.GameMode1.prototype = {
 		// check if hitting an eagle
 		this.checkHitEagle(this.chickenpos);
 	},
-	
+
 	checkHitEagle: function(pos) {
 		// check if last position of eagle is visible
 		if (pos == this.chickenpos) {
 			if (this.lcdgame.sequenceShapeVisible("eagle"+(pos+1), -1)) {
 				this.scorePoints(1);
 				this.winghits[pos] = 8; // animation counter
-			};
-		};
+			}
+		}
 	},
 
 	eagleHasLanded: function() {
@@ -487,31 +487,31 @@ eaglechicken.GameMode1.prototype = {
 
 	scorePoints: function(pts) {
 		// score points
-		this.lcdgame.score += pts
+		this.lcdgame.score += pts;
 		// display score
 		var d = this.lcdgame.score % 10000; // display 9999 max? haven't tried such highscores
 		this.lcdgame.digitsDisplay("digits", ""+d, true);
 	},
-	
+
 	updateMisses: function(m) {
 		this.misses = this.misses + m;
-		
+
 		this.lcdgame.setShapeByName("miss_1", (this.misses >= 1));
 		this.lcdgame.setShapeByName("miss_2", (this.misses >= 2));
 		this.lcdgame.setShapeByName("miss_3", (this.misses >= 3));
 	}
-}
+};
 
 // =============================================================================
 // game state for game mode 2
 // =============================================================================
 eaglechicken.GameMode2 = function(lcdgame) {
 	this.lcdgame = lcdgame;
-	
+
 	this.gametimer;
 	this.hittimer;
 	this.waittimer;
-		
+
 	this.gamestate;
 	this.chickenpos = 3;
 	this.eaglepos = 3;
@@ -523,7 +523,7 @@ eaglechicken.GameMode2 = function(lcdgame) {
 	this.misses;
 
 	this.winghits;
-}
+};
 eaglechicken.GameMode2.prototype = {
 	init: function() {
 		// start game mode
@@ -539,31 +539,31 @@ eaglechicken.GameMode2.prototype = {
 
 	update: function() {
 	},
-		
+
 	close: function() {
 	},
-	
+
 	press: function(btn) {
 		if (this.gamestate == STATE_PLAYING) {
 			if (btn == "left")  this.moveChicken(-1);
 			if (btn == "right") this.moveChicken(+1);
-		};
-			
+		}
+
 		if (this.gamestate == STATE_GAMEOVER) {
 			// restart game
 			if (btn == "start") {
 				this.lcdgame.state.start("gamemode2");
-			};
+			}
 			// back to clock
 			if (btn == "game") {
 				// eagle and chicken pos the same between states
 				this.lcdgame.state.states["clock"].eaglepos   = this.eaglepos;
 				this.lcdgame.state.states["clock"].chickenpos = this.chickenpos;
 				this.lcdgame.state.start("clock");
-			};
-		};
+			}
+		}
 	},
-	
+
 	newGame: function() {
 		//clear screen
 		this.lcdgame.shapesDisplayAll(false);
@@ -571,11 +571,11 @@ eaglechicken.GameMode2.prototype = {
 		// reset game specific variables
 		this.lcdgame.gameReset(2);
 		this.lcdgame.setShapeByName("game_g"+this.lcdgame.gametype, true);
-		
+
 		// new game, reset variables
 		this.misses = 0;
 		this.winghits = [0, 0, 0, 0];
-		
+
 		// move big eagle
 		this.lcdgame.sequenceSetPos("eaglebig", this.eaglepos, true);
 		this.lcdgame.sequenceSetPos("chicken",  this.chickenpos, true);
@@ -583,7 +583,7 @@ eaglechicken.GameMode2.prototype = {
 		// continue game
 		this.continueGame();
 	},
-	
+
 	continueGame: function() {
 
 		// reset seconds and misses 1/2/3
@@ -597,13 +597,13 @@ eaglechicken.GameMode2.prototype = {
 		//this.gametimer.start();
 		//this.sectimer.start();
 		//this.hittimer.start();
-		
+
 
 		// at start blink level nr
 		this.gamestate = WAIT_LEVELANIM;
 		this.waittimer.start();
 	},
-	
+
 	onTimerHit: function() {
 
 		// animate eagle being hit, i=0 is left-most, i=3 is right-most
@@ -625,9 +625,9 @@ eaglechicken.GameMode2.prototype = {
 				if (t == 7) {
 					var p = (i+1);
 					this.lcdgame.setShapeByName("wings_"+p, false);
-				};
-			};
-		};
+				}
+			}
+		}
 	},
 
 	onTimerSeconds: function() {
@@ -642,22 +642,22 @@ eaglechicken.GameMode2.prototype = {
 		} else {
 			this.seconds = this.seconds - 1;
 			this.refreshScoreSecs();
-		};
+		}
 	},
 
 	onTimerGame: function() {
 		// demo mode animations
 		var t = this.gametimer.counter;
-		
+
 		// speed-up at 50 points
 		// Note: never played beyond 110 points, unknown if any speed-ups after 110 points
 		if (this.lcdgame.score >= 50) {
 			this.gametimer.interval = 375;
-		};
+		}
 
 		// next eagle position
 		this.eaglepos = (this.eaglepos + 1) % 4; // 0..3
-		
+
 		// move big eagle
 		this.lcdgame.sequenceResetAll("eaglebig");
 		this.lcdgame.sequenceSetPos("eaglebig", this.eaglepos, true);
@@ -675,10 +675,10 @@ eaglechicken.GameMode2.prototype = {
 				var x = this.lcdgame.randomInteger(0, 7);
 				if (x >= 4) r = 4; // 50% = 4
 				if (x == 0) r = 6; // 12,5% = 6
-			};
+			}
 			this.eagledrop = r;
-		};
-		
+		}
+
 		var hit1 = false;
 		var hit2 = false;
 
@@ -693,7 +693,7 @@ eaglechicken.GameMode2.prototype = {
 			if (hit1 || hit2) {
 				this.eagleHasLanded();
 				return;
-			};
+			}
 
 			// check hits
 			this.checkHitEagle(0);
@@ -707,12 +707,12 @@ eaglechicken.GameMode2.prototype = {
 			if (hit1 || hit2) {
 				this.eagleHasLanded();
 				return;
-			};
+			}
 
 			// check hits
 			this.checkHitEagle(1);
 			this.checkHitEagle(3);
-		};
+		}
 
 		// drop new semi-random eagles from big eagle
 		var dropbit = (this.eagledrop >> this.eaglepos) & 1;
@@ -721,13 +721,13 @@ eaglechicken.GameMode2.prototype = {
 			var r = this.lcdgame.randomInteger(0, 1);
 			var pos = (this.eaglepos + (r * 2)) % 4;
 			this.lcdgame.sequenceSetFirst("eagle" + (pos+1), true);
-		};
+		}
 	},
-	
+
 	onTimerWait: function() {
 
 		var t = this.waittimer.counter;
-		
+
 		switch (this.gamestate) {
 			case WAIT_LEVELANIM:
 				// blink round nr
@@ -745,7 +745,7 @@ eaglechicken.GameMode2.prototype = {
 					this.sectimer.start();
 					this.hittimer.start();
 					this.refreshScoreSecs();
-				};
+				}
 				break;
 			case WAIT_ROOSTER:
 				// wait 2.50 sec then continue game
@@ -756,7 +756,7 @@ eaglechicken.GameMode2.prototype = {
 					this.gametimer.unpause();
 					this.sectimer.unpause();
 					this.hittimer.unpause();
-				};
+				}
 			case WAIT_RESETANIM:
 				// wait 2.50 sec then show score
 				if (t == 5) {
@@ -771,8 +771,8 @@ eaglechicken.GameMode2.prototype = {
 					if (this.misses >= 3) {
 						this.gamestate = STATE_GAMEOVER;
 						return;
-					};
-				};
+					}
+				}
 
 				// wait 1.50 sec remove eagles, remove miss nr123, remove rooster
 				if (t == 8) {
@@ -783,13 +783,13 @@ eaglechicken.GameMode2.prototype = {
 					this.lcdgame.sequenceClear("eagle4");
 					this.lcdgame.sequenceClear("miss123");
 					this.lcdgame.setShapeByName("rooster_alarm", false);
-				};
+				}
 
 				// wait 1.00 sec then continue next level
 				if (t == 10) {
 					this.continueGame();
-				};
-				
+				}
+
 				break;
 			case STATE_GAMEOVER:
 				// game over, check for highscore
@@ -797,7 +797,7 @@ eaglechicken.GameMode2.prototype = {
 				this.lcdgame.highscores.checkScore();
 
 				break;
-		};
+		}
 	},
 
 	moveChicken: function(step) {
@@ -815,7 +815,7 @@ eaglechicken.GameMode2.prototype = {
 		// check if hitting an eagle
 		this.checkHitEagle(this.chickenpos);
 	},
-	
+
 	checkHitEagle: function(pos) {
 		// check if last position of eagle is visible
 		if (pos == this.chickenpos) {
@@ -832,13 +832,13 @@ eaglechicken.GameMode2.prototype = {
 					this.gametimer.pause();
 					this.sectimer.pause();
 					this.hittimer.pause();
-					// 
+					//
 					this.gamestate = WAIT_ROOSTER;
 					this.waittimer.start();
-				};
+				}
 
-			};
-		};
+			}
+		}
 	},
 
 	eagleHasLanded: function() {
@@ -847,7 +847,7 @@ eaglechicken.GameMode2.prototype = {
 		this.lcdgame.setShapeByName("miss_no1", (this.miss123 == 1));
 		this.lcdgame.setShapeByName("miss_no2", (this.miss123 == 2));
 		this.lcdgame.setShapeByName("miss_no3", (this.miss123 >= 3));
-			
+
 		if (this.miss123 > 3) {
 			// pause game timers
 			this.gametimer.pause();
@@ -870,4 +870,4 @@ eaglechicken.GameMode2.prototype = {
 		this.lcdgame.digitsDisplay("digits", str, true);
 	}
 
-}
+};

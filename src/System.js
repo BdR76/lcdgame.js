@@ -6,7 +6,7 @@ export const LCDGAME_VERSION = "0.3.4";
 // namespace
 const LCDGame = window.LCDGame || {
 	loadsounds: null,
-	countimages: 0,	
+	countimages: 0,
 	// scale factor
 	scaleFactor: 1.0,
 	/**
@@ -52,5 +52,5 @@ const LCDGame = window.LCDGame || {
 	debugtxt: null
 };
 
-export default LCDGame
+export default LCDGame;
 

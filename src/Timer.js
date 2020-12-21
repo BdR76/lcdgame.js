@@ -7,13 +7,13 @@
 const Timer = function (context, callback, interval, waitfirst) {
 	// context of callback
 	this.context = context;
-	
+
 	// Event: Timer tick
 	this.callback = callback;
 
 	// frequency of the timer in milliseconds
 	this.interval = interval || 1000;
-	
+
 	// call callback instantly, or wait one pulse until calling callback
 	this.waitfirst = waitfirst;
 
@@ -29,13 +29,13 @@ const Timer = function (context, callback, interval, waitfirst) {
 	// Member variable: Hold interval id of the timer
 	this.timerId = 0;
 	this.lasttime = 0;
-}
+};
 
 Timer.prototype = {
 
 	// update each frame
 	update: function(timestamp) {
-	
+
 		//debugger;
 		var varname = this.callback.name;
 		//for (var key in this.context) {
@@ -46,9 +46,9 @@ Timer.prototype = {
 		//		};
 		//	};
 		//};
-		
+
 		var delta = timestamp - this.lasttime;
-		
+
 		// timer tick
 		if (delta >= this.interval) {
 			//console.log("LCDGame.Timer<"+varname+">.update() -> delta="+delta+" this.interval="+this.interval+" this.lasttime="+this.lasttime+" this.waitfirst="+this.waitfirst);
@@ -58,7 +58,7 @@ Timer.prototype = {
 			this.doTimerEvent();
 		}
 	},
-	
+
 	// local timer event of Timer-object
 	doTimerEvent: function() {
 		// keep track how many times event has fired

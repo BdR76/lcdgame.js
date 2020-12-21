@@ -29,14 +29,14 @@ searanger = function(lcdgame) {
 	this.gametimer = null;
 	this.buoytimer = null;
 	this.hittimer = null;
-}
+};
 
 // =====================================
 // clock state
 // =====================================
 searanger.ClockMode = function(lcdgame) {
 	this.lcdgame = lcdgame;
-}
+};
 searanger.ClockMode.prototype = {
 	init: function(){
 		// initialise all timers
@@ -49,13 +49,13 @@ searanger.ClockMode.prototype = {
 
 	update: function() {
 	},
-	
+
 	press: function(btn) {
 		if (btn == "mode") {
 			this.lcdgame.state.start("select");
-		};
+		}
 	},
-		
+
 	close: function() {
 	},
 
@@ -68,8 +68,8 @@ searanger.ClockMode.prototype = {
 			// only update road every whole second
 			this.lcdgame.setShapeByName("time_colon", true);
 			this.updateClock();
-		};
-		
+		}
+
 		// timer is on halve seconds, update shapes only on every whole second
 		if ( (this.demotimer.counter % 2) == 0) {
 			// shift all sequences
@@ -77,23 +77,23 @@ searanger.ClockMode.prototype = {
 			this.lcdgame.sequenceShift("shark");
 			this.lcdgame.sequenceShift("ship");
 			this.lcdgame.sequenceShift("bird");
-			
+
 			this.lcdgame.sequenceShift("mainguy");
 			this.lcdgame.sequenceShift("lifesaver");
-			
+
 			// add random new shapes
 			var r1 = this.lcdgame.randomInteger(1, 100); //1..100
 			var r2 = this.lcdgame.randomInteger(1, 100); //1..100
 			var r3 = this.lcdgame.randomInteger(1, 100); //1..100
 			var r4 = this.lcdgame.randomInteger(1, 100); //1..100
-			if (r1 < 25) {this.lcdgame.sequenceSetPos("coconut", 0, true)}; this.lcdgame.setShapeByName("monkey", (r1 < 25));
-			if (r2 < 25) {this.lcdgame.sequenceSetPos("shark", 0, true) };
-			if (r3 < 25) {this.lcdgame.sequenceSetPos("ship", 0, true) };
-			if (r4 < 25) {this.lcdgame.sequenceSetPos("bird", 0, true) };
+			if (r1 < 25) {this.lcdgame.sequenceSetPos("coconut", 0, true);} this.lcdgame.setShapeByName("monkey", (r1 < 25));
+			if (r2 < 25) {this.lcdgame.sequenceSetPos("shark", 0, true); }
+			if (r3 < 25) {this.lcdgame.sequenceSetPos("ship", 0, true); }
+			if (r4 < 25) {this.lcdgame.sequenceSetPos("bird", 0, true); }
 
-			if ( ( this.demotimer.counter    % 14) == 0) {this.lcdgame.sequenceSetPos("mainguy", 0, true) };
-			if ( ((this.demotimer.counter+10) % 14) == 0) {this.lcdgame.sequenceSetPos("lifesaver", 0, true) };
-		};
+			if ( ( this.demotimer.counter    % 14) == 0) {this.lcdgame.sequenceSetPos("mainguy", 0, true); }
+			if ( ((this.demotimer.counter+10) % 14) == 0) {this.lcdgame.sequenceSetPos("lifesaver", 0, true); }
+		}
 	},
 
 	updateClock: function() {
@@ -113,7 +113,7 @@ searanger.ClockMode.prototype = {
 		this.lcdgame.digitsDisplay("digits",     strtime, false);
 		this.lcdgame.digitsDisplay("digitsmall", strsec,  false);
 	}
-}
+};
 
 // =====================================
 // Selection state
@@ -122,7 +122,7 @@ searanger.SelectMode = function(lcdgame) {
 	this.lcdgame = lcdgame;
 	this.gamepro;
 	this.beeptimer;
-}
+};
 searanger.SelectMode.prototype = {
 	init: function(){
 		// refresh display
@@ -131,11 +131,11 @@ searanger.SelectMode.prototype = {
 		this.lcdgame.setShapeByName("waves", true);
 		this.lcdgame.setShapeByName("lifeguard", true);
 		this.lcdgame.setShapeByName("rock", true);
-		
+
 		// refresh display
 		this.lcdgame.digitsDisplay("digits", "000", true);
 		this.lcdgame.digitsDisplay("digitsmall", "4", true);
-		
+
 		// initialise
 		this.lcdgame.setShapeByName("pro1", true);
 		this.gamepro = 1;
@@ -146,42 +146,42 @@ searanger.SelectMode.prototype = {
 
 	update: function() {
 	},
-	
+
 	press: function(btn) {
 		if (btn == "mode") {
 			this.lcdgame.setShapeByName("pro1", false);
 			this.lcdgame.setShapeByName("pro2", false);
 			this.lcdgame.state.start("clock");
-		};
+		}
 		if (btn == "game") {
 			this.gamepro = 3 - this.gamepro; // 1..2
 
 			// refresh shapes
 			this.lcdgame.setShapeByName("pro1", (this.gamepro==1));
 			this.lcdgame.setShapeByName("pro2", (this.gamepro==2));
-		};
+		}
 		if (btn == "start") {
 			// show highscore and beep
 			var sc = this.lcdgame.highscores.getHighscore(this.gamepro);
 			this.lcdgame.digitsDisplay("digits", ""+sc, true);
 			this.beeptimer.start();
-		};
+		}
 	},
-	
+
 	release: function(btn) {
 		if (btn == "start") {
 			this.lcdgame.state.states["maingame"].gamepro = this.gamepro;
 			this.lcdgame.state.start("maingame");
-		};
+		}
 	},
-	
+
 	onTimerBeep: function(tmr) {
 		this.lcdgame.playSoundEffect("beepbeep"); // "lose"
 	},
 
 	close: function() {
 	},
-}
+};
 
 // =====================================
 // main game state
@@ -190,7 +190,7 @@ searanger.MainGame = function(lcdgame) {
 	this.lcdgame = lcdgame;
 	this.gamestate = 0;
 	this.gamepro;
-}
+};
 searanger.MainGame.prototype = {
 	init: function(){
 
@@ -203,7 +203,7 @@ searanger.MainGame.prototype = {
 		this.lcdgame.shapesDisplayAll(false);
 		this.lcdgame.setShapeByName("lifeguard", true);
 		this.lcdgame.setShapeByName("rock", true);
-		
+
 		this.lcdgame.setShapeByName("pro1", (this.gamepro==1));
 		this.lcdgame.setShapeByName("pro2", (this.gamepro==2));
 
@@ -221,9 +221,9 @@ searanger.MainGame.prototype = {
 		this.resetGuy();
 
 		this.gamestate = STATE_GAMEPLAY;
-		
+
 		// timers/pulse generators
-		
+
 		// start hazards moving
 		this.gametimer.interval = (this.gamepro==1 ? 250 : 125);
 		this.gametimer.start();
@@ -232,17 +232,17 @@ searanger.MainGame.prototype = {
 
 	update: function() {
 	},
-		
+
 	close: function() {
 	},
-	
+
 	press: function(btn) {
 		if (this.gamestate == STATE_GAMEPLAY) {
 			if (btn == "left") this.moveGuy(-1);
 			if (btn == "right") this.moveGuy(+1);
 		}
 	},
-	
+
 	onTimerGame: function() {
 
 		// random shapes
@@ -262,7 +262,7 @@ searanger.MainGame.prototype = {
 			this.lcdgame.playSoundEffect(str);
 			// reset guy
 			this.resetGuy();
-		};
+		}
 
 		// waves animation
 		var waves = (this.gametimer.counter + this.waveoffset) % 8;
@@ -274,7 +274,7 @@ searanger.MainGame.prototype = {
 		if (waves == 4) this.lcdgame.setShapeByName("sharkaway1", false);
 		if (waves == 5) this.lcdgame.setShapeByName("sharkaway2", false);
 		if (waves == 5) this.lcdgame.setShapeByName("monkey", false);
-		
+
 		// each timer update a different hazard
 		var frame = this.gametimer.counter % 4;
 
@@ -284,10 +284,10 @@ searanger.MainGame.prototype = {
 		if (frame == 1) seq = "ship";
 		if (frame == 2) seq = "shark";
 		if (frame == 3) seq = "bird";
-		
+
 		// check if hit or avoid
 		var pulse = 0;
-		
+
 		// check if hit or avoid
 		var hit = false;
 		var last = this.lcdgame.sequenceShapeVisible(seq, -1);
@@ -301,9 +301,9 @@ searanger.MainGame.prototype = {
 				this.avoid = (this.avoid + 1) % 3;
 				if (this.avoid == 0) {
 					pulse = 2;
-				};
-			};
-		};
+				}
+			}
+		}
 
 		// sound effect
 		if (pulse == 2) {
@@ -314,9 +314,9 @@ searanger.MainGame.prototype = {
 			// tick sound effect, only if any shape is visible in moving sequence
 			if (this.lcdgame.sequenceShapeVisible(seq)) {
 				pulse = 1;
-			};
-		};
-		
+			}
+		}
+
 		// shift sequences
 		this.lcdgame.sequenceShift(seq);
 
@@ -324,16 +324,16 @@ searanger.MainGame.prototype = {
 		if (frame == 0) this.randevt = this.lcdgame.randomInteger(0, 14);
 		if (this.lcdgame.score < 100) {
 			if (this.randevt <= 4) this.randevt = 0;
-		};
+		}
 		if (this.lcdgame.score < 600) {
 			if ( (this.randevt == 7) || (this.randevt >= 12) ) this.randevt = 0;
-		};
+		}
 
 		// add shape if corresponding bit is set to 1
 		if ((this.randevt & (8 >> frame)) > 0) {
 			this.lcdgame.sequenceSetPos(seq, 0, true);
 			if (pulse == 0) pulse = 1;
-		};
+		}
 
 		// check if player hit
 		if (hit) {
@@ -349,19 +349,19 @@ searanger.MainGame.prototype = {
 		} else {
 			// pulse tick sound effect when any hazard in play or added to play
 			if (pulse == 1) this.lcdgame.playSoundEffect("pulse");
-		};
+		}
 	},
-	
+
 	onTimerBuoy: function() {
 		// lifesaver appears exactly every 8 seconds
 		// 0.0s = lifesaver first throw position
 		// 0.5s = lifesaver second throw position
 		// 1.0s = lifesaver lowest position
 		// 4.5s = lifesaver disappears
-		// 8.0s = lifesaver first throw position 
+		// 8.0s = lifesaver first throw position
 		// etc.
 		var frame = this.buoytimer.counter % 16;
-		
+
 		switch (frame) {
 			case 1:
 				this.lcdgame.sequenceClear("lifesaver");
@@ -381,7 +381,7 @@ searanger.MainGame.prototype = {
 				this.lcdgame.setShapeByName("rock", true);
 				this.lifebuoy = false;
 				break;
-		};
+		}
 	},
 
 	onTimerHit: function() {
@@ -406,20 +406,20 @@ searanger.MainGame.prototype = {
 					this.buoytimer.pause();
 					this.lcdgame.highscores.checkScore();
 					this.lcdgame.state.start("select");
-				};
+				}
 				break;
-		};
+		}
 	},
 
 	moveGuy: function(step) {
 		// assume move is valid
 		var valid = true;
-		
+
 		if (step < 0) {
 			// move left, cannot move back onto island, or from ship back in to water
 			if ( (this.guypos < 2) || (this.guypos > 4) ) {
 				valid = false;
-			};
+			}
 		} else {
 			// move right
 			if (this.guypos > 4) {
@@ -427,17 +427,17 @@ searanger.MainGame.prototype = {
 			} else if (this.guypos == 4) {
 				// onto ship, only when lifesaver
 				valid = this.lifebuoy;
-			};
-		};
-		
+			}
+		}
+
 		if (valid) {
 			// update position
 			this.guypos = this.guypos + step;
 			this.lcdgame.sequenceClear("mainguy");
 			this.lcdgame.sequenceSetPos("mainguy",  this.guypos, true);
-		};
+		}
 	},
-	
+
 	resetGuy: function() {
 		// reset guy
 		this.guypos = 0;
@@ -455,17 +455,17 @@ searanger.MainGame.prototype = {
 		if ( (sc1 < 200) && (sc2 >= 200) ) {
 			this.updateLives(+1);
 			wait = true;
-		};
+		}
 		// pass 500 points, bonus life and speed up
 		if ( (sc1 < 500) && (sc2 >= 500) ) {
 			this.updateLives(+1);
 			this.gametimer.interval = 125;
 			wait = true;
-		};
+		}
 		// pass 1000 points, slow down again
 		if (sc1 > sc2) {
 			this.gametimer.interval = (this.gamepro==1 ? 250 : 125);
-		};
+		}
 		this.lcdgame.score += pts;
 		// display score
 		var str = ("000"+this.lcdgame.score).slice(-3);
@@ -475,12 +475,12 @@ searanger.MainGame.prototype = {
 			// switch to wait 3 seconds
 			this.gametimer.pause();
 			this.hittimer.start(12);
-		};
+		}
 	},
-	
+
 	updateLives: function(a) {
 		this.lives = this.lives + a;
 		if (this.lives > 9) this.lives = 9; // limit to max 9 lives
 		this.lcdgame.digitsDisplay("digitsmall", ""+this.lives, true);
 	}
-}
+};
