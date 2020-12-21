@@ -4,7 +4,7 @@
 // -------------------------------------
 // pulse timer object
 // -------------------------------------
-LCDGame.Timer = function (context, callback, interval, waitfirst) {
+const Timer = function (context, callback, interval, waitfirst) {
 	// context of callback
 	this.context = context;
 	
@@ -30,8 +30,8 @@ LCDGame.Timer = function (context, callback, interval, waitfirst) {
 	this.timerId = 0;
 	this.lasttime = 0;
 }
-	
-LCDGame.Timer.prototype = {
+
+Timer.prototype = {
 
 	// update each frame
 	update: function(timestamp) {
@@ -100,3 +100,5 @@ LCDGame.Timer.prototype = {
 		this.enabled = true;
 	}
 };
+
+export default Timer;

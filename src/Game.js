@@ -1,10 +1,17 @@
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
+import { LCDGAME_VERSION } from './System';
+import { MENU_HTML, displayInfobox } from './Menu';
+import HighScores, { SCORE_HTML } from './Highscores';
+import AnimationFrame from './AnimationFrame';
+import StateManager from './StateManager';
+import Timer from './Timer';
+
 // -------------------------------------
 // game object
 // -------------------------------------
-LCDGame.Game = function (configfile, metadatafile) {
+const Game = function (configfile, metadatafile) {
 
 	this.gamedata = [];
 	this.imageBackground = null;
@@ -70,10 +77,10 @@ LCDGame.Game = function (configfile, metadatafile) {
 	this.context2d = this.canvas.getContext("2d");
 		
 	// state manager
-	this.state = new LCDGame.StateManager(this);
-	
+	this.state = new StateManager(this);
+
 	// request animation frame
-	this.raf = new LCDGame.AnimationFrame(this);
+	this.raf = new AnimationFrame(this);
 
 	this.timers = [];
 
@@ -89,7 +96,7 @@ LCDGame.Game = function (configfile, metadatafile) {
 	return this;
 }
 
-LCDGame.Game.prototype = {
+Game.prototype = {
 	// -------------------------------------
 	// background ans shapes images loaded
 	// -------------------------------------
@@ -362,7 +369,7 @@ LCDGame.Game.prototype = {
 		this.gametype = (typeof gametypes === "undefined" ? 0 : 1);
 
 		// highscores
-		this.highscores = new LCDGame.HighScores(this, title, gametypes);
+		this.highscores = new HighScores(this, title, gametypes);
 		this.highscores.init(this.gametype);
 	},
 
@@ -526,8 +533,8 @@ LCDGame.Game.prototype = {
 		if (typeof waitfirst === "undefined") waitfirst = true;
 
 		// add new timer object
-		var tim = new LCDGame.Timer(context, callback, ms, waitfirst);
-		
+		var tim = new Timer(context, callback, ms, waitfirst);
+
 		this.timers.push(tim);
 		
 		return tim;
@@ -1316,9 +1323,4 @@ LCDGame.Game.prototype = {
 	}
 };
 
-// -------------------------------------
-// beats per minute to milliseconds, static helper function
-// -------------------------------------
-LCDGame.BPMToMillSec = function (bpm) {
-	return (60000 / bpm);
-}
+export default Game;

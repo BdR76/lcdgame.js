@@ -1,7 +1,7 @@
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
-LCDGame.State = function () {
+const State = function () {
 
 	this.lcdgame = null;
 	this.key = ""; // state name
@@ -9,7 +9,7 @@ LCDGame.State = function () {
 	this.statemanager = null;
 };
 
-LCDGame.State.prototype = {
+State.prototype = {
 	// additional methods, can implemented by each state
 	init: function () {
 	},
@@ -30,4 +30,6 @@ LCDGame.State.prototype = {
 	}
 };
 
-LCDGame.State.prototype.constructor = LCDGame.State;
+State.prototype.constructor = State;
+
+export default State;

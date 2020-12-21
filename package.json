@@ -4,9 +4,9 @@
 	"description": "LCD game library in html5/javascript, to recreate simulations of 80s Game & Watch by Nintendo and other electronic handheld games like Tandy, Sunwing, Mini Arcade etc.",
 	"main": "bin/lcdgame.min.js",
 	"scripts": {
-		"lint": "eslint src --ext .js",
+		"build": "esbuild src/index.js --bundle  --banner=\"/*! LCD game JavaScript library -- by BdR 2018 */\" --minify --sourcemap --target=es2020 --outfile=bin/lcdgame.min.js",
+		"lint": "eslint games src --ext .js",
 		"lint:fix": "npm run lint -- --fix",
-		"minify": "uglifyjs bin/lcdgame.js --comments /^!/ --source-map --mangle --output bin/lcdgame.min.js",
 		"serve:local": "serve ./",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
@@ -27,8 +27,8 @@
 	},
 	"homepage": "https://github.com/BdR76/lcdgame.js#readme",
 	"devDependencies": {
+		"esbuild": "^0.8.26",
 		"eslint": "^7.16.0",
-		"serve": "^11.3.0",
-		"uglify-js": "^3.7.4"
+		"serve": "^11.3.0"
 	}
 }

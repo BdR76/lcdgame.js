@@ -1,7 +1,10 @@
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
-var SCORE_HTML = 
+import { LCDGAME_VERSION } from './System';
+import { hideInfobox } from './Menu'
+
+export const SCORE_HTML =
 		'<div class="infobox" id="scorebox">' +
 		'  <div id="scoreheader">' +
 		'  </div>' +
@@ -10,18 +13,18 @@ var SCORE_HTML =
 		'  </div>' +
 		'  <a class="mybutton btnnext" id="btnprev" data-direction="-1">&lt;&lt;</a>' +
 		'  <a class="mybutton btnnext" id="btnnext" data-direction="+1">&gt;&gt;</a>' +
-		'  <a class="mybutton btnpop" onclick="hideScorebox();">Ok</a>' +
+		'  <a class="mybutton btnpop" onclick="LCDGame.HighScores.hideScorebox();">Ok</a>' +
 		'</div>';
 		
 var HS_URL = "http://bdrgames.nl/lcdgames/testphp/";
 
-function displayScorebox() {
+export function displayScorebox() {
 	hideInfobox();
 	document.getElementById("scorebox").style.display = "inherit";
 	//event.stopPropagation(); // stop propagation on button click event
 }
 
-function hideScorebox() {
+export function hideScorebox() {
 	//var target = event.target || event.srcElement;
 	// filter event handling when the event bubbles
 	//if (event.currentTarget == target) {
@@ -34,7 +37,7 @@ function hideScorebox() {
 // -------------------------------------
 var RANKS_PER_PAGE = 10;
 
-LCDGame.HighScores = function (lcdgame, gametitle, gametypes) {
+const HighScores = function (lcdgame, gametitle, gametypes) {
 	// save reference to game objects
 	this.lcdgame = lcdgame;
 
@@ -49,7 +52,10 @@ LCDGame.HighScores = function (lcdgame, gametitle, gametypes) {
 	this._scoretype = 0;
 };
 
-LCDGame.HighScores.prototype = {
+HighScores.displayScorebox = displayScorebox
+HighScores.hideScorebox = hideScorebox
+
+HighScores.prototype = {
 
 	init: function (tp) {
 		// hook event to prev next buttons
@@ -562,3 +568,4 @@ LCDGame.HighScores.prototype = {
 };
 
 //LCDGame.HighScores.prototype.constructor = LCDGame.HighScores;
+export default HighScores;

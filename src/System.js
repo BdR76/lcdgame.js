@@ -1,10 +1,10 @@
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
-var LCDGAME_VERSION = "0.3.4";
+export const LCDGAME_VERSION = "0.3.4";
 
 // namespace
-var LCDGame = LCDGame || {
+const LCDGame = window.LCDGame || {
 	loadsounds: null,
 	countimages: 0,	
 	// scale factor
@@ -51,4 +51,6 @@ var LCDGame = LCDGame || {
 	context2d: null,
 	debugtxt: null
 };
+
+export default LCDGame
 

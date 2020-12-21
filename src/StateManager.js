@@ -4,14 +4,14 @@
 // -------------------------------------
 // the state manager
 // -------------------------------------
-LCDGame.StateManager = function (lcdgame) {
+const StateManager = function (lcdgame) {
 	this.lcdgame = lcdgame;
 	this._currentState = "";
 	this._pendingState = "";
 	this.states = {}; // hold all states
 };
 
-LCDGame.StateManager.prototype = {
+StateManager.prototype = {
 
    add: function (key, state) {
 		//state.game = this.game;
@@ -51,3 +51,5 @@ LCDGame.StateManager.prototype = {
 	}
 
 };
+
+export default StateManager;

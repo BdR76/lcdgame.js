@@ -4,8 +4,8 @@
 // -------------------------------------
 // button object
 // -------------------------------------
-LCDGame.Button = function (lcdgame, name) {
-	// save reference to game object 
+const Button = function (lcdgame, name) {
+	// save reference to game object
 	this.lcdgame = lcdgame;
 	this.name = name;
 	this.keycodes = [];
@@ -23,3 +23,4 @@ LCDGame.Button = function (lcdgame, name) {
 
 };
 
+export default Button;

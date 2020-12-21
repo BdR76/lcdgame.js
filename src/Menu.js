@@ -1,27 +1,29 @@
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
-var MENU_HTML = 
+import { hideScorebox } from './Highscores'
+
+export const MENU_HTML =
 		'<div class="container">' +
 		'  <canvas id="mycanvas" class="gamecvs"></canvas>' +
-		'  <a class="mybutton btnmenu" onclick="displayInfobox();">help</a>' +
-		'  <a class="mybutton btnmenu" onclick="displayScorebox();">highscores</a>' +
+		'  <a class="mybutton btnmenu" onclick="LCDGame.Menu.displayInfobox();">help</a>' +
+		'  <a class="mybutton btnmenu" onclick="LCDGame.HighScores.displayScorebox();">highscores</a>' +
 		'  <div class="infobox" id="infobox">' +
 		'    <div id="infocontent">' +
 		'      instructions' +
 		'    </div>' +
-		'    <a class="mybutton btnpop" onclick="hideInfobox();">Ok</a>' +
+		'    <a class="mybutton btnpop" onclick="LCDGame.Menu.hideInfobox();">Ok</a>' +
 		'  </div>' +
 		'</div>';
 
 
-function displayInfobox() {
+export function displayInfobox() {
 	hideScorebox();
 	document.getElementById("infobox").style.display = "inherit";
 	//event.stopPropagation(); // stop propagation on button click event
 }
 
-function hideInfobox() {
+export function hideInfobox() {
 	//var target = event.target || event.srcElement;
 	// filter event handling when the event bubbles
 	//if (event.currentTarget == target) {
@@ -32,8 +34,12 @@ function hideInfobox() {
 // -------------------------------------
 // menu overlay object
 // -------------------------------------
-LCDGame.Menu = function (lcdgame, name) {
-	// save reference to game object 
+const Menu = function (lcdgame, name) {
+	// save reference to game object
 	this.lcdgame = lcdgame;
 };
 
+Menu.displayInfobox = displayInfobox
+Menu.hideInfobox = hideInfobox
+
+export default Menu;
