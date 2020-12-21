@@ -51,7 +51,7 @@ LCDGame.Game = function (configfile, metadatafile) {
 		this.imageBackground.attachEvent("error", this.onImageError.bind(this));
 		this.imageShapes.attachEvent("load", this.onImageLoaded.bind(this));
 		this.imageShapes.attachEvent("error", this.onImageError.bind(this));
-	};
+	}
 
 // create canvas element and add to document
 	var str =
@@ -99,7 +99,7 @@ LCDGame.Game.prototype = {
 		// check if both background and shapes images were loaded
 		if (this.countimages >= 2) {
 			this.initGame();
-		};
+		}
 	},
 
 	onImageError: function() {
@@ -150,7 +150,7 @@ LCDGame.Game.prototype = {
 			
 			// add type
 			this.gamedata.frames[i].type = "shape";
-		};
+		}
 
 		// prepare sequences
 		for (var s = 0; s < this.gamedata.sequences.length; s++) {
@@ -162,8 +162,8 @@ LCDGame.Game.prototype = {
 				var filename = this.gamedata.sequences[s].frames[f];
 				var idx = this.shapeIndexByName(filename);
 				this.gamedata.sequences[s].ids.push(idx);
-			};
-		};
+			}
+		}
 
 		// prepare digits
 		for (var d = 0; d < this.gamedata.digits.length; d++) {
@@ -179,22 +179,22 @@ LCDGame.Game.prototype = {
 				// set shape types
 				if (idx != -1) {
 					this.gamedata.frames[idx].type = "digit";
-				};
-			};
+				}
+			}
 
 			// find all digit locations
 			for (var l = 0; l < this.gamedata.digits[d].locations.length; l++) {
 				var filename = this.gamedata.digits[d].locations[l];
 				var idx = this.shapeIndexByName(filename);
 				this.gamedata.digits[d].locids.push(idx);
-			};
+			}
 			// set max
 			var str = this.gamedata.digits[d].max || "";
 			if (str == "") {
-				for (var c = 0; c < this.gamedata.digits[d].locids.length; c++) { str += "8"}; // for example "8888"
+				for (var c = 0; c < this.gamedata.digits[d].locids.length; c++) { str += "8"} // for example "8888"
 				this.gamedata.digits[d].max = str;
 			}
-		};
+		}
 		
 		// prepare buttons keycodes
 		for (var b=0; b < this.gamedata.buttons.length; b++) {
@@ -221,7 +221,7 @@ LCDGame.Game.prototype = {
 				if (spr.y < ymin)         ymin = spr.y;
 				if (spr.x + spr.w > xmax) xmax = spr.x + spr.w;
 				if (spr.y + spr.h > ymax) ymax = spr.y + spr.h;
-			};
+			}
 
 			// typically buttons are small, so make size of touch area 3x as big
 			var wh = (xmax - xmin);
@@ -241,16 +241,16 @@ LCDGame.Game.prototype = {
 			var defkey = this.gamedata.buttons[b].name;
 			if (typeof this.gamedata.buttons[b].defaultkeys !== "undefined") {
 				defkey = this.gamedata.buttons[b].defaultkeys;
-			};
+			}
 			this.gamedata.buttons[b].keycodes = this.determineKeyCodes(defkey);
-		};
+		}
 		
 		// fix overlaps in button touch areas
 		for (var b1=0; b1 < this.gamedata.buttons.length-1; b1++) {
 			for (var b2=b1+1; b2 < this.gamedata.buttons.length; b2++) {
 				// check if overlap
 				if (
-					   (this.gamedata.buttons[b1].area.x1 < this.gamedata.buttons[b2].area.x2) // horizontal overlap
+					(this.gamedata.buttons[b1].area.x1 < this.gamedata.buttons[b2].area.x2) // horizontal overlap
 					&& (this.gamedata.buttons[b1].area.x2 > this.gamedata.buttons[b2].area.x1)
 					&& (this.gamedata.buttons[b1].area.y1 < this.gamedata.buttons[b2].area.y2) // vertical overlap
 					&& (this.gamedata.buttons[b1].area.y2 > this.gamedata.buttons[b2].area.y1)
@@ -284,8 +284,8 @@ LCDGame.Game.prototype = {
 						}
 					}
 				}
-			};
-		};
+			}
+		}
 	},
 
 	onConfigError: function(xhr) {
@@ -432,7 +432,7 @@ LCDGame.Game.prototype = {
 		if (rect) {
 			w = rect.width;
 			h = rect.height;
-		};
+		}
 
 		var xmargin = (window.innerWidth - w) / 2;
 		var ymargin = (window.innerHeight - h) / 2;
@@ -466,18 +466,18 @@ LCDGame.Game.prototype = {
 			var strfile = this.gamedata.sounds[i].filename;
 			this.gamedata.sounds[i].audio = new Audio(strfile);
 			this.gamedata.sounds[i].audio.load();
-		};
+		}
 		
 		// mouse or touch input
-        //if (window.navigator.msPointerEnabled || window.navigator.pointerEnabled)
-        //{
-        //    this._mousedevice = true;
-        //};
+		//if (window.navigator.msPointerEnabled || window.navigator.pointerEnabled)
+		//{
+		//    this._mousedevice = true;
+		//};
 	
-        if ('ontouchstart' in document.documentElement || (window.navigator.maxTouchPoints && window.navigator.maxTouchPoints >= 1))
-        {
-            this._touchdevice = true;
-        };
+		if ('ontouchstart' in document.documentElement || (window.navigator.maxTouchPoints && window.navigator.maxTouchPoints >= 1))
+		{
+			this._touchdevice = true;
+		}
 
 		// bind input
 		if (document.addEventListener) { // chrome, firefox
@@ -491,7 +491,7 @@ LCDGame.Game.prototype = {
 			if (this._touchdevice) {
 				this.canvas.addEventListener("touchstart", this.ontouchstart.bind(this), false);
 				this.canvas.addEventListener("touchend",   this.ontouchend.bind(this), false);
-			};
+			}
 
 		} else { // IE8
 			// mouse/touch
@@ -500,7 +500,7 @@ LCDGame.Game.prototype = {
 			// keyboard
 			document.attachEvent("keydown", this.onkeydown.bind(this));
 			document.attachEvent("keyup",   this.onkeyup.bind(this));
-		};
+		}
 
 		// real time resize
 		window.addEventListener("resize", this.resizeCanvas.bind(this), false);
@@ -538,7 +538,7 @@ LCDGame.Game.prototype = {
 		for (var t=0; t < this.timers.length; t++) {
 			this.timers[t].pause();
 			this.timers[t] = null;
-		};
+		}
 		this.timers = [];
 	},
 	
@@ -548,14 +548,14 @@ LCDGame.Game.prototype = {
 		for (var t=0; t < this.timers.length; t++) {
 			if (this.timers[t].enabled) {
 				this.timers[t].update(timestamp);
-			};
-		};
+			}
+		}
 		
 		// any shapes updates
 		if (this._refresh) {
 			this.shapesRefresh();
 			this._refresh = false;
-		};
+		}
 	},
 
 	gameReset: function(gametype) {
@@ -584,8 +584,8 @@ LCDGame.Game.prototype = {
 		for (var i = 0; i < this.gamedata.sounds.length; i++) {
 			if (this.gamedata.sounds[i].name == name) {
 				return i;
-			};
-		};
+			}
+		}
 		return -1;
 	},
 
@@ -604,12 +604,12 @@ LCDGame.Game.prototype = {
 					// fix for IE11
 					if (!isNaN(this.gamedata.sounds[idx].audio.duration)) {
 						this.gamedata.sounds[idx].audio.currentTime = 0;
-					};
-				};
+					}
+				}
 				// start playing sound
 				this.gamedata.sounds[idx].audio.play();
-			};
-		};
+			}
+		}
 	},
 
 	// -------------------------------------
@@ -644,10 +644,10 @@ LCDGame.Game.prototype = {
 					this.gamedata.frames[i].value = value;
 					this._refresh = true;
 					return true;
-				};
-			};
+				}
+			}
 			throw "lcdgames.js - "+arguments.callee.caller.toString()+", no frame with filename '" + filename + "'";
-		};
+		}
 		return false;
 	},
 	
@@ -666,7 +666,7 @@ LCDGame.Game.prototype = {
 			console.log("** ERROR ** sequenceIndexByName('"+name+"') - sequence name not found.");
 			// if not found return -1
 			throw "lcdgames.js - "+arguments.callee.caller.toString()+", no sequence with name '" + name + "'";
-		};
+		}
 		return -1;
 	},
 
@@ -683,7 +683,7 @@ LCDGame.Game.prototype = {
 			var shape = this.gamedata.sequences[seqidx].ids[i];
 			// clear all shapes in sequence
 			this.gamedata.frames[shape].value = value;
-		};
+		}
 		// refresh display
 		this._refresh = true;
 	},
@@ -716,7 +716,7 @@ LCDGame.Game.prototype = {
 
 			// shift shape values DOWN one place in sequence
 			this.gamedata.frames[shape2].value = this.gamedata.frames[shape1].value;
-		};
+		}
 		// set first value to blank; default value false
 		var shape1 = this.gamedata.sequences[seqidx].ids[0];
 		this.gamedata.frames[shape1].value = false;
@@ -746,7 +746,7 @@ LCDGame.Game.prototype = {
 			var shape2 = this.gamedata.sequences[seqidx].ids[i+1];
 			// shift shape values UP one place in sequence
 			this.gamedata.frames[shape1].value = this.gamedata.frames[shape2].value;
-		};
+		}
 		// set last value to blank; default value false
 		var shape1 = this.gamedata.sequences[seqidx].ids[i];
 		this.gamedata.frames[shape1].value = false;
@@ -771,7 +771,7 @@ LCDGame.Game.prototype = {
 			var seqidx = this.sequenceIndexByName(name);
 
 			// if pos is -1, then last last position
-			if (pos == -1) {pos = this.gamedata.sequences[seqidx].ids.length-1};
+			if (pos == -1) {pos = this.gamedata.sequences[seqidx].ids.length-1}
 
 			// if pos out of bound of sequence array
 			if (pos < this.gamedata.sequences[seqidx].ids.length) {
@@ -781,7 +781,7 @@ LCDGame.Game.prototype = {
 
 				// refresh display
 				this._refresh = true;
-			};
+			}
 		}
 	},
 
@@ -791,9 +791,9 @@ LCDGame.Game.prototype = {
 			if (this.gamedata.frames[i].filename == name) {
 				if (this.gamedata.frames[i].value == true) {
 					return true;
-				};
-			};
-		};
+				}
+			}
+		}
 		return false;
 	},
 	
@@ -809,11 +809,11 @@ LCDGame.Game.prototype = {
 				var shape1 = this.gamedata.sequences[seqidx].ids[i];
 				if (this.gamedata.frames[shape1].value == true) {
 					return true;
-				};
-			};
+				}
+			}
 		} else {
 			// if pos is -1, then last last position
-			if (pos == -1) {pos = this.gamedata.sequences[seqidx].ids.length-1};
+			if (pos == -1) {pos = this.gamedata.sequences[seqidx].ids.length-1}
 			
 			// if pos out of bound of sequence array
 			if (pos < this.gamedata.sequences[seqidx].ids.length) {
@@ -821,9 +821,9 @@ LCDGame.Game.prototype = {
 				var shape1 = this.gamedata.sequences[seqidx].ids[pos];
 				if (this.gamedata.frames[shape1].value == true) {
 					return true;
-				};
-			};
-		};
+				}
+			}
+		}
 		return false;
 	},
 
@@ -837,8 +837,8 @@ LCDGame.Game.prototype = {
 			var shape1 = this.gamedata.sequences[seqidx].ids[i];
 			if (this.gamedata.frames[shape1].value != value) {
 				return false;
-			};
-		};
+			}
+		}
 		return true;
 	},
 
@@ -850,17 +850,17 @@ LCDGame.Game.prototype = {
 				// print out current values of sequence
 				if ( (this.gamedata.frames[i].type == "shape") || (this.gamedata.frames[i].type == "digitpos") ) {
 					this.gamedata.frames[i].value = value;
-				};
-			};
+				}
+			}
 			// all digits
 			if (value == true) {
 				for (var i = 0; i < this.gamedata.digits.length; i++) {
 					this.digitsDisplay(this.gamedata.digits[i].name, this.gamedata.digits[i].max);
-				};
-			};
+				}
+			}
 			// refresh display
 			this._refresh = true;
-		};
+		}
 	},
 
 	// -------------------------------------
@@ -876,8 +876,8 @@ LCDGame.Game.prototype = {
 			if (this.gamedata.digits[i].name == name) {
 				digidx = i;
 				break;
-			};
-		};
+			}
+		}
 		
 		if (digidx == -1) {
 			console.log("** ERROR ** digitsDisplay('"+name+"') - digits not found.");
@@ -899,8 +899,8 @@ LCDGame.Game.prototype = {
 				if (firstid < 0) {
 					chridx = Math.abs(firstid); // skip left-most digit(s) of str
 					firstid = 0;
-				};
-			};
+				}
+			}
 
 			// example
 			// placeholders [ ] [ ] [ ] [ ] [ ]
@@ -935,15 +935,15 @@ LCDGame.Game.prototype = {
 					} else {
 						// non-digit, example space (' ')
 						this.gamedata.frames[locidx].value = false;
-					};
+					}
 					// next character in str
 					chridx = chridx + 1;
-				};
-			};
+				}
+			}
 
 			// refresh display
 			this._refresh = true;
-		};
+		}
 	},
 	
 	// -------------------------------------
@@ -962,8 +962,8 @@ LCDGame.Game.prototype = {
 			for (var i = 0; i < this.gamedata.frames.length; i++) {
 				if (this.gamedata.frames[i].value == true) {
 					this.shapeDraw(i);
-				};
-			};
+				}
+			}
 			
 			this.drawDebugText();
 
@@ -975,7 +975,7 @@ LCDGame.Game.prototype = {
 			//	var y2 = this.gamedata.buttons[i].area.y2;
 			//	this.debugRectangle(x1, y1, (x2-x1), (y2-y1));
 			//};
-		};
+		}
 		// display was refreshed
 		this._refresh = false;
 		
@@ -1024,8 +1024,8 @@ LCDGame.Game.prototype = {
 				this.context2d.fillStyle = "#fff";
 				this.context2d.fillText(lines[i], x, y);
 				y = y + lineheight;
-			};
-		};
+			}
+		}
 	},
 
 	// -------------------------------------
@@ -1079,11 +1079,11 @@ LCDGame.Game.prototype = {
 				c = 39;
 			} else {
 				c = k.charCodeAt(0);
-			};
+			}
 
 			// add
 			result.push(c);
-		};
+		}
 
 		// return array of keycode(s)
 		return result;
@@ -1156,17 +1156,17 @@ LCDGame.Game.prototype = {
 						} else {
 							// left or right
 							btnidx = (xdist < 0 ? 2 : 3); // 2=left, 3=right
-						};
+						}
 						break;
 					//default: // case "button":
 					//	// simple button
 					//	btnidx = 0;
 					//	break;
-				};
+				}
 				// button press down
 				this.onButtonDown(i, btnidx);
-			};
-		};
+			}
+		}
 	},
 	
 	onmouseup: function(evt) {
@@ -1215,17 +1215,17 @@ LCDGame.Game.prototype = {
 						} else {
 							// left or right
 							btnidx = (xdist < 0 ? 2 : 3); // 2=left, 3=right
-						};
+						}
 						break;
 					//default: // case "button":
 					//	// simple button
 					//	btnidx = 0;
 					//	break;
-				};
+				}
 				// button release
 				this.onButtonUp(i, btnidx);
-			};
-		};
+			}
+		}
 	},
 
 	onkeydown: function(e) {
@@ -1237,9 +1237,9 @@ LCDGame.Game.prototype = {
 			for (var j=0; j < this.gamedata.buttons[i].keycodes.length; j++) {
 				if (this.gamedata.buttons[i].keycodes[j] == keyCode) {
 					this.onButtonDown(i, j);
-				};
-			};
-		};
+				}
+			}
+		}
 	},
 	
 	onkeyup: function(e) {
@@ -1251,9 +1251,9 @@ LCDGame.Game.prototype = {
 			for (var j=0; j < this.gamedata.buttons[i].keycodes.length; j++) {
 				if (this.gamedata.buttons[i].keycodes[j] == keyCode) {
 					this.onButtonUp(i);
-				};
-			};
-		};
+				}
+			}
+		}
 	},
 	
 	onButtonDown: function(btnidx, diridx) {
@@ -1264,7 +1264,7 @@ LCDGame.Game.prototype = {
 		// for example if 2 button frames (left/right) and 4 keyboard buttons (left, right, A, D) then A=same as LEFT and D=same as RIGHT
 		if (diridx >= this.gamedata.buttons[btnidx].ids.length) {
 			diridx = (diridx % this.gamedata.buttons[btnidx].ids.length);
-		};
+		}
 
 		// handle button press
 		this.state.currentState().press(name, diridx);
@@ -1282,7 +1282,7 @@ LCDGame.Game.prototype = {
 		for (var s=0; s < this.gamedata.buttons[btnidx].ids.length; s++) {
 			var idx = this.gamedata.buttons[btnidx].ids[s];
 			this.setShapeByIdx(idx, false);
-		};
+		}
 
 		// pass input to game
 		if (typeof this.state.currentState().release !== "undefined") {

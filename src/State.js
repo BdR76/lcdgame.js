@@ -3,31 +3,31 @@
 
 LCDGame.State = function () {
 
-    this.lcdgame = null;
-    this.key = ""; // state name
+	this.lcdgame = null;
+	this.key = ""; // state name
 
-    this.statemanager = null;
+	this.statemanager = null;
 };
 
 LCDGame.State.prototype = {
 	// additional methods, can implemented by each state
-    init: function () {
-    },
+	init: function () {
+	},
 
-    preload: function () {
-    },
+	preload: function () {
+	},
 
-    loadUpdate: function () {
-    },
+	loadUpdate: function () {
+	},
 
-    loadRender: function () {
-    },
+	loadRender: function () {
+	},
 
-    create: function () {
-    },
+	create: function () {
+	},
 
-    update: function () {
-    }
+	update: function () {
+	}
 };
 
 LCDGame.State.prototype.constructor = LCDGame.State;

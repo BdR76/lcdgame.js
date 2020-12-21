@@ -51,7 +51,7 @@ LCDGame.HighScores = function (lcdgame, gametitle, gametypes) {
 
 LCDGame.HighScores.prototype = {
 
-    init: function (tp) {
+	init: function (tp) {
 		// hook event to prev next buttons
 		var btnprev = document.getElementById("btnprev");
 		var btnnext = document.getElementById("btnnext");
@@ -64,11 +64,11 @@ LCDGame.HighScores.prototype = {
 		this.loadGlobal();
 	},
 
-    getGametype: function () {
+	getGametype: function () {
 		var res = "";
 		if (this.gametypes) {
 			res = this.gametypes[this._scoretype-1];
-		};
+		}
 		return res;
 	},
 
@@ -87,18 +87,18 @@ LCDGame.HighScores.prototype = {
 			this._scores_local = JSON.parse(sc);
 		} catch (e) {
 			this._scores_local = []; //error in the above string(in this case,yes)!
-		};
+		}
 		// error checking just to be sure, if localstorage contains something else then a JSON array (hackers?)
 		if (Object.prototype.toString.call(this._scores_local) !== "[object Array]") {
 			this._scores_local = [];
-		};
+		}
 	},
 	
-    indexLocal: function (sc, typ) {
+	indexLocal: function (sc, typ) {
 		// refresh local highscores if needed
 		if (typ != this._scoretype) {
 			this.loadLocal(typ);
-		};
+		}
 
 		// assume at end
 		var idx = -1;
@@ -110,13 +110,13 @@ LCDGame.HighScores.prototype = {
 				idx = i;
 			} else {
 				break;
-			};
-		};
+			}
+		}
 
 		return idx;
 	},
 
-    saveLocal: function (plr, sc, lvl, typ) {
+	saveLocal: function (plr, sc, lvl, typ) {
 		// always store local highscore
 		var rec = {"player":plr, "score":sc, "level":lvl};
 
@@ -128,7 +128,7 @@ LCDGame.HighScores.prototype = {
 		} else {
 			// some where in the middle
 			this._scores_local.splice(idx, 0, rec);
-		};
+		}
 
 		// save highscores locally
 		var namecache = "lcdgame_local_"+this.gametitle+"_hs"+typ;
@@ -136,9 +136,9 @@ LCDGame.HighScores.prototype = {
 
 		// also save default entry name
 		window.localStorage.setItem("lcdgame_highscore_name", plr);
-    },
+	},
 
-    saveGlobal: function (plr, sc, lvl, typ, sec, but) {
+	saveGlobal: function (plr, sc, lvl, typ, sec, but) {
 		
 			// additional client info
 			if (platform) {
@@ -153,7 +153,7 @@ LCDGame.HighScores.prototype = {
 					"&device=" + guess.device +
 					"&os=" + guess.os +
 					"&browser=" + guess.browser;
-			};
+			}
 			var language = navigator.language;
 			var clientguid  = this.getClientGUID();
 
@@ -204,8 +204,8 @@ LCDGame.HighScores.prototype = {
 							displayScorebox();
 						} else {
 							console.log('Highscore sent failed');
-						};
-					};
+						}
+					}
 				} else {
 					// We reached our target server, but it returned an error
 					console.log('Highscore sent failed with error ' + request.status + ': ' + request.statusText);
@@ -214,17 +214,17 @@ LCDGame.HighScores.prototype = {
 
 			//paramsdata = getUserAgentParams();
 			request.send(paramsdata);
-    },
+	},
 
-    getHighscore: function (typ) {
+	getHighscore: function (typ) {
 		var sc = 0;
 		if (this.lcdgame.highscores._scores_global[0]) {
 			sc = this.lcdgame.highscores._scores_global[0].score;
-		};
+		}
 		return sc;
 	},
 
-    checkScore: function () {
+	checkScore: function () {
 		// end of game  time
 		var timeend = new Date();
 		// save current score values, because will reset on background when new game starts
@@ -245,10 +245,10 @@ LCDGame.HighScores.prototype = {
 				if (plr != "") {
 					this.saveLocal(plr, sc, lvl, typ);
 					this.saveGlobal(plr, sc, lvl, typ, sec, but);
-				};
-			};
-		};
-    },
+				}
+			}
+		}
+	},
 	
 	loadGlobal: function () {
 		var url = HS_URL + "geths.php" +
@@ -272,11 +272,11 @@ LCDGame.HighScores.prototype = {
 			this._scores_global = JSON.parse(data);
 		} catch (e) {
 			this._scores_global = []; //error in the above string(in this case,yes)!
-		};
+		}
 		// error checking just to be sure, if data contains something else then a JSON array (hackers?)
 		if (Object.prototype.toString.call(this._scores_global) !== "[object Array]") {
 			this._scores_global = [];
-		};
+		}
 		
 		// flag if also local scores
 		for (var g=0; g < this._scores_global.length; g++) {
@@ -288,9 +288,9 @@ LCDGame.HighScores.prototype = {
 				if (   (this._scores_global[g].player == this._scores_local[l].player)
 					&& (this._scores_global[g].score == this._scores_local[l].score) ) {
 					this._scores_global[g].local = true;
-				};
-			};
-		};
+				}
+			}
+		}
 
 		this.refreshHTML();
 	},
@@ -304,8 +304,8 @@ LCDGame.HighScores.prototype = {
 				this.offset = 0;
 				this.loadLocal(typ);
 				this.loadGlobal();
-			};
-		};
+			}
+		}
 	},
 
 	onPrevNextButton: function (dv) {
@@ -324,8 +324,8 @@ LCDGame.HighScores.prototype = {
 			if (this.offset != ofs) {
 				this.offset = ofs;
 				this.loadGlobal();
-			};
-		};
+			}
+		}
 	},
 
 	buildHeaderHTML: function () {
@@ -335,7 +335,7 @@ LCDGame.HighScores.prototype = {
 		
 		for (var i = this.gametypes.length-1; i >= 0; i--) {
 			str = str + '<a class="filter" data-gametype="' + (i + 1) + '" id="filtertype' + i + '">' + this.gametypes[i] + '</a>';
-		};
+		}
 
 		// refresh score filter buttons
 		document.getElementById("scoreheader").innerHTML = str;
@@ -344,7 +344,7 @@ LCDGame.HighScores.prototype = {
 		for (var i = 0; i < this.gametypes.length; i++) {
 			var btn = document.getElementById("filtertype"+i);
 			btn.addEventListener("click", this.onFilterButton.bind(this));
-		};
+		}
 	},
 
 	refreshHTML: function () {
@@ -357,14 +357,14 @@ LCDGame.HighScores.prototype = {
 			if (typeof rec === "undefined") {
 				var rk = this.offset + (i+1);
 				rec = {"rank":rk, "player":".....", "score":0, "level":1, "local":false};
-			};
+			}
 
 			// mark local scores in red
 			var highlight = (rec.local ? " style=\"color:#f00\"" : "")
 
 			// build html
 			rows = rows + "      <tr"+highlight+"><td>" + rec.rank + ".</td><td>" + rec.player + "</td><td>" + rec.score + "</td></tr>";
-		};
+		}
 
 		// game name and column headers
 		var str =
@@ -379,7 +379,7 @@ LCDGame.HighScores.prototype = {
 		// refresh header html
 		str = this.gametitle + ' (' + this.getGametype() + ')';
 		document.getElementById("scoretitle").innerHTML = str;
-    },
+	},
 
 
 	//uuidv4: function () {
@@ -411,7 +411,7 @@ LCDGame.HighScores.prototype = {
 			// create one
 			guid = this.uuidv4();
 			window.localStorage.setItem("lcdgame_client_guid", guid);
-		};
+		}
 		return guid;
 	},
 		
@@ -470,7 +470,7 @@ LCDGame.HighScores.prototype = {
 		// Mac OS desktop
 		if (/mac os|macintosh/i.test(ua)) {
 			device = "Macintosh"
-		};
+		}
 
 		// -------------------------------------
 		//       OS guesses
@@ -509,7 +509,7 @@ LCDGame.HighScores.prototype = {
 			if (/5.0/.test(osvar))     os = "Windows 2000"
 		} else
 		// any other
-			{os = navigator.platform};
+			{os = navigator.platform}
 
 		// -------------------------------------
 		//       Browser guesses
@@ -549,7 +549,7 @@ LCDGame.HighScores.prototype = {
 		// Internet Explorer 6-11
 		if ( /*@cc_on!@*/false || !!document.documentMode) {
 			browser = "MSIE 6-11";
-		};
+		}
 		
 		// replace problematic characters
 		device  =  device.replace(/&|\?|\//g, " ").trim();

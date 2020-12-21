@@ -56,7 +56,7 @@ LCDGame.Timer.prototype = {
 			this.lasttime = this.lasttime + this.interval;
 			// game callbacks
 			this.doTimerEvent();
-		};
+		}
 	},
 	
 	// local timer event of Timer-object
@@ -70,7 +70,7 @@ LCDGame.Timer.prototype = {
 		// if maximum of callbacks was set
 		if (typeof this.max !== "undefined") {
 			if (this.counter >= this.max) this.enabled = false;
-		};
+		}
 	},
 
 	// start/enable the timer

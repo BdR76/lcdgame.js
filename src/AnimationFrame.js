@@ -12,7 +12,7 @@ LCDGame.AnimationFrame = function (lcdgame) {
 
 LCDGame.AnimationFrame.prototype = {
 
-    start: function () {
+	start: function () {
 		var vendors = [
 			'ms',
 			'moz',
@@ -54,7 +54,7 @@ LCDGame.AnimationFrame.prototype = {
 		}
 	},
 	
-    updateAnimFrame: function (rafTime) {
+	updateAnimFrame: function (rafTime) {
 		// check if switch to pending new state
 		this.lcdgame.state.checkSwitch();
 
@@ -65,7 +65,7 @@ LCDGame.AnimationFrame.prototype = {
 		_timeOutID = window.requestAnimationFrame(animationLoop);
 	},
 	
-    updateSetTimeout: function () {
+	updateSetTimeout: function () {
 		// check if switch to pending new state
 		this.lcdgame.state.checkSwitch();
 
