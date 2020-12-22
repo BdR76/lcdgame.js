@@ -6,13 +6,13 @@ import { hideScorebox } from './Highscores';
 export const MENU_HTML =
 		'<div class="container">' +
 		'  <canvas id="mycanvas" class="gamecvs"></canvas>' +
-		'  <a class="mybutton btnmenu" onclick="LCDGame.Menu.displayInfobox();">help</a>' +
-		'  <a class="mybutton btnmenu" onclick="LCDGame.HighScores.displayScorebox();">highscores</a>' +
+		'  <a class="mybutton btnmenu" onclick="LCDGame.displayInfobox();">help</a>' +
+		'  <a class="mybutton btnmenu" onclick="LCDGame.displayScorebox();">highscores</a>' +
 		'  <div class="infobox" id="infobox">' +
 		'    <div id="infocontent">' +
 		'      instructions' +
 		'    </div>' +
-		'    <a class="mybutton btnpop" onclick="LCDGame.Menu.hideInfobox();">Ok</a>' +
+		'    <a class="mybutton btnpop" onclick="LCDGame.hideInfobox();">Ok</a>' +
 		'  </div>' +
 		'</div>';
 
@@ -38,8 +38,5 @@ const Menu = function (lcdgame, name) {
 	// save reference to game object
 	this.lcdgame = lcdgame;
 };
-
-Menu.displayInfobox = displayInfobox;
-Menu.hideInfobox = hideInfobox;
 
 export default Menu;

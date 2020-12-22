@@ -1,9 +1,15 @@
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
+import { displayScorebox, hideScorebox } from './Highscores';
+import { displayInfobox, hideInfobox } from './Menu';
+import Game from './Game';
+
 export const LCDGAME_VERSION = "0.3.4";
 
-// namespace
+/**
+ * @namespace LCDGame
+ */
 const LCDGame = window.LCDGame || {
 	loadsounds: null,
 	countimages: 0,
@@ -49,7 +55,16 @@ const LCDGame = window.LCDGame || {
 	onImageError: null,
 	canvas: null,
 	context2d: null,
-	debugtxt: null
+	debugtxt: null,
+
+	// Methods
+	displayScorebox,
+	hideScorebox,
+	displayInfobox,
+	hideInfobox,
+
+	// Classes
+	Game
 };
 
 export default LCDGame;

@@ -1,8 +1,8 @@
 // LCD game JavaScript library
 // Bas de Reuver (c)2018
 
-import { LCDGAME_VERSION } from './System';
 import { hideInfobox } from './Menu';
+import { LCDGAME_VERSION } from './System';
 
 export const SCORE_HTML =
 		'<div class="infobox" id="scorebox">' +
@@ -13,7 +13,7 @@ export const SCORE_HTML =
 		'  </div>' +
 		'  <a class="mybutton btnnext" id="btnprev" data-direction="-1">&lt;&lt;</a>' +
 		'  <a class="mybutton btnnext" id="btnnext" data-direction="+1">&gt;&gt;</a>' +
-		'  <a class="mybutton btnpop" onclick="LCDGame.HighScores.hideScorebox();">Ok</a>' +
+		'  <a class="mybutton btnpop" onclick="LCDGame.hideScorebox();">Ok</a>' +
 		'</div>';
 
 var HS_URL = "http://bdrgames.nl/lcdgames/testphp/";
@@ -51,9 +51,6 @@ const HighScores = function (lcdgame, gametitle, gametypes) {
 	this._scores_global = [];
 	this._scoretype = 0;
 };
-
-HighScores.displayScorebox = displayScorebox;
-HighScores.hideScorebox = hideScorebox;
 
 HighScores.prototype = {
 
