@@ -179,9 +179,9 @@ Game.prototype = {
 			this.gamedata.digits[d].locids = [];
 
 			// find all digit frames indexes
-			for (var f = 0; f < this.gamedata.digits[d].frames.length; f++) {
-				var filename = this.gamedata.digits[d].frames[f];
-				var idx = this.shapeIndexByName(filename);
+			for (let f = 0; f < this.gamedata.digits[d].frames.length; f++) {
+				const filename = this.gamedata.digits[d].frames[f];
+				const idx = this.shapeIndexByName(filename);
 				this.gamedata.digits[d].ids.push(idx);
 				// set shape types
 				if (idx != -1) {
@@ -191,8 +191,8 @@ Game.prototype = {
 
 			// find all digit locations
 			for (var l = 0; l < this.gamedata.digits[d].locations.length; l++) {
-				var filename = this.gamedata.digits[d].locations[l];
-				var idx = this.shapeIndexByName(filename);
+				const filename = this.gamedata.digits[d].locations[l];
+				const idx = this.shapeIndexByName(filename);
 				this.gamedata.digits[d].locids.push(idx);
 			}
 			// set max
@@ -216,9 +216,9 @@ Game.prototype = {
 			var ymax = 0;
 
 			// find all button frames indexes
-			for (var f = 0; f < this.gamedata.buttons[b].frames.length; f++) {
-				var filename = this.gamedata.buttons[b].frames[f];
-				var idx = this.shapeIndexByName(filename);
+			for (let f = 0; f < this.gamedata.buttons[b].frames.length; f++) {
+				const filename = this.gamedata.buttons[b].frames[f];
+				const idx = this.shapeIndexByName(filename);
 				this.gamedata.buttons[b].ids.push(idx);
 				// flag image frame as button
 				this.gamedata.frames[idx].type = "button";
@@ -233,10 +233,10 @@ Game.prototype = {
 			// typically buttons are small, so make size of touch area 3x as big
 			var wh = (xmax - xmin);
 			var hh = (ymax - ymin);
-			var xmin = xmin - wh;
-			var ymin = ymin - hh;
-			var xmax = xmax + wh;
-			var ymax = ymax + hh;
+			xmin = xmin - wh;
+			ymin = ymin - hh;
+			xmax = xmax + wh;
+			ymax = ymax + hh;
 
 			var xcenter = (xmin + xmax) / 2.0;
 			var ycenter = (ymin + ymax) / 2.0;
@@ -271,21 +271,21 @@ Game.prototype = {
 					// rectract to left, right, up, down
 					if ( Math.abs(xc1 - xc2) > Math.abs(yc1 - yc2) ) {
 						if (xc1 > xc2) { // b1 is to the right of b2
-							var dif = (this.gamedata.buttons[b1].area.x1 - this.gamedata.buttons[b2].area.x2) / 2;
+							const dif = (this.gamedata.buttons[b1].area.x1 - this.gamedata.buttons[b2].area.x2) / 2;
 							this.gamedata.buttons[b1].area.x1 -= dif;
 							this.gamedata.buttons[b2].area.x2 += dif;
 						} else { // b1 is to the left of b2
-							var dif = (this.gamedata.buttons[b1].area.x2 - this.gamedata.buttons[b2].area.x1) / 2;
+							const dif = (this.gamedata.buttons[b1].area.x2 - this.gamedata.buttons[b2].area.x1) / 2;
 							this.gamedata.buttons[b1].area.x2 -= dif;
 							this.gamedata.buttons[b2].area.x1 += dif;
 						}
 					} else {
 						if (yc1 > yc2) { // b1 is below b2
-							var dif = (this.gamedata.buttons[b1].area.y1 - this.gamedata.buttons[b2].area.y2) / 2;
+							const dif = (this.gamedata.buttons[b1].area.y1 - this.gamedata.buttons[b2].area.y2) / 2;
 							this.gamedata.buttons[b1].area.y1 -= dif;
 							this.gamedata.buttons[b2].area.y2 += dif;
 						} else { // b1 is above b2
-							var dif = (this.gamedata.buttons[b1].area.y2 - this.gamedata.buttons[b2].area.y1) / 2;
+							const dif = (this.gamedata.buttons[b1].area.y2 - this.gamedata.buttons[b2].area.y1) / 2;
 							this.gamedata.buttons[b1].area.y2 -= dif;
 							this.gamedata.buttons[b2].area.y1 += dif;
 						}
@@ -332,7 +332,7 @@ Game.prototype = {
 		});
 
 		// _italic_ => <i>italic</i>
-		str = str.replace(/\_.*?\_/g, function(foo){
+		str = str.replace(/_.*?_/g, function(foo){
 			return "<i>"+foo.slice(1, -1)+"</i>";
 		});
 
@@ -639,7 +639,6 @@ Game.prototype = {
 		console.log("** ERROR ** shapeIndexByName('"+name+"') - filename not found.");
 		// if not found return -1
 		throw "lcdgames.js - "+arguments.callee.caller.toString()+", no frame with filename '" + name + "'";
-		return -1;
 	},
 
 	setShapeByName: function(filename, value) {
@@ -715,8 +714,8 @@ Game.prototype = {
 		var ret = false;
 		for (i = max-1; i > 0; i--) {
 			// get shape indexes of adjacent shapes in this sequence
-			var shape1 = this.gamedata.sequences[seqidx].ids[i-1];
-			var shape2 = this.gamedata.sequences[seqidx].ids[i];
+			const shape1 = this.gamedata.sequences[seqidx].ids[i-1];
+			const shape2 = this.gamedata.sequences[seqidx].ids[i];
 
 			// return value
 			if (i == (max-1)) ret = this.gamedata.frames[shape2].value;
@@ -749,8 +748,8 @@ Game.prototype = {
 		var i;
 		for (i = min; i < this.gamedata.sequences[seqidx].ids.length-1; i++) {
 			// get shape indexes of adjacent shapes in this sequence
-			var shape1 = this.gamedata.sequences[seqidx].ids[i];
-			var shape2 = this.gamedata.sequences[seqidx].ids[i+1];
+			const shape1 = this.gamedata.sequences[seqidx].ids[i];
+			const shape2 = this.gamedata.sequences[seqidx].ids[i+1];
 			// shift shape values UP one place in sequence
 			this.gamedata.frames[shape1].value = this.gamedata.frames[shape2].value;
 		}
@@ -813,7 +812,7 @@ Game.prototype = {
 			// no pos given, check if any shape visible
 			for (var i = 0; i < this.gamedata.sequences[seqidx].ids.length; i++) {
 				// check if any shape is visible (value==true)
-				var shape1 = this.gamedata.sequences[seqidx].ids[i];
+				const shape1 = this.gamedata.sequences[seqidx].ids[i];
 				if (this.gamedata.frames[shape1].value == true) {
 					return true;
 				}
@@ -825,7 +824,7 @@ Game.prototype = {
 			// if pos out of bound of sequence array
 			if (pos < this.gamedata.sequences[seqidx].ids.length) {
 				// check if shape is visible (value==true)
-				var shape1 = this.gamedata.sequences[seqidx].ids[pos];
+				const shape1 = this.gamedata.sequences[seqidx].ids[pos];
 				if (this.gamedata.frames[shape1].value == true) {
 					return true;
 				}
@@ -853,7 +852,7 @@ Game.prototype = {
 
 		if (this.gamedata.frames) {
 			// all shapes
-			for (var i = 0; i < this.gamedata.frames.length; i++) {
+			for (let i = 0; i < this.gamedata.frames.length; i++) {
 				// print out current values of sequence
 				if ( (this.gamedata.frames[i].type == "shape") || (this.gamedata.frames[i].type == "digitpos") ) {
 					this.gamedata.frames[i].value = value;
@@ -861,7 +860,7 @@ Game.prototype = {
 			}
 			// all digits
 			if (value == true) {
-				for (var i = 0; i < this.gamedata.digits.length; i++) {
+				for (let i = 0; i < this.gamedata.digits.length; i++) {
 					this.digitsDisplay(this.gamedata.digits[i].name, this.gamedata.digits[i].max);
 				}
 			}
@@ -879,7 +878,7 @@ Game.prototype = {
 
 		// get sequence
 		var digidx = -1;
-		for (var i = 0; i < this.gamedata.digits.length; i++) {
+		for (let i = 0; i < this.gamedata.digits.length; i++) {
 			if (this.gamedata.digits[i].name == name) {
 				digidx = i;
 				break;
@@ -917,7 +916,7 @@ Game.prototype = {
 			// firstid = index 1-^
 
 			// adjust all shapes of digitplaceholders to display correct digits, and force them to refresh
-			for (var i=0; i < this.gamedata.digits[digidx].locids.length; i++) {
+			for (let i=0; i < this.gamedata.digits[digidx].locids.length; i++) {
 				// shape of digitplaceholder
 				var locidx = this.gamedata.digits[digidx].locids[i];
 
@@ -1136,24 +1135,26 @@ Game.prototype = {
 				&& (y < this.gamedata.buttons[i].area.y2)
 			) {
 				var btnidx = 0;
+				let xhalf;
+				let yhalf;
 				// which type of device button
 				switch(this.gamedata.buttons[i].type) {
 					case "updown":
 						// two direction button up/down
-						var yhalf = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
+						yhalf = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
 						// up or down
 						btnidx = (y < this.gamedata.buttons[i].area.y1 + yhalf ? 0 : 1);
 						break;
 					case "leftright":
 						// two direction button left/right
-						var xhalf = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
+						xhalf = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
 						// left or right
 						btnidx = (x < this.gamedata.buttons[i].area.x1 + xhalf ? 0 : 1);
 						break;
 					case "dpad":
 						// four direction button up/down/left/right
-						var xhalf = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
-						var yhalf = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
+						xhalf = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
+						yhalf = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
 						// distance to center
 						var xdist = x - this.gamedata.buttons[i].area.x1 - xhalf;
 						var ydist = y - this.gamedata.buttons[i].area.y1 - yhalf;
@@ -1183,8 +1184,8 @@ Game.prototype = {
 
 		//var x = evt.layerX;
 		//var y = evt.layerY;
-		var x = x / this.scaleFactor;
-		var y = y / this.scaleFactor;
+		x = x / this.scaleFactor;
+		y = y / this.scaleFactor;
 
 		// check if pressed in defined buttons
 		for (var i=0; i < this.gamedata.buttons.length; i++) {
@@ -1195,17 +1196,18 @@ Game.prototype = {
 				&& (y < this.gamedata.buttons[i].area.y2)
 			) {
 				var btnidx = 0;
+				let half;
 				// which type of device button
 				switch(this.gamedata.buttons[i].type) {
 					case "updown":
 						// two direction button up/down
-						var half = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
+						half = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
 						// up or down
 						btnidx = (y < this.gamedata.buttons[i].area.y1 + half ? 0 : 1);
 						break;
 					case "leftright":
 						// two direction button left/right
-						var half = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
+						half = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
 						// left or right
 						btnidx = (x < this.gamedata.buttons[i].area.x1 + half ? 0 : 1);
 						break;

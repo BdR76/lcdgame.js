@@ -145,17 +145,18 @@ HighScores.prototype = {
 	},
 
 	saveGlobal: function (plr, sc, lvl, typ, sec, but) {
-
+		const { platform } = window;
+		let info;
 		// additional client info
 		if (platform) {
 			// use platform.js for more accurate info
-			var info =
+			info =
 					(platform.product ? "&device="  + platform.product : "") +
 					(platform.os      ? "&os="      + platform.os      : "") +
 					(platform.name    ? "&browser=" + platform.name    : "");
 		} else {
 			var guess = this.guessOsBrowser();
-			var info =
+			info =
 					"&device=" + guess.device +
 					"&os=" + guess.os +
 					"&browser=" + guess.browser;
@@ -168,7 +169,7 @@ HighScores.prototype = {
 
 		// reserved characters in url
 		//var gametitle = gametitle.replace(/\&/g, "%26"); // & -> %26
-		var plr = plr.replace(/\&/g, "%26"); // & -> %26
+		plr = plr.replace(/&/g, "%26"); // & -> %26
 
 		// build url
 		var url = HS_URL + "newhs.php";
@@ -339,7 +340,7 @@ HighScores.prototype = {
 		// game name and column headers
 		var str = '<h1 id="scoretitle">' + this.gametitle + '</h1>';
 
-		for (var i = this.gametypes.length-1; i >= 0; i--) {
+		for (let i = this.gametypes.length-1; i >= 0; i--) {
 			str = str + '<a class="filter" data-gametype="' + (i + 1) + '" id="filtertype' + i + '">' + this.gametypes[i] + '</a>';
 		}
 
@@ -347,7 +348,7 @@ HighScores.prototype = {
 		document.getElementById("scoreheader").innerHTML = str;
 
 		// attach click events to all buttons
-		for (var i = 0; i < this.gametypes.length; i++) {
+		for (let i = 0; i < this.gametypes.length; i++) {
 			var btn = document.getElementById("filtertype"+i);
 			btn.addEventListener("click", this.onFilterButton.bind(this));
 		}
@@ -494,7 +495,7 @@ HighScores.prototype = {
 		} else
 		// iOS detection from: http://stackoverflow.com/a/9039885/177710
 		if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
-			var osvar = /(iphone os |cpu os )[^;) ]*/i.exec(ua);
+			const osvar = /(iphone os |cpu os )[^;) ]*/i.exec(ua);
 			os = (osvar[0] || "");
 			os = os.replace(/cpu|iphone|os/ig, "").trim();
 			os = "iOS " + os.replace(/_/g, ".");
@@ -503,7 +504,7 @@ HighScores.prototype = {
 			os = "Mac OS";
 		} else
 		if ( (/windows /i.test(ua)) ) {
-			var osvar = /windows [^;)]*/i.exec(ua)[0];
+			const osvar = /windows [^;)]*/i.exec(ua)[0];
 			os = (osvar || "Windows");
 
 			if (/10/.test(osvar))      os = "Windows 10";
@@ -521,7 +522,7 @@ HighScores.prototype = {
 		//       Browser guesses
 		// -------------------------------------
 		// Opera 8.0+
-		if ((!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0) {
+		if ((!!window.opr && !!window.opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0) {
 			browser = "Opera 8.0+";
 		} else
 		// Firefox 1.0+
@@ -549,7 +550,7 @@ HighScores.prototype = {
 			browser = (/MSIE [^;) ]*/.exec(ua)[0] || "MSIE");
 		} else
 		// Internet Explorer 11
-		if (/rv\:11\./.test(ua)) {
+		if (/rv:11\./.test(ua)) {
 			browser = "MSIE 11";
 		} else
 		// Internet Explorer 6-11
