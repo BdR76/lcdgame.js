@@ -1294,9 +1294,10 @@ Game.prototype = {
 		}
 
 		// pass input to game
-		if (typeof this.state.currentState().release !== "undefined") {
+		const currentState = this.state.currentState();
+		if (currentState?.release) {
 			var name = this.gamedata.buttons[btnidx].name;
-			this.state.currentState().release(name, diridx);
+			currentState.release(name, diridx);
 		}
 	},
 
