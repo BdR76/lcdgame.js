@@ -8,7 +8,7 @@ export const SCORE_HTML =
 		'<div class="infobox" id="scorebox">' +
 		'  <div id="scoreheader">' +
 		'  </div>' +
-		'  <div id="scorecontent">' +
+		'  <div id="scorecontent" class="scorecontent">' +
 		'    One moment...' +
 		'  </div>' +
 		'  <a class="mybutton btnnext" id="btnprev" data-direction="-1">&lt;&lt;</a>' +
@@ -337,8 +337,8 @@ HighScores.prototype = {
 		// game name and column headers
 		var str = '<h1 id="scoretitle">' + this.gametitle + '</h1>';
 
-		for (let i = this.gametypes.length-1; i >= 0; i--) {
-			str = str + '<a class="filter" data-gametype="' + (i + 1) + '" id="filtertype' + i + '">' + this.gametypes[i] + '</a>';
+		for (let i = 0; i < this.gametypes.length; i++) {
+			str = str + '<a class="mybutton mybutton-small" data-gametype="' + (i + 1) + '" id="filtertype' + i + '">' + this.gametypes[i] + '</a>';
 		}
 
 		// refresh score filter buttons

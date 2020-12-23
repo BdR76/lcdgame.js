@@ -4,8 +4,17 @@ body {
 	padding: 0;
 }
 
-h1 {
-	margin-top: 0;
+h1,
+p {
+	margin: 0 0 20px;
+}
+
+p {
+	line-height: 140%;
+}
+
+p:last-child {
+	margin-bottom: 20px;
 }
 
 table {
@@ -105,21 +114,9 @@ btn {
 	margin-left: 10px;
 }
 
-.filter {
-	float: right;
-	display: block;
-	color: #fff;
-	background: #5dc8cd;
+.mybutton-small {
 	width: 100px;
-	font-weight: 600;
-	text-align: center;
 	line-height: 30px;
-	border-radius: 5px;
-	transition: all 0.2s;
-}
-
-.filter:hover {
-	background: #01939a;
 }
 
 .btnpop {
@@ -138,4 +135,10 @@ btn {
 	float: right;
 	width: 80px;
 	line-height: 30px;
+}
+
+/* Highscores */
+.scorecontent {
+	margin-bottom: 10px;
+	margin-top: 10px;
 }

@@ -4,6 +4,14 @@
  * @param {string} str
  */
 export default function tinyMarkdown(str) {
+	// \n\n => <p>
+	str = str
+		.trim()
+		.split('\n\n')
+		.filter(s => s.length > 0)
+		.map(s => "<p>" + s + "</p>")
+		.join('');
+
 	// \n => <br/>
 	str = str.replace(/\n/gi, "<br/>");
 

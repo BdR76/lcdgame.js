@@ -29,7 +29,7 @@ function renderInfoBox(data) {
 
 	infobox.innerHTML =
 		'<div id="infocontent">' +
-		'	<h1>How to play</h1><br/>' + instr +
+		'	<h1>How to play</h1>' + instr +
 		'</div>' +
 		'<a class="mybutton btnpop" onclick="LCDGame.hideInfobox();">Ok</a>';
 

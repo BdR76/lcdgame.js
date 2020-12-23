@@ -2,7 +2,7 @@
 // Bas de Reuver (c)2018
 
 import { LCDGAME_VERSION } from './System';
-import { displayInfobox, fetchMetadata, INFOBOX_ID } from './Menu';
+import { displayInfobox, fetchMetadata } from './Menu';
 import HighScores, { SCORE_HTML } from './Highscores';
 import AnimationFrame from './AnimationFrame';
 import Sounds from './Sounds';
@@ -14,8 +14,8 @@ const CONTAINER_HTML =
 	'<div id="container" class="container">' +
 	'	<canvas id="mycanvas" class="gamecvs"></canvas>' +
 	'	<div class="menu">' +
-	'		<a class="mybutton" onclick="LCDGame.displayInfobox();">help</a>' +
 	'		<a class="mybutton" onclick="LCDGame.displayScorebox();">highscores</a>' +
+	'		<a class="mybutton" onclick="LCDGame.displayInfobox();">help</a>' +
 	'	</div>' +
 	'</div>';
 
