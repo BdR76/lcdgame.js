@@ -1212,19 +1212,6 @@ Game.prototype = {
 		this.context2d.fillStyle = color;
 		this.context2d.rect(xpos, ypos, w, h);
 		this.context2d.stroke();
-	},
-
-	// -------------------------------------
-	// check if touch device
-	// -------------------------------------
-	is_touch_device: function() {
-		var el = document.createElement("div");
-		el.setAttribute("lcdgame.js - ongesturestart", "return;");
-		if(typeof el.ongesturestart === "function"){
-			return true;
-		}else {
-			return false;
-		}
 	}
 };
 
