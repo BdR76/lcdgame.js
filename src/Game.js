@@ -578,10 +578,12 @@ Game.prototype = {
 		return -1;
 	},
 
-	sequenceResetAll: function(name, value) {
-		// value position is optional, default false
-		if (typeof value === "undefined") value = false;
-
+	/**
+	 *
+	 * @param {string} name
+	 * @param {boolean} [value=false]
+	 */
+	sequenceClear: function(name, value = false) {
 		// get sequence index of name
 		var seqidx = this.sequenceIndexByName(name);
 
@@ -594,11 +596,6 @@ Game.prototype = {
 		}
 		// refresh display
 		this._refresh = true;
-	},
-
-	sequenceClear: function(name) {
-		// reset sequence to false
-		this.sequenceResetAll(name);
 	},
 
 	sequenceShift: function(name, max) {
