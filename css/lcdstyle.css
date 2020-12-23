@@ -1,22 +1,25 @@
 body {
 	font-family: Arial;
 }
-table{
+
+table {
 	width: 100%;
-	border-collapse: collapse; 
+	border-collapse: collapse;
 }
 
 tr:nth-child(1) {
 	font-weight: bold;
-	border-bottom:1pt solid black;
+	border-bottom: 1pt solid black;
 }
 
 td:nth-child(1) {
 	width: 10%;
 }
+
 td:nth-child(2) {
 	width: 50%;
 }
+
 td:nth-child(3) {
 	width: 40%;
 	text-align: right;
@@ -29,11 +32,11 @@ btn {
 	font-family: Arial,"Helvetica Neue",Helvetica,sans-serif;
 	line-height: 1.4;
 	color: #242729;
-	text-shadow: 0 1px 0 #FFF;
+	text-shadow: 0 1px 0 #fff;
 	background-color: #e1e3e5;
 	border: 1px solid #adb3b9;
 	border-radius: 3px;
-	box-shadow: 0 1px 0 rgba(12,13,14,0.2), 0 0 0 2px #FFF inset;
+	box-shadow: 0 1px 0 rgba(12, 13, 14, 0.2), 0 0 0 2px #fff inset;
 	white-space: nowrap;
 }
 
@@ -44,26 +47,22 @@ btn {
 	position: absolute;
 }
 
-.infobox{
+.infobox {
 	position: absolute;
 	background: #fff;
 	color: #000;
 	width: 480px;
-	
 	margin: 50px -200px -50px 200px;
 	padding: 15px 15px 15px 15px;
 	box-sizing: border-box;
-
 	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
 .mybutton {
 	float: right;
 	display: block;
-
-	color: #FFF;
-	background: #5DC8CD;
-
+	color: #fff;
+	background: #5dc8cd;
 	width: 120px;
 	font-weight: 600;
 	text-align: center;
@@ -73,16 +72,14 @@ btn {
 }
 
 .mybutton:hover {
-	background: #01939A;
+	background: #01939a;
 }
 
 .filter {
 	float: right;
 	display: block;
-
-	color: #FFF;
-	background: #5DC8CD;
-
+	color: #fff;
+	background: #5dc8cd;
 	width: 100px;
 	font-weight: 600;
 	text-align: center;
@@ -92,7 +89,7 @@ btn {
 }
 
 .filter:hover {
-	background: #01939A;
+	background: #01939a;
 }
 
 .btnmenu {
@@ -101,7 +98,7 @@ btn {
 
 .btnpop {
 	display: inline-block;
-	margin:0 auto;
+	margin: 0 auto;
 }
 
 .btnnext {
