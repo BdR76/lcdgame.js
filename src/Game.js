@@ -5,6 +5,7 @@ import { LCDGAME_VERSION } from './System';
 import { displayInfobox, fetchMetadata, INFOBOX_ID } from './Menu';
 import HighScores, { SCORE_HTML } from './Highscores';
 import AnimationFrame from './AnimationFrame';
+import Sounds from './Sounds';
 import StateManager from './StateManager';
 import Timer from './Timer';
 import { request } from './utils';
@@ -401,11 +402,7 @@ Game.prototype = {
 		this.context2d.drawImage(this.imageBackground, 0, 0);
 
 		// prepare sounds
-		for (var i=0; i < this.gamedata.sounds.length; i++) {
-			var strfile = this.gamedata.sounds[i].filename;
-			this.gamedata.sounds[i].audio = new Audio(strfile);
-			this.gamedata.sounds[i].audio.load();
-		}
+		this.sounds = new Sounds(this.gamedata.sounds);
 
 		// mouse or touch input
 		//if (window.navigator.msPointerEnabled || window.navigator.pointerEnabled)
@@ -509,46 +506,23 @@ Game.prototype = {
 	// -------------------------------------
 	// sound effects
 	// -------------------------------------
-	loadSoundEffects: function() {
-		// handle error
-		console.log("loadSoundEffects - TODO load sound effects");
-	},
 
+	/**
+	 * Toggle all sounds.
+	 *
+	 * @param {boolean} value
+	 */
 	setSoundMute: function (value) {
-		this.soundmute = value;
+		this.sounds.mute(value);
 	},
 
-	soundIndexByName: function (name) {
-		var idx = 0;
-		for (var i = 0; i < this.gamedata.sounds.length; i++) {
-			if (this.gamedata.sounds[i].name == name) {
-				return i;
-			}
-		}
-		return -1;
-	},
-
+	/**
+	 * Play Sound.
+	 *
+	 * @param {string} name
+	 */
 	playSoundEffect: function (name) {
-
-		// device sound is not muted
-		if (!this.soundmute) {
-			// get sound index from name
-			var idx = this.soundIndexByName(name);
-
-			// if sound exists
-			if (idx >= 0) {
-				// if sound is playing then stop it now
-				if (this.gamedata.sounds[idx].audio.paused == false) {
-					this.gamedata.sounds[idx].audio.pause();
-					// fix for IE11
-					if (!isNaN(this.gamedata.sounds[idx].audio.duration)) {
-						this.gamedata.sounds[idx].audio.currentTime = 0;
-					}
-				}
-				// start playing sound
-				this.gamedata.sounds[idx].audio.play();
-			}
-		}
+		this.sounds.play(name);
 	},
 
 	// -------------------------------------
