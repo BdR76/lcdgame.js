@@ -8,7 +8,7 @@ import AnimationFrame from './AnimationFrame';
 import Sounds from './Sounds';
 import StateManager from './StateManager';
 import Timer from './Timer';
-import { request } from './utils';
+import { randomInteger, request } from './utils';
 
 const CONTAINER_HTML =
 	'<div id="container" class="container">' +
@@ -528,11 +528,7 @@ Game.prototype = {
 	// -------------------------------------
 	// random integer
 	// -------------------------------------
-	randomInteger: function(min, max) {
-		max = max - min + 1;
-		var r = Math.floor(Math.random() * max) + min;
-		return r;
-	},
+	randomInteger: randomInteger,
 
 	// -------------------------------------
 	// function for shapes and sequences
