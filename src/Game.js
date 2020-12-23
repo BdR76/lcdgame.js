@@ -533,6 +533,13 @@ Game.prototype = {
 	// -------------------------------------
 	// function for shapes and sequences
 	// -------------------------------------
+	/**
+	 * Get index of Shape by it's name.
+	 *
+	 * @private
+	 * @param {string} name
+	 * @returns {number}
+	 */
 	shapeIndexByName: function(name) {
 		for (var i = 0; i < this.gamedata.frames.length; i++) {
 			if (this.gamedata.frames[i].filename == name)
@@ -559,12 +566,27 @@ Game.prototype = {
 		return false;
 	},
 
+	/**
+	 * Set value of Shape by Index.
+	 *
+	 * @private
+	 * @param {number} idx
+	 * @param {boolean} value
+	 * @returns {boolean}
+	 */
 	setShapeByIdx: function(idx, value) {
 		this.gamedata.frames[idx].value = value;
 		this._refresh = true;
 		return true;
 	},
 
+	/**
+	 * Get index of sequence by name.
+	 *
+	 * @private
+	 * @param {string} name
+	 * @returns {number}
+	 */
 	sequenceIndexByName: function(name) {
 		if (this.gamedata.sequences) {
 			for (var i = 0; i < this.gamedata.sequences.length; i++) {
@@ -670,6 +692,13 @@ Game.prototype = {
 		this._refresh = true;
 	},
 
+	/**
+	 * Set position of Sequence.
+	 *
+	 * @param {string} name
+	 * @param {number} pos
+	 * @param {boolean} value
+	 */
 	sequenceSetPos: function(name, pos, value) {
 		if (this.gamedata.sequences) {
 			// get sequence
@@ -690,6 +719,12 @@ Game.prototype = {
 		}
 	},
 
+	/**
+	 * Check if a Frame is visible.
+	 *
+	 * @param {string} name
+	 * @returns {boolean}
+	 */
 	shapeVisible: function(name) {
 		// find shape
 		for (var i = 0; i < this.gamedata.frames.length; i++) {
@@ -702,6 +737,13 @@ Game.prototype = {
 		return false;
 	},
 
+	/**
+	 * Check if a Sequence is visible.
+	 *
+	 * @param {string} name
+	 * @param {number} pos
+	 * @returns {boolean}
+	 */
 	sequenceShapeVisible: function(name, pos) {
 		// get sequence
 		var seqidx = this.sequenceIndexByName(name);
@@ -732,6 +774,13 @@ Game.prototype = {
 		return false;
 	},
 
+	/**
+	 * Check if all Frames of a Sequence are visible.
+	 *
+	 * @param {string} name
+	 * @param {boolean} value
+	 * @returns {boolean}
+	 */
 	sequenceAllVisible: function(name, value) {
 		// get sequence
 		var seqidx = this.sequenceIndexByName(name);
@@ -747,6 +796,11 @@ Game.prototype = {
 		return true;
 	},
 
+	/**
+	 * Hide / show all shapes
+	 *
+	 * @param {boolean} value
+	 */
 	shapesDisplayAll: function(value) {
 
 		if (this.gamedata.frames) {
