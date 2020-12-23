@@ -7,6 +7,7 @@ import HighScores, { SCORE_HTML } from './Highscores';
 import AnimationFrame from './AnimationFrame';
 import StateManager from './StateManager';
 import Timer from './Timer';
+import { request } from './utils';
 
 const CONTAINER_HTML =
 	'<div id="container" class="container">' +
@@ -122,24 +123,14 @@ Game.prototype = {
 	// -------------------------------------
 	// load a game configuration file
 	// -------------------------------------
-	loadConfig: function(path) {
-
-		var xhrCallback = function()
-		{
-			if (xhr.readyState === XMLHttpRequest.DONE) {
-				if ((xhr.status === 200) || (xhr.status === 0)) {
-					this.onConfigLoad(JSON.parse(xhr.responseText));
-				} else {
-					this.onConfigError(xhr);
-				}
-			}
-		};
-
-		var xhr = new XMLHttpRequest();
-		xhr.onreadystatechange = xhrCallback.bind(this);
-
-		xhr.open("GET", path, true);
-		xhr.send();
+	loadConfig: async function(path) {
+		try {
+			const data = await request(path);
+			this.onConfigLoad(data);
+		} catch (error) {
+			console.log("** ERROR ** lcdgame.js - onConfigError: error loading json file");
+			console.error(error);
+		}
 	},
 
 	// -------------------------------------
@@ -298,11 +289,6 @@ Game.prototype = {
 				}
 			}
 		}
-	},
-
-	onConfigError: function(xhr) {
-		console.log("** ERROR ** lcdgame.js - onConfigError: error loading json file");
-		console.error(xhr);
 	},
 
 	// -------------------------------------

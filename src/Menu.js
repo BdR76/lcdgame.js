@@ -2,7 +2,7 @@
 // Bas de Reuver (c)2018
 
 import { hideScorebox } from './Highscores';
-import { tinyMarkDown } from './utils';
+import { request, tinyMarkDown } from './utils';
 
 export const INFOBOX_ID = 'infobox';
 
@@ -20,7 +20,7 @@ export function hideInfobox() {
 	//}
 }
 
-function onMetadataLoad(data) {
+function renderInfoBox(data) {
 	const container = document.getElementById('container');
 	const instr = tinyMarkDown(data.gameinfo.instructions.en);
 
@@ -37,30 +37,13 @@ function onMetadataLoad(data) {
 	container.appendChild(infobox);
 }
 
-function onMetadataError(xhr) {
-	console.log("** ERROR ** lcdgame.js - onMetadataError: error loading json file");
-	console.error(xhr);
-}
-
-export function fetchMetadata(path) {
-	return new Promise((resolve, reject) => {
-		var xhrCallback = function() {
-			if (xhr.readyState === XMLHttpRequest.DONE) {
-				if ((xhr.status === 200) || (xhr.status === 0)) {
-					const data = JSON.parse(xhr.responseText);
-					onMetadataLoad(data);
-					resolve(data);
-				} else {
-					onMetadataError(xhr);
-					reject(xhr);
-				}
-			}
-		};
-
-		var xhr = new XMLHttpRequest();
-		xhr.onreadystatechange = xhrCallback.bind(this);
-
-		xhr.open("GET", path, true);
-		xhr.send();
-	});
+export async function fetchMetadata(path) {
+	try {
+		const data = await request(path);
+		renderInfoBox(data);
+		return data;
+	} catch (error) {
+		console.log("** ERROR ** lcdgame.js - onMetadataError: error loading json file");
+		console.error(error);
+	}
 }
