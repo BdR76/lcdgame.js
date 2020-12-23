@@ -21,7 +21,6 @@ export function hideInfobox() {
 }
 
 function renderInfoBox(data) {
-	const container = document.getElementById('container');
 	const instr = tinyMarkDown(data.gameinfo.instructions.en);
 
 	const infobox = document.createElement('div');
@@ -34,7 +33,7 @@ function renderInfoBox(data) {
 		'</div>' +
 		'<a class="mybutton btnpop" onclick="LCDGame.hideInfobox();">Ok</a>';
 
-	container.appendChild(infobox);
+	document.body.appendChild(infobox);
 }
 
 export async function fetchMetadata(path) {

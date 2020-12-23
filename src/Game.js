@@ -13,8 +13,10 @@ import { randomInteger, request } from './utils';
 const CONTAINER_HTML =
 	'<div id="container" class="container">' +
 	'	<canvas id="mycanvas" class="gamecvs"></canvas>' +
-	'	<a class="mybutton btnmenu" onclick="LCDGame.displayInfobox();">help</a>' +
-	'	<a class="mybutton btnmenu" onclick="LCDGame.displayScorebox();">highscores</a>' +
+	'	<div class="menu">' +
+	'		<a class="mybutton" onclick="LCDGame.displayInfobox();">help</a>' +
+	'		<a class="mybutton" onclick="LCDGame.displayScorebox();">highscores</a>' +
+	'	</div>' +
 	'</div>';
 
 // -------------------------------------
@@ -307,12 +309,9 @@ Game.prototype = {
 		// highscores
 		this.highscores = new HighScores(this, title, gametypes);
 		this.highscores.init(this.gametype);
-
-		this.infobox = document.getElementById(INFOBOX_ID);
 	},
 
 	resizeCanvas: function() {
-
 		// determine which is limiting factor for current window/frame size; width or height
 		var scrratio = window.innerWidth / window.innerHeight;
 		var imgratio = this.canvas.width / this.canvas.height;
@@ -326,67 +325,17 @@ Game.prototype = {
 			w = window.innerWidth;
 			this.scaleFactor = w / this.canvas.width;
 			h = this.canvas.height * this.scaleFactor;
-
-			// set margins for full height
-			var ymargin = (window.innerHeight - h) / 2;
-			this.canvas.style["margin-top"] = ymargin+"px";
-			this.canvas.style["margin-bottom"] = -ymargin+"px";
-			this.canvas.style["margin-left"] = "0px";
 		} else {
 			// height of image should take entire height of screen
 			h = window.innerHeight;
 			this.scaleFactor = h / this.canvas.height;
 			w = this.canvas.width * this.scaleFactor;
-
-			// set margins for full height
-			var xmargin = (window.innerWidth - w) / 2;
-			this.canvas.style["margin-left"] = xmargin+"px";
-			this.canvas.style["margin-right"] = -xmargin+"px";
-			this.canvas.style["margin-top"] = "0px";
 		}
 
 		// set canvas size
 		this.canvas.style.width = w+"px";
 		this.canvas.style.height = h+"px";
-
-		// set canvas properties
-		this.canvas.style.display = "block";
-		this.canvas.style["touch-action"] = "none"; // no text select on touch
-		this.canvas.style["user-select"] = "none"; // no text select on touch
-		this.canvas.style["-webkit-tap-highlight-color"] = "rgba(0, 0, 0, 0)"; // not sure what this does
-
-		// center infobox
-		this.resizeInfobox(this.infobox);
-		this.resizeInfobox(this.scorebox);
 	},
-
-	resizeInfobox: function(box) {
-
-		// set visible, else width height doesn't work
-		box.style.display = "inherit";
-
-		// determine screen/frame size
-		var w = box.offsetWidth;
-		var h = box.offsetHeight;
-		var rect = box.getBoundingClientRect();
-		if (rect) {
-			w = rect.width;
-			h = rect.height;
-		}
-
-		var xmargin = (window.innerWidth - w) / 2;
-		var ymargin = (window.innerHeight - h) / 2;
-
-		// set margins for full height
-		box.style["margin-left"] = xmargin+"px";
-		box.style["margin-right"] = -xmargin+"px";
-		box.style["margin-top"] = ymargin+"px";
-		box.style["margin-bottom"] = -ymargin+"px";
-
-		// reset visibility
-		box.style.display = "none";
-	},
-
 	// -------------------------------------
 	// start the specific game
 	// -------------------------------------
