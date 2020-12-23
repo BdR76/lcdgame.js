@@ -2,16 +2,23 @@
 // Bas de Reuver (c)2018
 
 import { LCDGAME_VERSION } from './System';
-import { MENU_HTML, displayInfobox } from './Menu';
+import { displayInfobox, fetchMetadata, INFOBOX_ID } from './Menu';
 import HighScores, { SCORE_HTML } from './Highscores';
 import AnimationFrame from './AnimationFrame';
 import StateManager from './StateManager';
 import Timer from './Timer';
 
+const CONTAINER_HTML =
+	'<div id="container" class="container">' +
+	'	<canvas id="mycanvas" class="gamecvs"></canvas>' +
+	'	<a class="mybutton btnmenu" onclick="LCDGame.displayInfobox();">help</a>' +
+	'	<a class="mybutton btnmenu" onclick="LCDGame.displayScorebox();">highscores</a>' +
+	'</div>';
+
 // -------------------------------------
 // game object
 // -------------------------------------
-const Game = function (configfile, metadatafile) {
+const Game = function (configfile, metadatafile = "metadata/gameinfo.json") {
 
 	this.gamedata = [];
 	this.imageBackground = null;
@@ -62,13 +69,12 @@ const Game = function (configfile, metadatafile) {
 
 	// create canvas element and add to document
 	var str =
-		MENU_HTML +
+		CONTAINER_HTML +
 		SCORE_HTML;
 
 	document.write(str);
 
 	this.canvas = document.getElementById("mycanvas");
-	this.infobox = document.getElementById("infobox");
 	this.scorebox = document.getElementById("scorebox");
 	this.infocontent = document.getElementById("infocontent");
 	this.scorecontent = document.getElementById("scorecontent");
@@ -86,7 +92,6 @@ const Game = function (configfile, metadatafile) {
 
 	// add gamedata and populate by loading json
 	this.loadConfig(configfile);
-	metadatafile = (metadatafile || "metadata/gameinfo.json");
 	this.loadMetadata(metadatafile);
 
 	// mouse or touch input
@@ -303,79 +308,20 @@ Game.prototype = {
 	// -------------------------------------
 	// load a metadata file
 	// -------------------------------------
-	loadMetadata: function(path) {
-		var xhrCallback = function()
-		{
-			if (xhr.readyState === XMLHttpRequest.DONE) {
-				if ((xhr.status === 200) || (xhr.status === 0)) {
-					this.onMetadataLoad(JSON.parse(xhr.responseText));
-				} else {
-					this.onMetadataError(xhr);
-				}
-			}
-		};
-
-		var xhr = new XMLHttpRequest();
-		xhr.onreadystatechange = xhrCallback.bind(this);
-
-		xhr.open("GET", path, true);
-		xhr.send();
-	},
-
-	tinyMarkDown: function(str) {
-		// \n => <br/>
-		str = str.replace(/\n/gi, "<br/>");
-
-		// *bold* => <b>bold</b>
-		str = str.replace(/\*.*?\*/g, function(foo){
-			return "<b>"+foo.slice(1, -1)+"</b>";
-		});
-
-		// _italic_ => <i>italic</i>
-		str = str.replace(/_.*?_/g, function(foo){
-			return "<i>"+foo.slice(1, -1)+"</i>";
-		});
-
-		// [button] => <btn>button</btn>
-		str = str.replace(/\[(?:(?!\[).)*?\](?!\()/g, function(foo){
-			return "<btn>"+foo.slice(1, -1)+"</btn>";
-		});
-
-		// hyperlinks [url text](www.test.com) => <a href="http://www.test.com">url text</a>
-		str = str.replace(/(\[(?:(?!\[).)*?\])(\((?:(?!\().)*?\))/g, function(all, fst, sec, pos){
-			var url = sec.slice(1, -1);
-			if (url.indexOf("http") != 0) url = "http://" + url;
-			var txt = fst.slice(1, -1);
-			return '<a href="' + url + '">' + txt + '</a>';
-		});
-
-		return str;
-	},
-
-	// -------------------------------------
-	// metadata load JSON file
-	// -------------------------------------
-	onMetadataLoad: function(data) {
-		// load all from JSON data
-		this.metadata = data;
-
-		// infobox content
-		var instr = this.tinyMarkDown(data.gameinfo.instructions.en);
-		this.infocontent.innerHTML = "<h1>How to play</h1><br/>" + instr;
+	loadMetadata: async function(path) {
+		const data = await fetchMetadata(path);
 
 		// get info from metadata
 		var title = data.gameinfo.device.title;
 		var gametypes = data.gameinfo.gametypes;
+
 		this.gametype = (typeof gametypes === "undefined" ? 0 : 1);
 
 		// highscores
 		this.highscores = new HighScores(this, title, gametypes);
 		this.highscores.init(this.gametype);
-	},
 
-	onMetadataError: function(xhr) {
-		console.log("** ERROR ** lcdgame.js - onMetadataError: error loading json file");
-		console.error(xhr);
+		this.infobox = document.getElementById(INFOBOX_ID);
 	},
 
 	resizeCanvas: function() {

@@ -2,20 +2,9 @@
 // Bas de Reuver (c)2018
 
 import { hideScorebox } from './Highscores';
+import { tinyMarkDown } from './utils';
 
-export const MENU_HTML =
-		'<div class="container">' +
-		'  <canvas id="mycanvas" class="gamecvs"></canvas>' +
-		'  <a class="mybutton btnmenu" onclick="LCDGame.displayInfobox();">help</a>' +
-		'  <a class="mybutton btnmenu" onclick="LCDGame.displayScorebox();">highscores</a>' +
-		'  <div class="infobox" id="infobox">' +
-		'    <div id="infocontent">' +
-		'      instructions' +
-		'    </div>' +
-		'    <a class="mybutton btnpop" onclick="LCDGame.hideInfobox();">Ok</a>' +
-		'  </div>' +
-		'</div>';
-
+export const INFOBOX_ID = 'infobox';
 
 export function displayInfobox() {
 	hideScorebox();
@@ -31,12 +20,47 @@ export function hideInfobox() {
 	//}
 }
 
-// -------------------------------------
-// menu overlay object
-// -------------------------------------
-const Menu = function (lcdgame, name) {
-	// save reference to game object
-	this.lcdgame = lcdgame;
-};
+function onMetadataLoad(data) {
+	const container = document.getElementById('container');
+	const instr = tinyMarkDown(data.gameinfo.instructions.en);
 
-export default Menu;
+	const infobox = document.createElement('div');
+	infobox.setAttribute('id', INFOBOX_ID);
+	infobox.setAttribute('class', INFOBOX_ID);
+
+	infobox.innerHTML =
+		'<div id="infocontent">' +
+		'	<h1>How to play</h1><br/>' + instr +
+		'</div>' +
+		'<a class="mybutton btnpop" onclick="LCDGame.hideInfobox();">Ok</a>';
+
+	container.appendChild(infobox);
+}
+
+function onMetadataError(xhr) {
+	console.log("** ERROR ** lcdgame.js - onMetadataError: error loading json file");
+	console.error(xhr);
+}
+
+export function fetchMetadata(path) {
+	return new Promise((resolve, reject) => {
+		var xhrCallback = function() {
+			if (xhr.readyState === XMLHttpRequest.DONE) {
+				if ((xhr.status === 200) || (xhr.status === 0)) {
+					const data = JSON.parse(xhr.responseText);
+					onMetadataLoad(data);
+					resolve(data);
+				} else {
+					onMetadataError(xhr);
+					reject(xhr);
+				}
+			}
+		};
+
+		var xhr = new XMLHttpRequest();
+		xhr.onreadystatechange = xhrCallback.bind(this);
+
+		xhr.open("GET", path, true);
+		xhr.send();
+	});
+}
