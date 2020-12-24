@@ -142,3 +142,27 @@ btn {
 	margin-bottom: 10px;
 	margin-top: 10px;
 }
+
+/* SVG */
+
+/*
+	Superfluos element, used only to have an easy `innerHtml = `
+	Remove once we build elements, and add event listeners to them.
+*/
+.svgContainer {
+	height: 100%;
+	width: 100%;
+}
+
+.svgContainer svg {
+	height: 100%;
+	width: 100%;
+}
+
+.svgButton {
+	pointer-events: painted;
+}
+
+.svgButton:hover {
+	cursor: pointer;
+}

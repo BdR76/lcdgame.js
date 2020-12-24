@@ -9,9 +9,11 @@ import Sounds from './Sounds';
 import StateManager from './StateManager';
 import Timer from './Timer';
 import { randomInteger, request } from './utils';
+import { render } from './svg';
 
 const CONTAINER_HTML =
 	'<div id="container" class="container">' +
+	'	<div id="svg" class="svgContainer"></div>' +
 	'	<canvas id="mycanvas" class="gamecvs"></canvas>' +
 	'	<div class="menu">' +
 	'		<a class="mybutton" onclick="LCDGame.displayScorebox();">highscores</a>' +
@@ -136,12 +138,20 @@ Game.prototype = {
 		}
 	},
 
+	buildSVG: async function (data) {
+		const html = await render(data);
+		const svg = document.getElementById('svg');
+		svg.innerHTML = html;
+	},
+
 	// -------------------------------------
 	// start game
 	// -------------------------------------
 	onConfigLoad: function(data) {
 		// load all from JSON data
 		this.gamedata = data;
+
+		this.buildSVG(data);
 
 		// set images locations will trigger event onImageLoaded
 		this.imageBackground.src = data.imgback;
