@@ -58,20 +58,10 @@ const Game = function (configfile, metadatafile = "metadata/gameinfo.json") {
 	this.imageShapes = new Image();
 
 	// events after loading image
-	if (this.imageBackground.addEventListener) {
-		// chrome, firefox
-		this.imageBackground.addEventListener("load", this.onImageLoaded.bind(this));
-		this.imageBackground.addEventListener("error", this.onImageError.bind(this));
-		this.imageShapes.addEventListener("load", this.onImageLoaded.bind(this));
-		this.imageShapes.addEventListener("error", this.onImageError.bind(this));
-	}
-	else {
-		// IE8
-		this.imageBackground.attachEvent("load", this.onImageLoaded.bind(this));
-		this.imageBackground.attachEvent("error", this.onImageError.bind(this));
-		this.imageShapes.attachEvent("load", this.onImageLoaded.bind(this));
-		this.imageShapes.attachEvent("error", this.onImageError.bind(this));
-	}
+	this.imageBackground.addEventListener("load", this.onImageLoaded.bind(this));
+	this.imageBackground.addEventListener("error", this.onImageError.bind(this));
+	this.imageShapes.addEventListener("load", this.onImageLoaded.bind(this));
+	this.imageShapes.addEventListener("error", this.onImageError.bind(this));
 
 	// create canvas element and add to document
 	var str =
@@ -352,7 +342,6 @@ Game.prototype = {
 	initGame: function() {
 		// no scrollbars
 		document.body.scrollTop = 0;
-		document.body.style.overflow = 'hidden';
 
 		// initialise canvas
 		this.canvas.width = this.imageBackground.width;
@@ -363,38 +352,23 @@ Game.prototype = {
 		// prepare sounds
 		this.sounds = new Sounds(this.gamedata.sounds);
 
-		// mouse or touch input
-		//if (window.navigator.msPointerEnabled || window.navigator.pointerEnabled)
-		//{
-		//    this._mousedevice = true;
-		//};
-
 		if ('ontouchstart' in document.documentElement || (window.navigator.maxTouchPoints && window.navigator.maxTouchPoints >= 1))
 		{
 			this._touchdevice = true;
 		}
 
 		// bind input
-		if (document.addEventListener) { // chrome, firefox
-			// mouse/touch
-			this.canvas.addEventListener("mousedown", this.onmousedown.bind(this), false);
-			this.canvas.addEventListener("mouseup",   this.onmouseup.bind(this), false);
-			// keyboard
-			document.addEventListener("keydown", this.onkeydown.bind(this), false);
-			document.addEventListener("keyup",   this.onkeyup.bind(this), false);
 
-			if (this._touchdevice) {
-				this.canvas.addEventListener("touchstart", this.ontouchstart.bind(this), false);
-				this.canvas.addEventListener("touchend",   this.ontouchend.bind(this), false);
-			}
+		// mouse/touch
+		this.canvas.addEventListener("mousedown", this.onmousedown.bind(this), false);
+		this.canvas.addEventListener("mouseup",   this.onmouseup.bind(this), false);
+		// keyboard
+		document.addEventListener("keydown", this.onkeydown.bind(this), false);
+		document.addEventListener("keyup",   this.onkeyup.bind(this), false);
 
-		} else { // IE8
-			// mouse/touch
-			this.canvas.attachEvent("mousedown", this.onmousedown.bind(this));
-			this.canvas.attachEvent("mouseup",   this.onmouseup.bind(this));
-			// keyboard
-			document.attachEvent("keydown", this.onkeydown.bind(this));
-			document.attachEvent("keyup",   this.onkeyup.bind(this));
+		if (this._touchdevice) {
+			this.canvas.addEventListener("touchstart", this.ontouchstart.bind(this), false);
+			this.canvas.addEventListener("touchend",   this.ontouchend.bind(this), false);
 		}
 
 		// real time resize
@@ -882,17 +856,6 @@ Game.prototype = {
 					this.shapeDraw(i);
 				}
 			}
-
-			this.drawDebugText();
-
-			// debugging show button areas
-			//for (var i=0; i < this.gamedata.buttons.length; i++) {
-			//	var x1 = this.gamedata.buttons[i].area.x1;
-			//	var y1 = this.gamedata.buttons[i].area.y1;
-			//	var x2 = this.gamedata.buttons[i].area.x2;
-			//	var y2 = this.gamedata.buttons[i].area.y2;
-			//	this.debugRectangle(x1, y1, (x2-x1), (y2-y1));
-			//};
 		}
 		// display was refreshed
 		this._refresh = false;
@@ -912,38 +875,6 @@ Game.prototype = {
 			this.gamedata.frames[index].spriteSourceSize.w,
 			this.gamedata.frames[index].spriteSourceSize.h
 		);
-
-		// show shape index
-		//this.context2d.font = "bold 16px sans-serif";
-		//this.context2d.fillStyle = "#fff";
-		//this.context2d.fillText(index, this.gamedata.frames[index].xpos, this.gamedata.frames[index].ypos);
-	},
-
-	debugText: function(str) {
-		// set text
-		this.debugtxt = str;
-	},
-
-	drawDebugText: function() {
-		if (this.debugtxt) {
-			// set font and position
-			this.context2d.font = "bold 24px sans-serif";
-			var x = 50;
-			var y = 50;
-
-			var lineheight = 15;
-			var lines = this.debugtxt.split('\n');
-
-			for (var i = 0; i<lines.length; i++) {
-				// shadow text
-				this.context2d.fillStyle = "#000";
-				this.context2d.fillText(lines[i], x+2, y+2);
-				// white text
-				this.context2d.fillStyle = "#fff";
-				this.context2d.fillText(lines[i], x, y);
-				y = y + lineheight;
-			}
-		}
 	},
 
 	// -------------------------------------
@@ -1211,17 +1142,6 @@ Game.prototype = {
 			var name = this.gamedata.buttons[btnidx].name;
 			currentState.release(name, diridx);
 		}
-	},
-
-	debugRectangle: function(xpos, ypos, w, h) {
-		var color = "#f0f";
-		// highlight a shape
-		this.context2d.beginPath();
-		this.context2d.lineWidth = "1";
-		this.context2d.strokeStyle = color;
-		this.context2d.fillStyle = color;
-		this.context2d.rect(xpos, ypos, w, h);
-		this.context2d.stroke();
 	}
 };
 
