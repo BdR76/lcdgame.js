@@ -36,6 +36,7 @@ export enum ButtonType {
 	Button = 'button',
 	Dpad = 'dpad',
 	UpDown = 'updown',
+	// Not used
 	LeftRight = 'leftright'
 }
 

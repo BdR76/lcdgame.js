@@ -10,6 +10,7 @@ import StateManager from './StateManager';
 import Timer from './Timer';
 import { randomInteger, request } from './utils';
 import { render } from './svg';
+import { getKeyMapping, normalizeButtons } from './buttons';
 
 const CONTAINER_HTML =
 	'<div id="container" class="container">' +
@@ -134,7 +135,8 @@ Game.prototype = {
 	// start game
 	// -------------------------------------
 	onConfigLoad: async function(data) {
-		// load all from JSON data
+		data.buttons = normalizeButtons(data.buttons);
+
 		this.gamedata = data;
 
 		await this.buildSVG(data);
@@ -199,7 +201,7 @@ Game.prototype = {
 		}
 
 		// prepare buttons keycodes
-		this.keyMapping = this.getKeyMapping(data.buttons);
+		this.keyMapping = getKeyMapping(data.buttons);
 	},
 
 	// -------------------------------------
@@ -398,7 +400,7 @@ Game.prototype = {
 	 *
 	 * @param {string} filename
 	 * @param {boolean} value
-	 * @returns {boolean} - return value never used.
+	 * @returns {boolean} - return value. Never used.
 	 */
 	setShapeByName: function(filename, value) {
 		// if called too soon
@@ -798,32 +800,6 @@ Game.prototype = {
 	// -------------------------------------
 	// buttons input through keyboard
 	// -------------------------------------
-
-	/**
-	 * Get Map of { KeyboardEvent.key: Button.name } from configured Buttons.
-	 *
-	 * @param {Button[]} buttons
-	 * @returns {object}
-	 */
-	getKeyMapping: function(buttons) {
-		const keyMapping = {};
-		// map metadata button name to KeyboardEvent.key
-		const nameMap = {
-			'up': 'ArrowUp',
-			'down': 'ArrowDown',
-			'left': 'ArrowLeft',
-			'right': 'ArrowRight',
-		};
-
-		buttons.forEach((button) => {
-			button.defaultkeys.forEach((keyLabel) => {
-				const key = nameMap[keyLabel] || keyLabel;
-				keyMapping[key] = button.name;
-			});
-		});
-
-		return keyMapping;
-	},
 
 	/**
 	 * Button `touchstart` event handler.
