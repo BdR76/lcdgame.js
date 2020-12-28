@@ -2,7 +2,7 @@
 // Bas de Reuver (c)2018
 
 import { LCDGAME_VERSION } from './System';
-import { displayInfobox, fetchMetadata } from './Menu';
+import { displayInfobox, renderInfoBox } from './Menu';
 import HighScores, { SCORE_HTML } from './Highscores';
 import AnimationFrame from './AnimationFrame';
 import Sounds from './Sounds';
@@ -121,7 +121,7 @@ Game.prototype = {
 	loadConfig: async function(path) {
 		try {
 			const data = await request(path);
-			this.onConfigLoad(data);
+			await this.onConfigLoad(data);
 		} catch (error) {
 			console.log("** ERROR ** lcdgame.js - onConfigError: error loading json file");
 			console.error(error);
@@ -298,17 +298,23 @@ Game.prototype = {
 	// load a metadata file
 	// -------------------------------------
 	loadMetadata: async function(path) {
-		const data = await fetchMetadata(path);
+		try {
+			const data = await request(path);
+			renderInfoBox(data);
 
-		// get info from metadata
-		var title = data.gameinfo.device.title;
-		var gametypes = data.gameinfo.gametypes;
+			// get info from metadata
+			var title = data.gameinfo.device.title;
+			var gametypes = data.gameinfo.gametypes;
 
-		this.gametype = (typeof gametypes === "undefined" ? 0 : 1);
+			this.gametype = (typeof gametypes === "undefined" ? 0 : 1);
 
-		// highscores
-		this.highscores = new HighScores(this, title, gametypes);
-		this.highscores.init(this.gametype);
+			// highscores
+			this.highscores = new HighScores(this, title, gametypes);
+			this.highscores.init(this.gametype);
+		} catch (error) {
+			console.log("** ERROR ** lcdgame.js - onMetadataError: error loading json file");
+			console.error(error);
+		}
 	},
 
 	resizeCanvas: function() {
