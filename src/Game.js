@@ -13,8 +13,8 @@ import { render } from './svg';
 
 const CONTAINER_HTML =
 	'<div id="container" class="container">' +
-	'	<div id="svg" class="svgContainer"></div>' +
 	'	<canvas id="mycanvas" class="gamecvs"></canvas>' +
+	'	<div id="svg" class="svgContainer"></div>' +
 	'	<div class="menu">' +
 	'		<a class="mybutton" onclick="LCDGame.displayScorebox();">highscores</a>' +
 	'		<a class="mybutton" onclick="LCDGame.displayInfobox();">help</a>' +
@@ -90,10 +90,6 @@ const Game = function (configfile, metadatafile = "metadata/gameinfo.json") {
 	this.loadConfig(configfile);
 	this.loadMetadata(metadatafile);
 
-	// mouse or touch input
-	this._touchdevice = false;
-	//this._mousedevice = false
-
 	return this;
 };
 
@@ -137,11 +133,11 @@ Game.prototype = {
 	// -------------------------------------
 	// start game
 	// -------------------------------------
-	onConfigLoad: function(data) {
+	onConfigLoad: async function(data) {
 		// load all from JSON data
 		this.gamedata = data;
 
-		this.buildSVG(data);
+		await this.buildSVG(data);
 
 		// set images locations will trigger event onImageLoaded
 		this.imageBackground.src = data.imgback;
@@ -203,95 +199,7 @@ Game.prototype = {
 		}
 
 		// prepare buttons keycodes
-		for (var b=0; b < this.gamedata.buttons.length; b++) {
-
-			// shape indexes
-			this.gamedata.buttons[b].ids = [];
-
-			// button area
-			var xmin = 1e4;
-			var ymin = 1e4;
-			var xmax = 0;
-			var ymax = 0;
-
-			// find all button frames indexes
-			for (let f = 0; f < this.gamedata.buttons[b].frames.length; f++) {
-				const filename = this.gamedata.buttons[b].frames[f];
-				const idx = this.shapeIndexByName(filename);
-				this.gamedata.buttons[b].ids.push(idx);
-				// flag image frame as button
-				this.gamedata.frames[idx].type = "button";
-				// keep track of position and width/height
-				var spr = this.gamedata.frames[idx].spriteSourceSize;
-				if (spr.x < xmin)         xmin = spr.x;
-				if (spr.y < ymin)         ymin = spr.y;
-				if (spr.x + spr.w > xmax) xmax = spr.x + spr.w;
-				if (spr.y + spr.h > ymax) ymax = spr.y + spr.h;
-			}
-
-			// typically buttons are small, so make size of touch area 3x as big
-			var wh = (xmax - xmin);
-			var hh = (ymax - ymin);
-			xmin = xmin - wh;
-			ymin = ymin - hh;
-			xmax = xmax + wh;
-			ymax = ymax + hh;
-
-			var xcenter = (xmin + xmax) / 2.0;
-			var ycenter = (ymin + ymax) / 2.0;
-
-			// button touch area
-			this.gamedata.buttons[b].area = {"x1":xmin, "y1":ymin, "x2":xmax, "y2":ymax, "xc":xcenter, "yc":ycenter};
-
-			// default keycodes
-			var defkey = this.gamedata.buttons[b].name;
-			if (typeof this.gamedata.buttons[b].defaultkeys !== "undefined") {
-				defkey = this.gamedata.buttons[b].defaultkeys;
-			}
-			this.gamedata.buttons[b].keycodes = this.determineKeyCodes(defkey);
-		}
-
-		// fix overlaps in button touch areas
-		for (var b1=0; b1 < this.gamedata.buttons.length-1; b1++) {
-			for (var b2=b1+1; b2 < this.gamedata.buttons.length; b2++) {
-				// check if overlap
-				if (
-					(this.gamedata.buttons[b1].area.x1 < this.gamedata.buttons[b2].area.x2) // horizontal overlap
-					&& (this.gamedata.buttons[b1].area.x2 > this.gamedata.buttons[b2].area.x1)
-					&& (this.gamedata.buttons[b1].area.y1 < this.gamedata.buttons[b2].area.y2) // vertical overlap
-					&& (this.gamedata.buttons[b1].area.y2 > this.gamedata.buttons[b2].area.y1)
-				) {
-					// get center points of each area
-					var xc1 = this.gamedata.buttons[b1].area.xc;
-					var yc1 = this.gamedata.buttons[b1].area.yc;
-					var xc2 = this.gamedata.buttons[b2].area.xc;
-					var yc2 = this.gamedata.buttons[b2].area.yc;
-
-					// rectract to left, right, up, down
-					if ( Math.abs(xc1 - xc2) > Math.abs(yc1 - yc2) ) {
-						if (xc1 > xc2) { // b1 is to the right of b2
-							const dif = (this.gamedata.buttons[b1].area.x1 - this.gamedata.buttons[b2].area.x2) / 2;
-							this.gamedata.buttons[b1].area.x1 -= dif;
-							this.gamedata.buttons[b2].area.x2 += dif;
-						} else { // b1 is to the left of b2
-							const dif = (this.gamedata.buttons[b1].area.x2 - this.gamedata.buttons[b2].area.x1) / 2;
-							this.gamedata.buttons[b1].area.x2 -= dif;
-							this.gamedata.buttons[b2].area.x1 += dif;
-						}
-					} else {
-						if (yc1 > yc2) { // b1 is below b2
-							const dif = (this.gamedata.buttons[b1].area.y1 - this.gamedata.buttons[b2].area.y2) / 2;
-							this.gamedata.buttons[b1].area.y1 -= dif;
-							this.gamedata.buttons[b2].area.y2 += dif;
-						} else { // b1 is above b2
-							const dif = (this.gamedata.buttons[b1].area.y2 - this.gamedata.buttons[b2].area.y1) / 2;
-							this.gamedata.buttons[b1].area.y2 -= dif;
-							this.gamedata.buttons[b2].area.y1 += dif;
-						}
-					}
-				}
-			}
-		}
+		this.keyMapping = this.getKeyMapping(data.buttons);
 	},
 
 	// -------------------------------------
@@ -358,24 +266,20 @@ Game.prototype = {
 		// prepare sounds
 		this.sounds = new Sounds(this.gamedata.sounds);
 
-		if ('ontouchstart' in document.documentElement || (window.navigator.maxTouchPoints && window.navigator.maxTouchPoints >= 1))
-		{
-			this._touchdevice = true;
-		}
-
 		// bind input
+		document.querySelectorAll(".svgButton").forEach((element) => {
+			element.addEventListener("mousedown", this.onmousedown.bind(this), false);
+			element.addEventListener("mouseup", this.onmouseup.bind(this), false);
 
-		// mouse/touch
-		this.canvas.addEventListener("mousedown", this.onmousedown.bind(this), false);
-		this.canvas.addEventListener("mouseup",   this.onmouseup.bind(this), false);
+			if (this.isTouchDevice()) {
+				element.addEventListener("touchstart", this.ontouchstart.bind(this), false);
+				element.addEventListener("touchend", this.ontouchend.bind(this), false);
+			}
+		});
+
 		// keyboard
 		document.addEventListener("keydown", this.onkeydown.bind(this), false);
 		document.addEventListener("keyup",   this.onkeyup.bind(this), false);
-
-		if (this._touchdevice) {
-			this.canvas.addEventListener("touchstart", this.ontouchstart.bind(this), false);
-			this.canvas.addEventListener("touchend",   this.ontouchend.bind(this), false);
-		}
 
 		// real time resize
 		window.addEventListener("resize", this.resizeCanvas.bind(this), false);
@@ -489,6 +393,13 @@ Game.prototype = {
 		throw "lcdgames.js - "+arguments.callee.caller.toString()+", no frame with filename '" + name + "'";
 	},
 
+	/**
+	 * Toggle shape visibility by its name.
+	 *
+	 * @param {string} filename
+	 * @param {boolean} value
+	 * @returns {boolean} - return value never used.
+	 */
 	setShapeByName: function(filename, value) {
 		// if called too soon
 		if (this.gamedata.frames) {
@@ -503,20 +414,6 @@ Game.prototype = {
 			throw "lcdgames.js - "+arguments.callee.caller.toString()+", no frame with filename '" + filename + "'";
 		}
 		return false;
-	},
-
-	/**
-	 * Set value of Shape by Index.
-	 *
-	 * @private
-	 * @param {number} idx
-	 * @param {boolean} value
-	 * @returns {boolean}
-	 */
-	setShapeByIdx: function(idx, value) {
-		this.gamedata.frames[idx].value = value;
-		this._refresh = true;
-		return true;
 	},
 
 	/**
@@ -559,6 +456,12 @@ Game.prototype = {
 		this._refresh = true;
 	},
 
+	/**
+	 *
+	 * @param {string} name
+	 * @param {number} [max]
+	 * @returns {boolean}
+	 */
 	sequenceShift: function(name, max) {
 		// example start [0] [1] [.] [3] [.] (.=off)
 		//        result [.] [1] [2] [.] [4]
@@ -594,15 +497,12 @@ Game.prototype = {
 		return ret;
 	},
 
-	sequenceShiftReverse: function(name, min) {
+	sequenceShiftReverse: function(name, min = 0) {
 		// example start [.] [1] [.] [3] [4] (.=off)
 		//        result [0] [.] [2] [3] [.]
 
 		// get sequence index of name
 		var seqidx = this.sequenceIndexByName(name);
-
-		// min position is optional
-		if (typeof min === "undefined") min = 0;
 
 		// shift shape values one place UP
 		var i;
@@ -620,6 +520,11 @@ Game.prototype = {
 		this._refresh = true;
 	},
 
+	/**
+	 *
+	 * @param {string} name
+	 * @param {boolean} value
+	 */
 	sequenceSetFirst: function(name, value) {
 		// get sequence
 		var seqidx = this.sequenceIndexByName(name);
@@ -738,7 +643,7 @@ Game.prototype = {
 	/**
 	 * Hide / show all shapes
 	 *
-	 * @param {boolean} value
+	 * @param {boolean} value - shape visibility.
 	 */
 	shapesDisplayAll: function(value) {
 
@@ -764,7 +669,14 @@ Game.prototype = {
 	// -------------------------------------
 	// function for digits
 	// -------------------------------------
-	digitsDisplay: function(name, str, rightalign) {
+
+	/**
+	 *
+	 * @param {string} name - frame.filename prefix. prefix + 'pos' is the actual position
+	 * @param {string} str - value. e.g. score (200), time (12:34)
+	 * @param {boolean} [rightalign=false]
+	 */
+	digitsDisplay: function(name, str, rightalign = false) {
 		// not loaded yet
 		if (!this.gamedata.digits) return;
 
@@ -886,75 +798,53 @@ Game.prototype = {
 	// -------------------------------------
 	// buttons input through keyboard
 	// -------------------------------------
-	buttonAdd: function(name, framenames, defaultkeys) {
-		// if no buttons yet
-		if (typeof this.buttons === 'undefined') {
-			this.buttons = [];
-		}
-		var maxidx = this.gamedata.buttons.length;
 
-		// add button keycodes
-		this.gamedata.buttons[maxidx] = {};
+	/**
+	 * Get Map of { KeyboardEvent.key: Button.name } from configured Buttons.
+	 *
+	 * @param {Button[]} buttons
+	 * @returns {object}
+	 */
+	getKeyMapping: function(buttons) {
+		const keyMapping = {};
+		// map metadata button name to KeyboardEvent.key
+		const nameMap = {
+			'up': 'ArrowUp',
+			'down': 'ArrowDown',
+			'left': 'ArrowLeft',
+			'right': 'ArrowRight',
+		};
 
-		// set values for button
-		this.gamedata.buttons[maxidx].name = name;
-		this.gamedata.buttons[maxidx].frames = framenames;
-		this.gamedata.buttons[maxidx].defaultkeys = defaultkeys;
+		buttons.forEach((button) => {
+			button.defaultkeys.forEach((keyLabel) => {
+				const key = nameMap[keyLabel] || keyLabel;
+				keyMapping[key] = button.name;
+			});
+		});
 
-		this.gamedata.buttons[maxidx].keycodes = this.determineKeyCodes(defaultkeys);
+		return keyMapping;
 	},
 
-	determineKeyCodes: function(keyname) {
-		// variables
-		var result = [];
-
-		// possibly more than 1 keyvariables
-		for (var i = 0; i < keyname.length; i++) {
-			var c = 0;
-			var k = keyname[i];
-
-			// key code
-			k = k.toUpperCase();
-
-			if (k.indexOf("PGUP") > -1) {
-				c = 33;
-			} else if (k.indexOf("PGDN") > -1) {
-				c = 34;
-			} else if (k.indexOf("END") > -1) {
-				c = 35;
-			} else if (k.indexOf("HOME") > -1) {
-				c = 36;
-			} else if (k.indexOf("UP") > -1) {
-				c = 38;
-			} else if (k.indexOf("DOWN") > -1) {
-				c = 40;
-			} else if (k.indexOf("LEFT") > -1) {
-				c = 37;
-			} else if (k.indexOf("RIGHT") > -1) {
-				c = 39;
-			} else {
-				c = k.charCodeAt(0);
-			}
-
-			// add
-			result.push(c);
-		}
-
-		// return array of keycode(s)
-		return result;
-	},
-
+	/**
+	 * Button `touchstart` event handler.
+	 *
+	 * @param {Event} evt
+	 */
 	ontouchstart: function(evt) {
-
 		evt.preventDefault();
 
 		//  evt.changedTouches is changed touches in this event, not all touches at this moment
-		for (var i = 0; i < event.changedTouches.length; i++)
+		for (var i = 0; i < evt.changedTouches.length; i++)
 		{
-			this.onmousedown(event.changedTouches[i]);
+			this.onmousedown(evt.changedTouches[i]);
 		}
 	},
 
+	/**
+	 * Button `touchend` event handler.
+	 *
+	 * @param {Event} evt
+	 */
 	ontouchend: function(evt) {
 		evt.preventDefault();
 
@@ -965,189 +855,91 @@ Game.prototype = {
 		}
 	},
 
+	/**
+	 * Button `mousedown` event handler.
+	 *
+	 * @param {Event} evt
+	 */
 	onmousedown: function(evt) {
+		const data = evt.target.dataset;
+		const direction = parseInt(data.direction, 10);
 
-		var x = (evt.offsetX || evt.clientX - evt.target.offsetLeft);
-		var y = (evt.offsetY || evt.clientY - evt.target.offsetTop);
-
-		//var x = evt.layerX;
-		//var y = evt.layerY;
-		x = x / this.scaleFactor;
-		y = y / this.scaleFactor;
-
-		// check if pressed in defined buttons
-		for (var i=0; i < this.gamedata.buttons.length; i++) {
-			// inside button touch area
-			if (   (x > this.gamedata.buttons[i].area.x1)
-				&& (x < this.gamedata.buttons[i].area.x2)
-				&& (y > this.gamedata.buttons[i].area.y1)
-				&& (y < this.gamedata.buttons[i].area.y2)
-			) {
-				var btnidx = 0;
-				let xhalf;
-				let yhalf;
-				// which type of device button
-				switch(this.gamedata.buttons[i].type) {
-					case "updown":
-						// two direction button up/down
-						yhalf = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
-						// up or down
-						btnidx = (y < this.gamedata.buttons[i].area.y1 + yhalf ? 0 : 1);
-						break;
-					case "leftright":
-						// two direction button left/right
-						xhalf = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
-						// left or right
-						btnidx = (x < this.gamedata.buttons[i].area.x1 + xhalf ? 0 : 1);
-						break;
-					case "dpad":
-						// four direction button up/down/left/right
-						xhalf = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
-						yhalf = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
-						// distance to center
-						var xdist = x - this.gamedata.buttons[i].area.x1 - xhalf;
-						var ydist = y - this.gamedata.buttons[i].area.y1 - yhalf;
-						if (Math.abs(xdist) < Math.abs(ydist)) {
-						// up or down
-							btnidx = (ydist < 0 ? 0 : 1); // 0=up, 1=down
-						} else {
-						// left or right
-							btnidx = (xdist < 0 ? 2 : 3); // 2=left, 3=right
-						}
-						break;
-					//default: // case "button":
-					//	// simple button
-					//	btnidx = 0;
-					//	break;
-				}
-				// button press down
-				this.onButtonDown(i, btnidx);
-			}
-		}
+		this.onButtonDown(data.name, direction);
 	},
 
+	/**
+	 * Button `mouseup` event handler.
+	 *
+	 * @param {Event} evt
+	 */
 	onmouseup: function(evt) {
+		const data = evt.target.dataset;
+		const direction = parseInt(data.direction, 10);
 
-		var x = (evt.offsetX || evt.clientX - evt.target.offsetLeft);
-		var y = (evt.offsetY || evt.clientY - evt.target.offsetTop);
+		this.onButtonUp(data.name, direction);
+	},
 
-		//var x = evt.layerX;
-		//var y = evt.layerY;
-		x = x / this.scaleFactor;
-		y = y / this.scaleFactor;
+	/**
+	 * Keyboard `keydown` event handler.
+	 *
+	 * @param {Event} evt
+	 */
+	onkeydown: function(evt) {
+		const buttonName = this.keyMapping[evt.key];
 
-		// check if pressed in defined buttons
-		for (var i=0; i < this.gamedata.buttons.length; i++) {
-			// inside button touch area
-			if (   (x > this.gamedata.buttons[i].area.x1)
-				&& (x < this.gamedata.buttons[i].area.x2)
-				&& (y > this.gamedata.buttons[i].area.y1)
-				&& (y < this.gamedata.buttons[i].area.y2)
-			) {
-				var btnidx = 0;
-				let half;
-				// which type of device button
-				switch(this.gamedata.buttons[i].type) {
-					case "updown":
-						// two direction button up/down
-						half = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
-						// up or down
-						btnidx = (y < this.gamedata.buttons[i].area.y1 + half ? 0 : 1);
-						break;
-					case "leftright":
-						// two direction button left/right
-						half = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
-						// left or right
-						btnidx = (x < this.gamedata.buttons[i].area.x1 + half ? 0 : 1);
-						break;
-					case "dpad":
-					// four direction button up/down/left/right
-						var xhalf = ((this.gamedata.buttons[i].area.x2 - this.gamedata.buttons[i].area.x1) / 2);
-						var yhalf = ((this.gamedata.buttons[i].area.y2 - this.gamedata.buttons[i].area.y1) / 2);
-						// distance to center
-						var xdist = x - this.gamedata.buttons[i].area.x1 - xhalf;
-						var ydist = y - this.gamedata.buttons[i].area.y1 - yhalf;
-						if (Math.abs(xdist) < Math.abs(ydist)) {
-						// up or down
-							btnidx = (ydist < 0 ? 0 : 1); // 0=up, 1=down
-						} else {
-						// left or right
-							btnidx = (xdist < 0 ? 2 : 3); // 2=left, 3=right
-						}
-						break;
-					//default: // case "button":
-					//	// simple button
-					//	btnidx = 0;
-					//	break;
-				}
-				// button release
-				this.onButtonUp(i, btnidx);
-			}
+		if (buttonName) {
+			this.onButtonDown(buttonName);
 		}
 	},
 
-	onkeydown: function(e) {
-		// get keycode
-		var keyCode = e.keyCode;
+	/**
+	 * Keyboard `keyup` event handler.
+	 *
+	 * @param {Event} evt
+	 */
+	onkeyup: function(evt) {
+		const buttonName = this.keyMapping[evt.key];
 
-		// check if keycode in defined buttons
-		for (var i=0; i < this.gamedata.buttons.length; i++) {
-			for (var j=0; j < this.gamedata.buttons[i].keycodes.length; j++) {
-				if (this.gamedata.buttons[i].keycodes[j] == keyCode) {
-					this.onButtonDown(i, j);
-				}
-			}
+		if (buttonName) {
+			this.onButtonUp(buttonName);
 		}
 	},
 
-	onkeyup: function(e) {
-		// get keycode
-		var keyCode = e.keyCode;
-
-		// check if keycode in defined buttons
-		for (var i=0; i < this.gamedata.buttons.length; i++) {
-			for (var j=0; j < this.gamedata.buttons[i].keycodes.length; j++) {
-				if (this.gamedata.buttons[i].keycodes[j] == keyCode) {
-					this.onButtonUp(i);
-				}
-			}
-		}
-	},
-
-	onButtonDown: function(btnidx, diridx) {
-		// pass input to game
-		var name = this.gamedata.buttons[btnidx].name;
-
-		// alternative buttons, i.e. if more keyboard buttons then buttons frames
-		// for example if 2 button frames (left/right) and 4 keyboard buttons (left, right, A, D) then A=same as LEFT and D=same as RIGHT
-		if (diridx >= this.gamedata.buttons[btnidx].ids.length) {
-			diridx = (diridx % this.gamedata.buttons[btnidx].ids.length);
-		}
+	/**
+	 * Button Down (Mouse Down / Touch Start) event handler.
+	 *
+	 * @param {string} name - name of button in gamedata.buttons Array.
+	 * @param {number} diridx - direction of button action. Used with dpad.
+	 */
+	onButtonDown: function(name, diridx) {
+		// Update UI
+		document.querySelector(`[data-name="${name}"]`).classList.add('down');
 
 		// handle button press
 		this.state.currentState().press(name, diridx);
 
 		// keep track of button presses
 		this.buttonpress++;
-
-		// show button down on screen
-		var idx = this.gamedata.buttons[btnidx].ids[diridx];
-		this.setShapeByIdx(idx, true);
 	},
 
-	onButtonUp: function(btnidx, diridx) {
-		// TODO: visually update frame so key is in neutral position
-		for (var s=0; s < this.gamedata.buttons[btnidx].ids.length; s++) {
-			var idx = this.gamedata.buttons[btnidx].ids[s];
-			this.setShapeByIdx(idx, false);
-		}
+	/**
+	 * Button Up (Mouse Up / Touch End) event handler.
+	 *
+	 * @param {string} name - name of button in gamedata.buttons Array.
+	 */
+	onButtonUp: function(name) {
+		// Update UI
+		document.querySelector(`[data-name="${name}"]`).classList.remove('down');
 
 		// pass input to game
 		const currentState = this.state.currentState();
 		if (currentState?.release) {
-			var name = this.gamedata.buttons[btnidx].name;
-			currentState.release(name, diridx);
+			currentState.release(name);
 		}
+	},
+
+	isTouchDevice: function() {
+		return 'ontouchstart' in document.documentElement || (window.navigator.maxTouchPoints && window.navigator.maxTouchPoints >= 1);
 	}
 };
 

@@ -13,6 +13,7 @@ export interface SourceSize {
 export interface Frame {
 	filename: string;
 	frame: SpriteBox;
+	// always `false`
 	rotated: boolean;
 	sourceSize: SourceSize;
 	spriteSourceSize: SpriteBox;
@@ -31,11 +32,18 @@ export interface Digit {
 	name: string;
 }
 
+export enum ButtonType {
+	Button = 'button',
+	Dpad = 'dpad',
+	UpDown = 'updown',
+	LeftRight = 'leftright'
+}
+
 export interface Button {
 	defaultkeys: string[];
 	frames: string[];
 	name: string;
-	type: string;
+	type: ButtonType;
 }
 
 export interface Sound {

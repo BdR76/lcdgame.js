@@ -161,7 +161,14 @@ btn {
 }
 
 .svgButton {
-	pointer-events: painted;
+	/* DOWN state is rendered, so we hide it by default */
+	opacity: 0;
+}
+
+/* DOWN state */
+.svgButton:active,
+.svgButton.down {
+	opacity: 1;
 }
 
 .svgButton:hover {
