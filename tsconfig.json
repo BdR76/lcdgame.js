@@ -1,0 +1,23 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"compileOnSave": false,
+	"compilerOptions": {
+		"declaration": true,
+		"esModuleInterop": true,
+		"lib": [
+			"dom",
+			"ES2019"
+		],
+		"module": "ES6",
+		"moduleResolution": "node",
+		"outDir": "./dist",
+		"resolveJsonModule": true,
+		"sourceMap": true,
+		"strict": true,
+		"target": "ES2019"
+	},
+	"include": [
+		"./**/*",
+		"./**/.*"
+	]
+}

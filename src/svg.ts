@@ -1,5 +1,18 @@
 import { Button, Frame, GameConfig } from "./@types";
 
+function fetchImage(url:string):Promise<HTMLImageElement> {
+	return new Promise((resolve, reject) => {
+		const image = new Image();
+		image.onerror = (error):void => {
+			reject(error);
+		};
+		image.onload = () => {
+			resolve(image);
+		};
+		image.src = url;
+	});
+}
+
 function getClipPathId(name:string):string {
 	return `svg-clippath-${name}`;
 }
@@ -8,17 +21,8 @@ export function getFrameId(name:string):string {
 	return `svg-image-${name}`;
 }
 
-function fetchImage(url:string):Promise<HTMLImageElement> {
-	return new Promise((resolve, reject) => {
-		const image = new Image();
-		image.onerror = (error):void => {
-			reject(error)
-		}
-		image.onload = () => {
-			resolve(image);
-		};
-		image.src = url;
-	});
+function isButton(frame: Frame):boolean {
+	return frame.filename.startsWith('btn') || frame.filename.includes('dpad');
 }
 
 function renderClipPath(frame:Frame):string {
@@ -38,27 +42,31 @@ function renderButtons(frames:Frame[], spriteImage:HTMLImageElement, buttons: Bu
 	const buttonMap = new Map<string, Button>();
 	buttons.forEach(button => {
 		// updown, dpad button types have multiple frames
-		return button.frames.forEach(frameName => buttonMap.set(frameName, button))
+		return button.frames.forEach(frameName => buttonMap.set(frameName, button));
 	});
 
 	return frames.map((frame) => {
 		const button = buttonMap.get(frame.filename);
+
+		if (!button) {
+			return '';
+		}
 
 		return renderImage(frame, spriteImage, {
 			'data-direction': button.frames.indexOf(frame.filename),
 			'data-name': button.name,
 			'data-type': button.type
 		});
-	}).join('')
+	}).join('');
 }
 
 function renderImage(frame:Frame, spriteImage:HTMLImageElement, attributes?: Record<string, number | string>):string {
-	const isButton = frame.filename.includes('btn');
+	const button = isButton(frame);
 
 	return `
 		<image
 			id="${getFrameId(frame.filename)}"
-			class="${isButton ? 'svgButton' : ''}"
+			class="${button ? 'svgButton' : ''}"
 			clip-path="url(#${getClipPathId(frame.filename)})"
 			height="${spriteImage.height}"
 			href="${spriteImage.src}"
@@ -66,7 +74,7 @@ function renderImage(frame:Frame, spriteImage:HTMLImageElement, attributes?: Rec
 			width="${spriteImage.width}"
 			x="0"
 			y="0"
-			${!!attributes ? Object.entries(attributes).map(([key, value]) => `${key}="${value}"`).join('\n') : ''}
+			${attributes ? Object.entries(attributes).map(([key, value]) => `${key}="${value}"`).join('\n') : ''}
 		/>
 	`;
 }
@@ -79,10 +87,10 @@ export async function render(config:GameConfig) {
 		return !frame.filename.startsWith('dig') || frame.filename.includes('pos_');
 	});
 
-	const buttons = frames.filter(frame => frame.filename.startsWith('btn'))
-	const images = frames.filter(frame => !frame.filename.startsWith('btn'))
+	const buttons = frames.filter(frame => isButton(frame));
+	const images = frames.filter(frame => !isButton(frame));
 
-	let string = `
+	const string = `
 		<svg id="svgElement" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${backgroundImage.width} ${backgroundImage.height}" preserveAspectRatio="xMidYMid meet" version="2.0">
 			<defs>
 				${config.frames.map(renderClipPath).join('')}

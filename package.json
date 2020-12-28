@@ -32,14 +32,17 @@
 	"main": "bin/lcdgame.min.js",
 	"scripts": {
 		"build": "esbuild src/index.js --bundle  --banner=\"/*! LCD game JavaScript library -- by BdR 2018 */\" --minify --sourcemap --target=es2020 --outfile=bin/lcdgame.min.js",
-		"lint": "eslint games src --ext .js",
+		"lint": "eslint games src --ext .js,.ts",
 		"lint:fix": "npm run lint -- --fix",
 		"serve:local": "serve ./",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "^4.11.1",
+		"@typescript-eslint/parser": "^4.11.1",
 		"esbuild": "^0.8.26",
 		"eslint": "^7.16.0",
-		"serve": "^11.3.0"
+		"serve": "^11.3.0",
+		"typescript": "^4.1.3"
 	}
 }
