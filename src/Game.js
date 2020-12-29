@@ -9,7 +9,7 @@ import Sounds from './Sounds';
 import StateManager from './StateManager';
 import Timer from './Timer';
 import { randomInteger, request } from './utils';
-import { render } from './svg';
+import { addSVG, BUTTON_CLASSNAME, setShapeVisibility } from './svg';
 import { getKeyMapping, normalizeButtons } from './buttons';
 
 const CONTAINER_HTML =
@@ -27,7 +27,7 @@ const CONTAINER_HTML =
 // -------------------------------------
 const Game = function (configfile, metadatafile = "metadata/gameinfo.json") {
 
-	this.gamedata = [];
+	this.gamedata = {};
 	this.imageBackground = null;
 	this.imageShapes = null;
 	this.score = 0;
@@ -36,8 +36,6 @@ const Game = function (configfile, metadatafile = "metadata/gameinfo.json") {
 
 	this.buttonpress = 0;
 	this.playtimestart = null;
-
-	this.soundmute = false;
 
 	// site lock, enable for no hotlinking
 	/*
@@ -123,12 +121,6 @@ Game.prototype = {
 		}
 	},
 
-	buildSVG: async function (data) {
-		const html = await render(data);
-		const svg = document.getElementById('svg');
-		svg.innerHTML = html;
-	},
-
 	// -------------------------------------
 	// start game
 	// -------------------------------------
@@ -137,7 +129,7 @@ Game.prototype = {
 
 		this.gamedata = data;
 
-		await this.buildSVG(data);
+		await addSVG(data);
 
 		// set images locations will trigger event onImageLoaded
 		this.imageBackground.src = data.imgback;
@@ -267,7 +259,7 @@ Game.prototype = {
 		this.sounds = new Sounds(this.gamedata.sounds);
 
 		// bind input
-		document.querySelectorAll(".svgButton").forEach((element) => {
+		document.querySelectorAll(`.${BUTTON_CLASSNAME}`).forEach((element) => {
 			element.addEventListener("mousedown", this.onmousedown.bind(this), false);
 			element.addEventListener("mouseup", this.onmouseup.bind(this), false);
 
@@ -398,22 +390,20 @@ Game.prototype = {
 	 *
 	 * @param {string} filename
 	 * @param {boolean} value
-	 * @returns {boolean} - return value. Never used.
 	 */
 	setShapeByName: function(filename, value) {
-		// if called too soon
-		if (this.gamedata.frames) {
-			// find shape
-			for (var i = 0; i < this.gamedata.frames.length; i++) {
-				if (this.gamedata.frames[i].filename == filename) {
-					this.gamedata.frames[i].value = value;
-					this._refresh = true;
-					return true;
-				}
-			}
-			throw "lcdgames.js - "+arguments.callee.caller.toString()+", no frame with filename '" + filename + "'";
+		let name = filename;
+		let frame;
+		if (typeof filename === 'number') {
+			frame = this.gamedata.frames[filename];
+			name = frame.filename;
+		} else {
+			frame = this.gamedata.frames.find(f => f.filename === filename);
 		}
-		return false;
+		if (frame) {
+			frame.value = value;
+		}
+		setShapeVisibility(name, value);
 	},
 
 	/**
@@ -445,13 +435,10 @@ Game.prototype = {
 		// get sequence index of name
 		var seqidx = this.sequenceIndexByName(name);
 
-		// shift shape values one place DOWN
-		for (var i = 0; i < this.gamedata.sequences[seqidx].ids.length; i++) {
-			// get shape index in this sequence
-			var shape = this.gamedata.sequences[seqidx].ids[i];
-			// clear all shapes in sequence
-			this.gamedata.frames[shape].value = value;
-		}
+		this.gamedata.sequences[seqidx].frames.forEach(frameName => {
+			this.setShapeByName(frameName, value);
+		});
+
 		// refresh display
 		this._refresh = true;
 	},
@@ -481,14 +468,16 @@ Game.prototype = {
 			const shape2 = this.gamedata.sequences[seqidx].ids[i];
 
 			// return value
-			if (i == (max-1)) ret = this.gamedata.frames[shape2].value;
+			if (i == (max-1)) {
+				ret = this.gamedata.frames[shape2].value;
+			}
 
 			// shift shape values DOWN one place in sequence
-			this.gamedata.frames[shape2].value = this.gamedata.frames[shape1].value;
+			this.setShapeByName(this.gamedata.frames[shape2].filename, this.gamedata.frames[shape1].value);
 		}
 		// set first value to blank; default value false
 		var shape1 = this.gamedata.sequences[seqidx].ids[0];
-		this.gamedata.frames[shape1].value = false;
+		this.setShapeByName(this.gamedata.frames[shape1].filename, false);
 
 		// refresh display
 		this._refresh = true;
@@ -511,11 +500,11 @@ Game.prototype = {
 			const shape1 = this.gamedata.sequences[seqidx].ids[i];
 			const shape2 = this.gamedata.sequences[seqidx].ids[i+1];
 			// shift shape values UP one place in sequence
-			this.gamedata.frames[shape1].value = this.gamedata.frames[shape2].value;
+			this.setShapeByName(this.gamedata.frames[shape1].filename, this.gamedata.frames[shape2].value);
 		}
 		// set last value to blank; default value false
 		var shape1 = this.gamedata.sequences[seqidx].ids[i];
-		this.gamedata.frames[shape1].value = false;
+		this.setShapeByName(this.gamedata.frames[shape1].filename, false);
 		// refresh display
 		this._refresh = true;
 	},
@@ -531,7 +520,7 @@ Game.prototype = {
 
 		// set value for first shape in sequence
 		var shape1 = this.gamedata.sequences[seqidx].ids[0];
-		this.gamedata.frames[shape1].value = value;
+		this.setShapeByName(this.gamedata.frames[shape1].filename, value);
 		// refresh display
 		this._refresh = true;
 	},
@@ -555,7 +544,7 @@ Game.prototype = {
 			if (pos < this.gamedata.sequences[seqidx].ids.length) {
 				// set value for position shape in sequence
 				var shape1 = this.gamedata.sequences[seqidx].ids[pos];
-				this.gamedata.frames[shape1].value = value;
+				this.setShapeByName(shape1, value);
 
 				// refresh display
 				this._refresh = true;
@@ -652,7 +641,7 @@ Game.prototype = {
 			for (let i = 0; i < this.gamedata.frames.length; i++) {
 				// print out current values of sequence
 				if ( (this.gamedata.frames[i].type == "shape") || (this.gamedata.frames[i].type == "digitpos") ) {
-					this.gamedata.frames[i].value = value;
+					this.setShapeByName(i, value);
 				}
 			}
 			// all digits
@@ -727,7 +716,7 @@ Game.prototype = {
 				// make non-used digit placeholders invisible
 				if ( (i < firstid) || (chridx >= str.length) ) {
 					// make non-used digit placeholders invisible
-					this.gamedata.frames[locidx].value = false;
+					this.setShapeByName(locidx, false);
 				} else {
 					// 48 = ascii code for "0"
 					var digit = str.charCodeAt(chridx) - 48;
@@ -741,10 +730,10 @@ Game.prototype = {
 						this.gamedata.frames[locidx].frame.y = this.gamedata.frames[digitshape].frame.y;
 
 						// make sure the placeholder (with new digit) gets re-drawn
-						this.gamedata.frames[locidx].value = true;
+						this.setShapeByName(locidx, true);
 					} else {
 						// non-digit, example space (' ')
-						this.gamedata.frames[locidx].value = false;
+						this.setShapeByName(locidx, false);
 					}
 					// next character in str
 					chridx = chridx + 1;
@@ -858,7 +847,6 @@ Game.prototype = {
 	 */
 	onkeydown: function(evt) {
 		const buttonName = this.keyMapping[evt.key];
-
 		if (buttonName) {
 			this.onButtonDown(buttonName);
 		}
@@ -884,7 +872,7 @@ Game.prototype = {
 	 */
 	onButtonDown: function(name) {
 		// Update UI
-		document.querySelector(`[data-name="${name}"]`).classList.add('down');
+		this.setShapeByName(name, true);
 
 		// handle button press
 		const currentState = this.state.currentState();
@@ -903,7 +891,7 @@ Game.prototype = {
 	 */
 	onButtonUp: function(name) {
 		// Update UI
-		document.querySelector(`[data-name="${name}"]`).classList.remove('down');
+		this.setShapeByName(name, false);
 
 		// pass input to game
 		const currentState = this.state.currentState();

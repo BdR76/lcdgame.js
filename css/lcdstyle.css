@@ -161,14 +161,13 @@ btn {
 	width: 100%;
 }
 
-.svgButton {
+.svgShape {
 	/* DOWN state is rendered, so we hide it by default */
 	opacity: 0;
 }
 
-/* DOWN state */
-.svgButton:active,
-.svgButton.down {
+.svgShape:active,
+.svgShape.on {
 	opacity: 1;
 }
 
@@ -180,6 +179,7 @@ btn {
 	pointer-events: none;
 }
 
+/* HitBox */
 .svgButton rect {
 	fill: rgba(0, 0, 0, 0);
 	pointer-events: initial;

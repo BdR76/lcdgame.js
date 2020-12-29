@@ -1,5 +1,13 @@
 import { Button, ButtonType, Frame, GameConfig } from "./@types";
 
+export const BUTTON_CLASSNAME = 'svgButton';
+const SHAPE_CLASSNAME = 'svgShape';
+const VISIBLE_SHAPE_CLASSNAME = 'on';
+
+interface AttributesObject {
+	[key: string]: string | number;
+}
+
 function fetchImage(url:string):Promise<HTMLImageElement> {
 	return new Promise((resolve, reject) => {
 		const image = new Image();
@@ -22,15 +30,18 @@ function getClipPathId(name:string):string {
 }
 
 function getFrameId(name:string):string {
-	return `svg-image-${name}`;
+	return `svg-fame-${name}`;
 }
 
 function isButton(frame: Frame):boolean {
 	return frame.filename.startsWith('btn') || frame.filename.includes('dpad');
 }
 
-function renderAttributes(attributes:Record<string, number | string>):string {
-	return Object.entries(attributes).map(([key, value]) => `${key}="${value}"`).join('\n');
+function renderAttributes(attributes:AttributesObject):string {
+	return Object
+		.entries(attributes)
+		.map(([key, value]) => `${key}="${value}"`)
+		.join('\n');
 }
 
 function renderButtons(frames:Frame[], spriteImage:HTMLImageElement, buttons: Button[]) {
@@ -47,12 +58,15 @@ function renderButtons(frames:Frame[], spriteImage:HTMLImageElement, buttons: Bu
 		}
 
 		const attributes = {
+			// @WARNING This uses the _button name_, not the _shape name_ as an ID.
+			'id': getFrameId(button.name),
+			'class': `${BUTTON_CLASSNAME} ${SHAPE_CLASSNAME}`,
 			'data-name': button.name,
 			'data-type': button.type
 		};
 
 		return `
-			<g class="svgButton" ${renderAttributes(attributes)}>
+			<g ${renderAttributes(attributes)}>
 				${renderImage(frame, spriteImage)}
 				${renderHitBox(frame, button.type)}
 			</g>
@@ -115,10 +129,10 @@ function renderHitBox(frame:Frame, type:ButtonType):string {
 	return `<rect x="0" y="0" width="${width}" height="${height}" transform="translate(${offsetX}, ${offsetY})" />`;
 }
 
-function renderImage(frame:Frame, spriteImage:HTMLImageElement):string {
+function renderImage(frame:Frame, spriteImage:HTMLImageElement, attributes?: AttributesObject):string {
 	return `
 		<image
-			id="${getFrameId(frame.filename)}"
+			${attributes ? renderAttributes(attributes) : ''}
 			clip-path="url(#${getClipPathId(frame.filename)})"
 			height="${spriteImage.height}"
 			href="${spriteImage.src}"
@@ -130,7 +144,7 @@ function renderImage(frame:Frame, spriteImage:HTMLImageElement):string {
 	`;
 }
 
-export async function render(config:GameConfig):Promise<string> {
+async function render(config:GameConfig):Promise<string> {
 	const backgroundImage = await fetchImage(config.imgback);
 	const spriteImage = await fetchImage(config.imgshapes);
 	// filter out non-position digit frames
@@ -147,10 +161,34 @@ export async function render(config:GameConfig):Promise<string> {
 				${config.frames.map(renderClipPath).join('')}
 			</defs>
 			<image class="svgBackground" width="${backgroundImage.width}" height="${backgroundImage.height}" href="${backgroundImage.src}" x="0" y="0" />
-			${images.map((frame) => renderImage(frame, spriteImage)).join('')}
+			${images.map((frame) => renderImage(frame, spriteImage, { id: getFrameId(frame.filename), class: SHAPE_CLASSNAME })).join('')}
 			${renderButtons(buttons, spriteImage, config.buttons)}
 		</svg>
 	`;
 
 	return string;
+}
+
+export async function addSVG(config:GameConfig):Promise<void> {
+	const html = await render(config);
+	const svg = document.getElementById('svg');
+	if (svg) {
+		svg.innerHTML = html;
+	} else {
+		console.error('SVG container element missing.');
+	}
+}
+
+export function setShapeVisibility(name:string, isVisible:boolean):void {
+	const id = getFrameId(name);
+	const element = document.getElementById(id);
+
+	if (!element) {
+		return undefined;
+	}
+	if (isVisible) {
+		element.classList.add(VISIBLE_SHAPE_CLASSNAME);
+	} else {
+		element.classList.remove(VISIBLE_SHAPE_CLASSNAME);
+	}
 }
