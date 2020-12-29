@@ -837,7 +837,7 @@ Game.prototype = {
 	 * @param {Event} evt
 	 */
 	onmousedown: function(evt) {
-		const data = evt.target.dataset;
+		const data = evt.currentTarget.dataset;
 		const direction = parseInt(data.direction, 10);
 
 		this.onButtonDown(data.name, direction);
@@ -849,7 +849,7 @@ Game.prototype = {
 	 * @param {Event} evt
 	 */
 	onmouseup: function(evt) {
-		const data = evt.target.dataset;
+		const data = evt.currentTarget.dataset;
 		const direction = parseInt(data.direction, 10);
 
 		this.onButtonUp(data.name, direction);

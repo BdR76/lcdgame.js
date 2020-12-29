@@ -44,18 +44,18 @@ export function normalizeButtons(buttons:Button[]):Button[] {
 
 		// e.g. UPDOWN:
 		// {"name": "luigi", "type": "updown", "frames": ["btn_luigi_up", "btn_luigi_dn"], "defaultkeys": ["q","a","i","k","Home","End"]},
-		if (button.type === ButtonType.Dpad || button.type === ButtonType.UpDown) {
+		if (button.type === ButtonType.DPad || button.type === ButtonType.UpDown) {
 			return button.frames.map((frameName, index) => {
 				return {
 					// get every nth key
 					defaultkeys: button.defaultkeys.filter((value, keyIndex) => {
-						return keyIndex % button.frames.length === index
+						return keyIndex % button.frames.length === index;
 					}),
 					frames: [frameName],
 					name: frameName,
-					type: ButtonType.Button
-				}
-			})
+					type: button.type
+				};
+			});
 		}
 
 		return button;

@@ -158,9 +158,9 @@
 	"buttons": [
 		{"name": "luigi", "type": "updown", "frames": ["btn_luigi_up", "btn_luigi_dn"], "defaultkeys": ["q","a","i","k","Home","End"]},
 		{"name": "mario", "type": "updown", "frames": ["btn_mario_up", "btn_mario_dn"], "defaultkeys": ["p","l","e","d","PgUp","PgDn"]},
-		{"name": "gamea", "type": "button", "frames": ["btn_gamea"], "defaultkeys": "1"},
-		{"name": "gameb", "type": "button", "frames": ["btn_gameb"], "defaultkeys": "2"},
-		{"name": "time",  "type": "button", "frames": ["btn_time"], "defaultkeys": "3"}
+		{"name": "gamea", "type": "button", "frames": ["btn_gamea"], "defaultkeys": ["1"]},
+		{"name": "gameb", "type": "button", "frames": ["btn_gameb"], "defaultkeys": ["2"]},
+		{"name": "time",  "type": "button", "frames": ["btn_time"], "defaultkeys": ["3"]}
 	],
 	"sounds": [
 		{"name": "beltmove",     "filename": "snd/beltmove.wav"},

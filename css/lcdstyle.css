@@ -157,6 +157,7 @@ btn {
 
 .svgContainer svg {
 	height: 100%;
+	user-select: none;
 	width: 100%;
 }
 
@@ -173,4 +174,13 @@ btn {
 
 .svgButton:hover {
 	cursor: pointer;
+}
+
+.svgButton image {
+	pointer-events: none;
+}
+
+.svgButton rect {
+	fill: rgba(0, 0, 0, 0);
+	pointer-events: initial;
 }

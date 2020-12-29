@@ -34,7 +34,7 @@ export interface Digit {
 
 export enum ButtonType {
 	Button = 'button',
-	Dpad = 'dpad',
+	DPad = 'dpad',
 	UpDown = 'updown',
 	// Not used
 	LeftRight = 'leftright'
