@@ -39,6 +39,10 @@ highway.ClockMode.prototype = {
 		if (btn == "mode") {
 			this.lcdgame.state.start("select");
 		}
+
+		if (btn === "sound") {
+			this.lcdgame.setSoundMute();
+		}
 	},
 
 	onTimerDemo: function() {
@@ -157,6 +161,10 @@ highway.SelectMode.prototype = {
 		this.lcdgame.setShapeByName("game1", true);
 	},
 	press: function(btn) {
+		if (btn === "sound") {
+			this.lcdgame.setSoundMute();
+		}
+
 		// select difficulty 1 or 2 or back to demo mode
 		if (btn == "mode") {
 			if (this.selectdiff == 1) {
@@ -238,6 +246,10 @@ highway.MainGame.prototype = {
 	},
 
 	press: function(btn) {
+		if (btn === "sound") {
+			this.lcdgame.setSoundMute();
+		}
+
 		// determine state of gameplay
 		switch (this.gamestate) {
 			case STATE_GAMEPLAY:
@@ -674,6 +686,10 @@ highway.BonusGame.prototype = {
 	},
 
 	press: function(btn) {
+		if (btn === "sound") {
+			this.lcdgame.setSoundMute();
+		}
+
 		if (this.bonusstate == STATE_BONUSPLAY) {
 			// handle player input appropriately
 			if ( (btn == "left") || (btn == "right") ) {
