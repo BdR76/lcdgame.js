@@ -8,16 +8,20 @@ const Sounds = function Sounds(soundsArray) {
 		sound.audio.load();
 		this.map.set(sound.name, sound);
 	});
-	this.mute = false;
+	this.muted = false;
 };
 
 Sounds.prototype = {
-	mute: function(value) {
-		this.mute = value;
+	mute: function(isMuted = !this.muted) {
+		this.muted = isMuted;
+
+		this.map.forEach(sound => {
+			sound.audio.muted = isMuted;
+		});
 	},
 
 	play: function(effectName) {
-		if (this.mute || !this.map.has(effectName)) {
+		if (this.muted || !this.map.has(effectName)) {
 			return;
 		}
 

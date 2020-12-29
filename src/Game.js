@@ -351,9 +351,9 @@ Game.prototype = {
 	// -------------------------------------
 
 	/**
-	 * Toggle all sounds.
+	 * Toggle all sounds. Defaults to opposite of current value.
 	 *
-	 * @param {boolean} value
+	 * @param {boolean} [value]
 	 */
 	setSoundMute: function (value) {
 		this.sounds.mute(value);
