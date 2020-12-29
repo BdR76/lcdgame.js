@@ -179,11 +179,11 @@ junglekong.SelectMode.prototype = {
 		// nothing yet, TODO make optional so library doesn't crash
 	},
 
-	press: function(btn, idx) {
+	press: function(btn) {
 		// press left or right to select Game A or Game B
-		if ( (btn == "dpad") && ( (idx == 2) || (idx == 3) ) ) { // dpad 2=left 3=right
+		if (btn === "dpad_left" || btn === "dpad_right" ) { // dpad 2=left 3=right
 			// show highscore before when selecting game A or game B
-			var gameA = (idx == 2);
+			var gameA = (btn === "dpad_left");
 			this.lcdgame.gametype = (gameA ? 1 : 2); // 1=game a, 2=game b
 			this.lcdgame.setShapeByName("game_a", gameA);
 			this.lcdgame.setShapeByName("game_b", !gameA);
@@ -204,7 +204,7 @@ junglekong.SelectMode.prototype = {
 
 	release: function(btn) {
 		// release dpad, highscore disappears, display just "0"
-		if (btn == "dpad") {
+		if (btn.startsWith("dpad")) {
 			this.lcdgame.digitsDisplay("digits", "0", true);
 		}
 	},
@@ -409,32 +409,31 @@ junglekong.MainGame.prototype = {
 
 		// playing game
 		if (this.waitmode == STATE_PLAYING) {
-			if (btn == "dpad") {
-				// up
-				if (idx == 0) {
-					this.tryMoveGuy(DIR_UP);
-				}
-				// down
-				if (idx == 1) {
-					this.tryMoveGuy(DIR_DOWN);
-				}
-				// left
-				if (idx == 2) {
-					this.tryMoveGuy(DIR_LEFT);
-				}
-				// right
-				if (idx == 3) {
-					this.tryMoveGuy(DIR_RIGHT);
-				}
+			// up
+			if (btn === "dpad_up") {
+				this.tryMoveGuy(DIR_UP);
 			}
+			// down
+			if (btn === "dpad_down") {
+				this.tryMoveGuy(DIR_DOWN);
+			}
+			// left
+			if (btn === "dpad_left") {
+				this.tryMoveGuy(DIR_LEFT);
+			}
+			// right
+			if (btn === "dpad_right") {
+				this.tryMoveGuy(DIR_RIGHT);
+			}
+
 		}
 
 		// game over, do not reset screen only move Game A or Game B
 		if (this.waitmode == STATE_GAMEOVER) {
 
-			if ( (btn == "dpad") && ( (idx == 2) || (idx == 3) ) ) { // dpad 2=left 3=right
+			if (btn === "dpad_left" || btn === "dpad_right") {
 				// show highscore before when selecting game A or game B
-				var gamtyp = (idx == 2 ? 1 : 2); // 1=game a, 2=game b
+				var gamtyp = (btn === "dpad_left" ? 1 : 2); // 1=game a, 2=game b
 				this.lcdgame.gametype = gamtyp;
 				this.lcdgame.setShapeByName("game_a", (gamtyp == 1));
 				this.lcdgame.setShapeByName("game_b", !(gamtyp == 1));
@@ -458,9 +457,9 @@ junglekong.MainGame.prototype = {
 	release: function(btn) {
 		// after game over, release gamea/gameb to start game
 		if (this.waitmode == STATE_GAMEOVER) {
-			if ( (btn == "dpad") && ( (idx == 2) || (idx == 3) ) ) { // dpad 2=left 3=right
+			if (btn === "dpad_left" || btn === "dpad_right") {
 				// show highscore before when selecting game A or game B
-				var gamtyp = (idx == 2 ? 1 : 2); // 1=game a, 2=game b
+				var gamtyp = (btn === "dpad_left" ? 1 : 2); // 1=game a, 2=game b
 				this.lcdgame.gametype = gamtyp;
 				this.lcdgame.setShapeByName("game_a", (gamtyp == 1));
 				this.lcdgame.setShapeByName("game_b", !(gamtyp == 1));
@@ -472,7 +471,7 @@ junglekong.MainGame.prototype = {
 			if ( (btn == "gamea") || (btn == "gameb") ) {
 				//this.lcdgame.setShapeByName("time_colon", false);
 				// show highscore
-				var sc = this.lcdgame.highscores.getHighscore((btn == "gamea" ? 1 : 2));
+				this.lcdgame.highscores.getHighscore((btn == "gamea" ? 1 : 2));
 				//this.lcdgame.digitsDisplay("digits", ""+sc, true);
 			}
 
@@ -482,9 +481,6 @@ junglekong.MainGame.prototype = {
 				this.lcdgame.state.start("maingame"); //restart
 			}
 		}
-	},
-
-	close: function() {
 	},
 
 	tryMoveGuy: function(dir) {
@@ -549,7 +545,7 @@ junglekong.MainGame.prototype = {
 			if (this.jumping) {
 
 				// check collision with birds
-				var coll = MoveCollide[this.guypos].collide[1];
+				coll = MoveCollide[this.guypos].collide[1];
 				// check any collision
 				if (coll != "") {
 					if (this.lcdgame.shapeVisible(coll)) {

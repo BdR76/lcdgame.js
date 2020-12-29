@@ -72,8 +72,6 @@ const Game = function (configfile, metadatafile = "metadata/gameinfo.json") {
 	document.write(str);
 
 	this.canvas = document.getElementById("mycanvas");
-	this.scorebox = document.getElementById("scorebox");
-	this.infocontent = document.getElementById("infocontent");
 	this.scorecontent = document.getElementById("scorecontent");
 
 	// get context of canvas element
@@ -838,9 +836,8 @@ Game.prototype = {
 	 */
 	onmousedown: function(evt) {
 		const data = evt.currentTarget.dataset;
-		const direction = parseInt(data.direction, 10);
 
-		this.onButtonDown(data.name, direction);
+		this.onButtonDown(data.name);
 	},
 
 	/**
@@ -850,9 +847,8 @@ Game.prototype = {
 	 */
 	onmouseup: function(evt) {
 		const data = evt.currentTarget.dataset;
-		const direction = parseInt(data.direction, 10);
 
-		this.onButtonUp(data.name, direction);
+		this.onButtonUp(data.name);
 	},
 
 	/**
@@ -885,14 +881,16 @@ Game.prototype = {
 	 * Button Down (Mouse Down / Touch Start) event handler.
 	 *
 	 * @param {string} name - name of button in gamedata.buttons Array.
-	 * @param {number} diridx - direction of button action. Used with dpad.
 	 */
-	onButtonDown: function(name, diridx) {
+	onButtonDown: function(name) {
 		// Update UI
 		document.querySelector(`[data-name="${name}"]`).classList.add('down');
 
 		// handle button press
-		this.state.currentState().press(name, diridx);
+		const currentState = this.state.currentState();
+		if (currentState?.press) {
+			currentState.press(name);
+		}
 
 		// keep track of button presses
 		this.buttonpress++;

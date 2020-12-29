@@ -47,16 +47,10 @@ searanger.ClockMode.prototype = {
 		this.demotimer.start();
 	},
 
-	update: function() {
-	},
-
 	press: function(btn) {
 		if (btn == "mode") {
 			this.lcdgame.state.start("select");
 		}
-	},
-
-	close: function() {
 	},
 
 	onTimerDemo: function() {
@@ -144,9 +138,6 @@ searanger.SelectMode.prototype = {
 		this.beeptimer = this.lcdgame.addtimer(this, this.onTimerBeep, 1000, false);
 	},
 
-	update: function() {
-	},
-
 	press: function(btn) {
 		if (btn == "mode") {
 			this.lcdgame.setShapeByName("pro1", false);
@@ -177,9 +168,6 @@ searanger.SelectMode.prototype = {
 
 	onTimerBeep: function(tmr) {
 		this.lcdgame.playSoundEffect("beepbeep"); // "lose"
-	},
-
-	close: function() {
 	},
 };
 
@@ -228,12 +216,6 @@ searanger.MainGame.prototype = {
 		this.gametimer.interval = (this.gamepro==1 ? 250 : 125);
 		this.gametimer.start();
 		this.buoytimer.start();
-	},
-
-	update: function() {
-	},
-
-	close: function() {
 	},
 
 	press: function(btn) {

@@ -6,9 +6,9 @@
 		{"filename":"btn_gameb","frame":{"x":151,"y":131,"w":41,"h":60},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":816,"y":450,"w":41,"h":60},"sourceSize":{"w":41,"h":60}},
 		{"filename":"btn_time","frame":{"x":109,"y":131,"w":41,"h":60},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":875,"y":450,"w":41,"h":60},"sourceSize":{"w":41,"h":60}},
 		{"filename":"btn_luigi_up","frame":{"x":175,"y":0,"w":58,"h":129},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":174,"y":468,"w":58,"h":129},"sourceSize":{"w":58,"h":129}},
-		{"filename":"btn_luigi_dn","frame":{"x":116,"y":0,"w":58,"h":129},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":174,"y":468,"w":58,"h":129},"sourceSize":{"w":58,"h":129}},
+		{"filename":"btn_luigi_down","frame":{"x":116,"y":0,"w":58,"h":129},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":174,"y":468,"w":58,"h":129},"sourceSize":{"w":58,"h":129}},
 		{"filename":"btn_mario_up","frame":{"x":0,"y":0,"w":57,"h":130},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":1015,"y":468,"w":57,"h":130},"sourceSize":{"w":57,"h":130}},
-		{"filename":"btn_mario_dn","frame":{"x":58,"y":0,"w":57,"h":130},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":1015,"y":468,"w":57,"h":130},"sourceSize":{"w":57,"h":130}},
+		{"filename":"btn_mario_down","frame":{"x":58,"y":0,"w":57,"h":130},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":1015,"y":468,"w":57,"h":130},"sourceSize":{"w":57,"h":130}},
 		{"filename":"digit_0","frame":{"x":308,"y":316,"w":20,"h":32},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":0,"y":0,"w":20,"h":32},"sourceSize":{"w":20,"h":32}},
 		{"filename":"digit_1","frame":{"x":153,"y":316,"w":20,"h":32},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":20,"y":0,"w":20,"h":32},"sourceSize":{"w":20,"h":32}},
 		{"filename":"digit_2","frame":{"x":258,"y":316,"w":20,"h":32},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":40,"y":0,"w":20,"h":32},"sourceSize":{"w":20,"h":32}},
@@ -156,8 +156,8 @@
 		{"name": "digits", "frames": ["digit_0", "digit_1", "digit_2", "digit_3", "digit_4", "digit_5", "digit_6", "digit_7", "digit_8", "digit_9"], "locations": ["digitpos_1", "digitpos_2", "digitpos_3", "digitpos_4"], "max": "1888"}
 	],
 	"buttons": [
-		{"name": "luigi", "type": "updown", "frames": ["btn_luigi_up", "btn_luigi_dn"], "defaultkeys": ["q","a","i","k","Home","End"]},
-		{"name": "mario", "type": "updown", "frames": ["btn_mario_up", "btn_mario_dn"], "defaultkeys": ["p","l","e","d","PgUp","PgDn"]},
+		{"name": "luigi", "type": "updown", "frames": ["btn_luigi_up", "btn_luigi_down"], "defaultkeys": ["q","a","i","k","Home","End"]},
+		{"name": "mario", "type": "updown", "frames": ["btn_mario_up", "btn_mario_down"], "defaultkeys": ["p","l","e","d","PgUp","PgDn"]},
 		{"name": "gamea", "type": "button", "frames": ["btn_gamea"], "defaultkeys": ["1"]},
 		{"name": "gameb", "type": "button", "frames": ["btn_gameb"], "defaultkeys": ["2"]},
 		{"name": "time",  "type": "button", "frames": ["btn_time"], "defaultkeys": ["3"]}

@@ -85,10 +85,6 @@ cementfactory.ClockMode.prototype = {
 		this.demotimer.start();
 	},
 
-	update: function() {
-
-	},
-
 	press: function(btn) {
 		// show highscore before starting game
 		if ( (btn == "game_a") || (btn == "game_b") ) {
@@ -109,9 +105,6 @@ cementfactory.ClockMode.prototype = {
 			this.lcdgame.gametype = (btn == "game_a" ? 1 : 2); // 1=game A, 2=game B
 			this.lcdgame.state.start("maingame");
 		}
-	},
-
-	close: function() {
 	},
 
 	onTimerDemo: function() {
@@ -327,10 +320,7 @@ cementfactory.MainGame.prototype = {
 		this.refreshGameSpeed();
 	},
 
-	update: function() {
-	},
-
-	press: function(btn, idx) {
+	press: function(btn) {
 
 		// playing game
 		if (this.waitmode == STATE_PLAYING) {
@@ -370,9 +360,6 @@ cementfactory.MainGame.prototype = {
 				this.lcdgame.state.start("maingame"); //restart
 			}
 		}
-	},
-
-	close: function() {
 	},
 
 	refreshGameSpeed: function() {
@@ -424,7 +411,7 @@ cementfactory.MainGame.prototype = {
 		// update or not
 		if (move != 0) {
 			// clear any arms
-			var arm = MoveCollide[this.mariopos].move[4];
+			let arm = MoveCollide[this.mariopos].move[4];
 			if (arm > 0) {
 				this.lcdgame.setShapeByName("arm"+arm+"_1", false);
 				this.lcdgame.setShapeByName("arm"+arm+"_2", false);
@@ -456,7 +443,7 @@ cementfactory.MainGame.prototype = {
 			}
 
 			// show arm at lever
-			var arm = MoveCollide[this.mariopos].move[4];
+			arm = MoveCollide[this.mariopos].move[4];
 			if (arm > 0) {
 				this.lcdgame.setShapeByName("arm"+arm+"_1", true);
 			}
@@ -841,9 +828,9 @@ cementfactory.MainGame.prototype = {
 		}
 
 		// check all hoppers
-		for (var h = 1; h <= 4; h++) {
+		for (let h = 1; h <= 4; h++) {
 			// drop cement animation
-			var i = this.dropcement[h-1]; // when to drop cement in hoppers, in sync with lift animation frames (top left, top right, bottom left, bottom right)
+			const i = this.dropcement[h-1]; // when to drop cement in hoppers, in sync with lift animation frames (top left, top right, bottom left, bottom right)
 			if ( (i >= 0) && (i == (t % 4)) ) {
 				var b = true;
 				// check all cement segment
@@ -867,9 +854,9 @@ cementfactory.MainGame.prototype = {
 		}
 
 		// check all spills
-		for (var s = 1; s <= 6; s++) {
+		for (let s = 1; s <= 6; s++) {
 			// drop cement animation
-			var i = this.spillcement[s-1]; // spill cement from one hopper to next, takes longer than lift animation frame but in synch
+			let i = this.spillcement[s-1]; // spill cement from one hopper to next, takes longer than lift animation frame but in synch
 			// each integer holds spill as bits, shift bits and when bit reaches lowest position then cement goes to next hopper below
 			var next = (i & 1);
 			i = (i >> 1);
@@ -992,7 +979,7 @@ cementfactory.MainGame.prototype = {
 		}
 
 		// dump cement animation
-		var b = 0;
+		b = 0;
 		if (this.lcdgame.shapeVisible("bucket1_3")) b = 1;
 		if (this.lcdgame.shapeVisible("bucket2_3")) b = 2;
 		if (b > 0) {

@@ -14,7 +14,7 @@ function fetchImage(url:string):Promise<HTMLImageElement> {
 }
 
 function getButtonDirection(name:string):string {
-	return name.substring(name.lastIndexOf('_') + 1).replace('dn', 'down');
+	return name.substring(name.lastIndexOf('_') + 1);
 }
 
 function getClipPathId(name:string):string {

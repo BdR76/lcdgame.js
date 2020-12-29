@@ -35,14 +35,14 @@ eaglechicken.ClockMode.prototype = {
 		this.demotimer.start();
 
 		var tmp = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-		for (var i = 0; i < 1000; i++) {
-			var r = this.lcdgame.randomInteger(1, 8);
+		for (let i = 0; i < 1000; i++) {
+			let r = this.lcdgame.randomInteger(1, 8);
 			if (r == 3) r = 2;		// 3 = b0011
 			if (r >= 6) r = r + 2;	// 6 and 7 unused
 			if (r == 1) {
 				// divide 1 over 1/8=6, 3/8=1, 1/2=4
 				// 37,5% = 1
-				var x = this.lcdgame.randomInteger(0, 7);
+				const x = this.lcdgame.randomInteger(0, 7);
 				if (x >= 4) r = 4; // 50% = 4
 				if (x == 0) r = 6; // 12,5% = 6
 			}
@@ -67,17 +67,14 @@ eaglechicken.ClockMode.prototype = {
 		console.log("dropbit 3 =" + dropbit);
 
 		tmp = [];
-		for (var i = 0; i < 20; i++) {
+		for (let i = 0; i < 20; i++) {
 			// drop in current eagle pos, or two places ahead/behind, i.e. at 1&3 or at 2&4
-			var r = this.lcdgame.randomInteger(0, 1);
-			var pos = (eaglepos + (r * 2)) % 4;
+			const r = this.lcdgame.randomInteger(0, 1);
+			const pos = (eaglepos + (r * 2)) % 4;
 			tmp[i] = pos;
 		}
 		console.log("random positions");
 		console.log(tmp);
-	},
-
-	update: function() {
 	},
 
 	press: function(btn) {
@@ -131,9 +128,6 @@ eaglechicken.ClockMode.prototype = {
 				this.lcdgame.state.start("gamemode2");
 			}
 		}
-	},
-
-	close: function() {
 	},
 
 	onTimerDemo: function() {
@@ -236,12 +230,6 @@ eaglechicken.GameMode1.prototype = {
 		this.newGame();
 	},
 
-	update: function() {
-	},
-
-	close: function() {
-	},
-
 	press: function(btn) {
 		if (this.gamestate == STATE_PLAYING) {
 			if (btn == "left")  this.moveChicken(-1);
@@ -325,14 +313,14 @@ eaglechicken.GameMode1.prototype = {
 
 				// remove bird, add wings
 				if (t == 2) {
-					var p = (i+1);
+					const p = (i+1);
 					this.lcdgame.sequenceSetPos("eagle"+p, -1, false); // clear last position
 					this.lcdgame.setShapeByName("wings_"+p, true);
 				}
 
 				// remove wings
 				if (t == 7) {
-					var p = (i+1);
+					const p = (i+1);
 					this.lcdgame.setShapeByName("wings_"+p, false);
 				}
 			}
@@ -341,7 +329,6 @@ eaglechicken.GameMode1.prototype = {
 
 	onTimerGame: function() {
 		// demo mode animations
-		var t = this.gametimer.counter;
 
 		// speed-up at 50 points
 		// Note: never played beyond 110 points, unknown if any speed-ups after 110 points
@@ -360,13 +347,13 @@ eaglechicken.GameMode1.prototype = {
 		if (this.eaglepos == 0) {
 			// semi-random dropping, statistics based on observing real device
 			// example eagledrop = 5 = b0101 means drop at pos 1 and 3, or 2=b0010 mean drop at pos 2, or 4=b0100 mean drop at pos 3 etc.
-			var r = this.lcdgame.randomInteger(1, 8);
+			let r = this.lcdgame.randomInteger(1, 8);
 			if (r == 3) r = 2;		// 3 = b0011
 			if (r >= 6) r = r + 2;	// 6 and 7 unused
 			if (r == 1) {
 				// divide 1 over 1/8=6, 3/8=1, 1/2=4
 				// 37,5% = 1
-				var x = this.lcdgame.randomInteger(0, 7);
+				const x = this.lcdgame.randomInteger(0, 7);
 				if (x >= 4) r = 4; // 50% = 4
 				if (x == 0) r = 6; // 12,5% = 6
 			}
@@ -412,8 +399,8 @@ eaglechicken.GameMode1.prototype = {
 		var dropbit = (this.eagledrop >> this.eaglepos) & 1;
 		if (dropbit) {
 			// drop in current eagle pos, or two places ahead/behind, i.e. at 1&3 or at 2&4
-			var r = this.lcdgame.randomInteger(0, 1);
-			var pos = (this.eaglepos + (r * 2)) % 4;
+			const r = this.lcdgame.randomInteger(0, 1);
+			const pos = (this.eaglepos + (r * 2)) % 4;
 			this.lcdgame.sequenceSetFirst("eagle" + (pos+1), true);
 		}
 	},
@@ -537,12 +524,6 @@ eaglechicken.GameMode2.prototype = {
 		this.newGame();
 	},
 
-	update: function() {
-	},
-
-	close: function() {
-	},
-
 	press: function(btn) {
 		if (this.gamestate == STATE_PLAYING) {
 			if (btn == "left")  this.moveChicken(-1);
@@ -616,14 +597,14 @@ eaglechicken.GameMode2.prototype = {
 
 				// remove bird, add wings
 				if (t == 2) {
-					var p = (i+1);
+					const p = (i+1);
 					this.lcdgame.sequenceSetPos("eagle"+p, -1, false); // clear last position
 					this.lcdgame.setShapeByName("wings_"+p, true);
 				}
 
 				// remove wings
 				if (t == 7) {
-					var p = (i+1);
+					const p = (i+1);
 					this.lcdgame.setShapeByName("wings_"+p, false);
 				}
 			}
@@ -666,13 +647,13 @@ eaglechicken.GameMode2.prototype = {
 		if (this.eaglepos == 0) {
 			// semi-random dropping, statistics based on observing real device
 			// example eagledrop = 5 = b0101 means drop at pos 1 and 3, or 2=b0010 mean drop at pos 2, or 4=b0100 mean drop at pos 3 etc.
-			var r = this.lcdgame.randomInteger(1, 8);
+			let r = this.lcdgame.randomInteger(1, 8);
 			if (r == 3) r = 2;		// 3 = b0011
 			if (r >= 6) r = r + 2;	// 6 and 7 unused
 			if (r == 1) {
 				// divide 1 over 1/8=6, 3/8=1, 1/2=4
 				// 37,5% = 1
-				var x = this.lcdgame.randomInteger(0, 7);
+				const x = this.lcdgame.randomInteger(0, 7);
 				if (x >= 4) r = 4; // 50% = 4
 				if (x == 0) r = 6; // 12,5% = 6
 			}
@@ -718,8 +699,8 @@ eaglechicken.GameMode2.prototype = {
 		var dropbit = (this.eagledrop >> this.eaglepos) & 1;
 		if (dropbit) {
 			// drop in current eagle pos, or two places ahead/behind, i.e. at 1&3 or at 2&4
-			var r = this.lcdgame.randomInteger(0, 1);
-			var pos = (this.eaglepos + (r * 2)) % 4;
+			const r = this.lcdgame.randomInteger(0, 1);
+			const pos = (this.eaglepos + (r * 2)) % 4;
 			this.lcdgame.sequenceSetFirst("eagle" + (pos+1), true);
 		}
 	},
@@ -757,6 +738,7 @@ eaglechicken.GameMode2.prototype = {
 					this.sectimer.unpause();
 					this.hittimer.unpause();
 				}
+				break;
 			case WAIT_RESETANIM:
 				// wait 2.50 sec then show score
 				if (t == 5) {

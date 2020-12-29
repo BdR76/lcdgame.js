@@ -38,9 +38,6 @@ mariobros.ClockMode.prototype = {
 		this.demotimer.start();
 	},
 
-	update: function() {
-	},
-
 	press: function(btn) {
 		// show highscore before starting game
 		if ( (btn == "gamea") || (btn == "gameb") ) {
@@ -58,9 +55,6 @@ mariobros.ClockMode.prototype = {
 			this.lcdgame.gametype = (btn == "gamea" ? 1 : 2); // 1=game a, 2=game b
 			this.lcdgame.state.start("maingame");
 		}
-	},
-
-	close: function() {
 	},
 
 	onTimerDemo: function(tmr) {
@@ -156,11 +150,11 @@ mariobros.MainGame = function(lcdgame) {
 	this.dropcase = [];
 
 	// initialise variable only once
-	for (var c = 0; c < 11; c++) {
+	for (let c = 0; c < 11; c++) {
 		this.holdcase[c] = false;
 	}
 	// 2 stacks of 4 cases on the truck, for dropped animation
-	for (var c = 0; c < 8; c++) {
+	for (let c = 0; c < 8; c++) {
 		var seq = (c%2==0 ? "case12" : "case13");
 		var max = (c%2==0 ? 5 : 4) - Math.floor(c / 2);
 		this.dropcase[c] = {"case":c,"seq":seq,"max":max,"dropped":0,"falling":false,"frame":0,"fallsync":0};
@@ -638,7 +632,7 @@ mariobros.MainGame.prototype = {
 			this.lcdgame.sequenceSetPos("case"+this.misscase, -1, true);
 		} else if (frame == 5) {
 			// which crash
-			var crash = 3;
+			let crash = 3;
 			if (this.misscase == 1) crash = 1;
 			if ( (this.misscase == 5) || (this.misscase == 9) ) crash = 2;
 
@@ -647,7 +641,7 @@ mariobros.MainGame.prototype = {
 			this.lcdgame.setShapeByName("crash_"+crash, true);
 		} else if (frame == 7) {
 			// which crash
-			var crash = 3;
+			let crash = 3;
 			if (this.misscase == 1) crash = 1;
 			if ( (this.misscase == 5) || (this.misscase == 9) ) crash = 2;
 
@@ -712,7 +706,7 @@ mariobros.MainGame.prototype = {
 	// -------------------------------------
 	// player input
 	// -------------------------------------
-	press: function(btn, idx) {
+	press: function(btn) {
 		// determine state of gameplay
 
 		// button press sounds
@@ -733,15 +727,15 @@ mariobros.MainGame.prototype = {
 			}
 		} else if (this.gamestate == STATE_GAMEPLAY) {
 			// which button, up or down
-			if (btn == "luigi") {
-				var update = false;
+			if (btn.startsWith("luigi")) {
+				let update = false;
 				// move up
-				if ( (idx == 0) && (this.luigipos < 2) ) {
+				if (btn === "luigi_up" && (this.luigipos < 2) ) {
 					this.luigipos++;
 					update = true;
 				}
 				// move down
-				if ( (idx == 1) && (this.luigipos > 0) ) {
+				if (btn === "luigi_down" && (this.luigipos > 0) ) {
 					this.luigipos--;
 					update = true;
 				}
@@ -756,15 +750,15 @@ mariobros.MainGame.prototype = {
 					this.lcdgame.sequenceSetPos("luigi_arms", (this.luigipos*2), true);
 				}
 			}
-			if (btn == "mario") {
-				var update = false;
+			if (btn.startsWith("mario")) {
+				let update = false;
 				// move up
-				if ( (idx == 0) && (this.mariopos < 2) ) {
+				if (btn === "mario_up" && (this.mariopos < 2) ) {
 					this.mariopos++;
 					update = true;
 				}
 				// move down
-				if ( (idx == 1) && (this.mariopos > 0) ) {
+				if (btn === "mario_down" && (this.mariopos > 0) ) {
 					this.mariopos--;
 					update = true;
 				}
@@ -801,7 +795,7 @@ mariobros.MainGame.prototype = {
 		if (frame < 30) {
 			// smoke animation in sync with smoke during game
 			var smoke = frame + this.smokeframe;
-			var smoke = (frame > 21 ? ((smoke >> 1) % 4) : (smoke % 4) );
+			smoke = (frame > 21 ? ((smoke >> 1) % 4) : (smoke % 4) );
 
 			// smoke on/off
 			switch(smoke) {

@@ -43,7 +43,7 @@ export function normalizeButtons(buttons:Button[]):Button[] {
 		// {"name":"dpad","type":"dpad","frames":["dpad_up","dpad_down","dpad_left","dpad_right"],"defaultkeys":["up","down","left","right","w","s","a","d"]},
 
 		// e.g. UPDOWN:
-		// {"name": "luigi", "type": "updown", "frames": ["btn_luigi_up", "btn_luigi_dn"], "defaultkeys": ["q","a","i","k","Home","End"]},
+		// {"name": "luigi", "type": "updown", "frames": ["btn_luigi_up", "btn_luigi_down"], "defaultkeys": ["q","a","i","k","Home","End"]},
 		if (button.type === ButtonType.DPad || button.type === ButtonType.UpDown) {
 			return button.frames.map((frameName, index) => {
 				return {

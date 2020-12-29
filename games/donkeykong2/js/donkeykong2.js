@@ -94,10 +94,6 @@ donkeykong2.ClockMode.prototype = {
 		this.demotimer.start();
 	},
 
-	update: function() {
-
-	},
-
 	press: function(btn) {
 		// show highscore before starting game
 		if ( (btn == "gamea") || (btn == "gameb") ) {
@@ -115,9 +111,6 @@ donkeykong2.ClockMode.prototype = {
 			this.lcdgame.gametype = (btn == "gamea" ? 1 : 2); // 1=game a, 2=game b
 			this.lcdgame.state.start("maingame");
 		}
-	},
-
-	close: function() {
 	},
 
 	onTimerDemo: function() {
@@ -416,32 +409,27 @@ donkeykong2.MainGame.prototype = {
 		this.unlockstart = Date.now();
 	},
 
-	update: function() {
-	},
-
-	press: function(btn, idx) {
+	press: function(btn) {
 
 		// playing game
 		if (this.waitmode == STATE_PLAYING) {
-			if (btn == "dpad") {
-				// up
-				if (idx == 0) {
-					this.tryMoveDkJr(DIR_UP);
-				}
-				// down
-				if (idx == 1) {
-					this.tryMoveDkJr(DIR_DOWN);
-				}
-				// left
-				if (idx == 2) {
-					this.tryMoveDkJr(DIR_LEFT);
-				}
-				// right
-				if (idx == 3) {
-					this.tryMoveDkJr(DIR_RIGHT);
-				}
+			// up
+			if (btn === "dpad_up") {
+				this.tryMoveDkJr(DIR_UP);
 			}
-			if (btn == "jump") {
+			// down
+			if (btn === "dpad_down") {
+				this.tryMoveDkJr(DIR_DOWN);
+			}
+			// left
+			if (btn === "dpad_left") {
+				this.tryMoveDkJr(DIR_LEFT);
+			}
+			// right
+			if (btn === "dpad_right") {
+				this.tryMoveDkJr(DIR_RIGHT);
+			}
+			if (btn === "jump") {
 				this.tryMoveDkJr(DIR_JUMP);
 			}
 		}
@@ -466,9 +454,6 @@ donkeykong2.MainGame.prototype = {
 				this.lcdgame.state.start("maingame"); //restart
 			}
 		}
-	},
-
-	close: function() {
 	},
 
 	refreshGameSpeed: function() {
@@ -547,8 +532,8 @@ donkeykong2.MainGame.prototype = {
 			var collRight = "";
 			if ( (this.dkjrpos > 22) && (MoveCollide[this.dkjrpos].move[1] < 0) ) {
 				// can move down, so DkJr is on rope
-				var collLeft  = MoveCollide[this.dkjrpos].collide[2];
-				var collRight = MoveCollide[this.dkjrpos].collide[3];
+				collLeft  = MoveCollide[this.dkjrpos].collide[2];
+				collRight = MoveCollide[this.dkjrpos].collide[3];
 			}
 
 			// check collision up, for when jumping or moving vertically

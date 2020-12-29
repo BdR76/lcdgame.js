@@ -22,19 +22,6 @@ tomsadventure.BootMode.prototype = {
 		this.boottimer.start();
 	},
 
-	update: function() {
-	},
-
-	press: function(btn) {
-	},
-
-	release: function(btn) {
-		// nothing
-	},
-
-	close: function() {
-	},
-
 	onTimerBoot: function() {
 		this.lcdgame.shapesDisplayAll(true);
 		if (this.boottimer.counter > 5) {
@@ -69,9 +56,6 @@ tomsadventure.DemoMode.prototype = {
 
 		// start demo mode
 		this.demotimer.start();
-	},
-
-	update: function() {
 	},
 
 	press: function(btn) {
@@ -113,12 +97,6 @@ tomsadventure.DemoMode.prototype = {
 			}
 		}
 
-	},
-	release: function(btn) {
-		// nothing
-	},
-
-	close: function() {
 	},
 
 	onTimerDemo: function() {
@@ -256,10 +234,7 @@ tomsadventure.MainGame.prototype = {
 		this.waittimer.start();
 	},
 
-	update: function() {
-	},
-
-	press: function(btn, idx) {
+	press: function(btn) {
 		// playing the game
 		if (this.gamestate == STATE_PLAYING) {
 			if (btn == "left") {
@@ -290,9 +265,6 @@ tomsadventure.MainGame.prototype = {
 				this.lcdgame.setShapeByName("sound", !this.lcdgame.soundmute);
 			}
 		}
-	},
-
-	close: function() {
 	},
 
 	tryMoveTom: function(dir) {
@@ -460,9 +432,9 @@ tomsadventure.MainGame.prototype = {
 			}
 			// open and close door, door pattern is continously; 5 ticks closed, 3 ticks opened
 			this.dooropen++;
-			 // door opens
+			// door opens
 			if (this.dooropen == 4) this.lcdgame.setShapeByName("door", true); // open
-			 // door opens
+			// door opens
 			if (this.dooropen > 7) {
 				this.lcdgame.setShapeByName("door", false);
 				// reset countdown to next door open

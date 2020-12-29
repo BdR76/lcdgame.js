@@ -26,13 +26,11 @@ AnimationFrame.prototype = {
 			window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'];
 		}
 
-		var _this = this;
-
 		// cannot use requestAnimationFrame for whatever reason, fall back on `setTimeout`
 		if (!window.requestAnimationFrame)
 		{
-			this.animationLoop = function () {
-				return _this.updateSetTimeout();
+			this.animationLoop = () => {
+				return this.updateSetTimeout();
 			};
 
 			window.setTimeout(this.animationLoop, 0);
@@ -40,8 +38,8 @@ AnimationFrame.prototype = {
 		else
 		{
 
-			this.animationLoop = function (time) {
-				return _this.updateAnimFrame(time);
+			this.animationLoop = (time) => {
+				return this.updateAnimFrame(time);
 			};
 
 			window.requestAnimationFrame(this.animationLoop);
