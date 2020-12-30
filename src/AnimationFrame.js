@@ -4,15 +4,15 @@
 // -------------------------------------
 // request animation frame
 // -------------------------------------
-LCDGame.AnimationFrame = function (lcdgame) {
-	// save reference to game object 
+const AnimationFrame = function (lcdgame) {
+	// save reference to game object
 	this.lcdgame = lcdgame;
 	this.raftime = null;
 };
 
-LCDGame.AnimationFrame.prototype = {
+AnimationFrame.prototype = {
 
-    start: function () {
+	start: function () {
 		var vendors = [
 			'ms',
 			'moz',
@@ -26,35 +26,29 @@ LCDGame.AnimationFrame.prototype = {
 			window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'];
 		}
 
-		animationlast = 0.0;
-
 		var _this = this;
 
 		// cannot use requestAnimationFrame for whatever reason, fall back on `setTimeout`
 		if (!window.requestAnimationFrame)
 		{
-			useSetTimeout = true;
-
-			animationLoop = function () {
+			this.animationLoop = function () {
 				return _this.updateSetTimeout();
 			};
 
-			_timeOutID = window.setTimeout(this.animationLoop, 0);
+			window.setTimeout(this.animationLoop, 0);
 		}
 		else
 		{
-			// use requestAnimationFrame
-			useSetTimeout = false;
 
-			animationLoop = function (time) {
+			this.animationLoop = function (time) {
 				return _this.updateAnimFrame(time);
 			};
 
-			_timeOutID = window.requestAnimationFrame(animationLoop);
+			window.requestAnimationFrame(this.animationLoop);
 		}
 	},
-	
-    updateAnimFrame: function (rafTime) {
+
+	updateAnimFrame: function (rafTime) {
 		// check if switch to pending new state
 		this.lcdgame.state.checkSwitch();
 
@@ -62,10 +56,10 @@ LCDGame.AnimationFrame.prototype = {
 		this.raftime = Math.floor(rafTime);
 		this.lcdgame.updateloop(this.raftime);
 
-		_timeOutID = window.requestAnimationFrame(animationLoop);
+		window.requestAnimationFrame(this.animationLoop);
 	},
-	
-    updateSetTimeout: function () {
+
+	updateSetTimeout: function () {
 		// check if switch to pending new state
 		this.lcdgame.state.checkSwitch();
 
@@ -73,6 +67,8 @@ LCDGame.AnimationFrame.prototype = {
 		this.lcdgame.updateloop(this.raftime);
 
 		var ms = Math.floor(1000.0 / 60.0);
-		_timeOutID = window.setTimeout(animationLoop, ms);
+		window.setTimeout(this.animationLoop, ms);
 	}
-}
+};
+
+export default AnimationFrame;

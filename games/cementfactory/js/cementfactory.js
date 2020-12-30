@@ -21,26 +21,27 @@ var DIR_JUMP = 16;
 // than it is to programmatically determine where Mario can move and which lifts to check, that would become needlessly complex.
 // Each array item is a Mario position, which are valid moves and move how many steps in this array, and where is access to lifts and levers.
 //                           up down left right lever          lift pos
-var MoveCollide = [	{"move":[ 0,   0,   0,    0,   0], "lift":[  1, 2] }, // crush at top (miss)
-					{"move":[-1,  +4,   0,   +1,   0], "lift":[  1, 2] }, // top-left lift
-					{"move":[-2,  +4,  -1,    0,   0], "lift":[  2, 4] }, // top-right lift
-					{"move":[ 0,   0,   0,   +1,   1], "lift":[  0, 0] }, // top platform at lever (left most)
-					{"move":[ 0,   0,  -1,   +1,   0], "lift":[  0, 0] }, // ..
-					{"move":[-4,  +6,  -1,   +1,   0], "lift":[  1, 3] },
-					{"move":[-4,  +6,  -1,   +1,   0], "lift":[  2, 3] },
-					{"move":[ 0,   0,  -1,   +1,   0], "lift":[  0, 0] },
-					{"move":[ 0,   0,  -1,    0,   2], "lift":[  0, 0] },
-					{"move":[ 0,   0,   0,   +1,   3], "lift":[  0, 0] }, // bottom platform at lever (left most)
-					{"move":[ 0,   0,  -1,   +1,   0], "lift":[  0, 0] },
-					{"move":[-6,  +5,  -1,   +1,   0], "lift":[  1, 4] },
-					{"move":[-6,  +5,  -1,   +1,   0], "lift":[  2, 2] },
-					{"move":[ 0,   0,  -1,   +1,   0], "lift":[  0, 0] },
-					{"move":[ 0,   0,  -1,    0,   4], "lift":[  0, 0] },
-					{"move":[ 0,   0,   0,   +1,   0], "lift":[  0, 0] }, // hide position
-					{"move":[-5,  +2,  -1,   +1,   0], "lift":[  1, 5] }, // bottom-left lift
-					{"move":[-5,  +1,  -1,    0,   0], "lift":[  2, 1] }, // bottom-right lift
-					{"move":[ 0,   0,   0,    0,   0], "lift":[  0, 0] }  // crush at bottom (miss)
-				];
+var MoveCollide = [
+	{"move":[ 0,   0,   0,    0,   0], "lift":[  1, 2] }, // crush at top (miss)
+	{"move":[-1,  +4,   0,   +1,   0], "lift":[  1, 2] }, // top-left lift
+	{"move":[-2,  +4,  -1,    0,   0], "lift":[  2, 4] }, // top-right lift
+	{"move":[ 0,   0,   0,   +1,   1], "lift":[  0, 0] }, // top platform at lever (left most)
+	{"move":[ 0,   0,  -1,   +1,   0], "lift":[  0, 0] }, // ..
+	{"move":[-4,  +6,  -1,   +1,   0], "lift":[  1, 3] },
+	{"move":[-4,  +6,  -1,   +1,   0], "lift":[  2, 3] },
+	{"move":[ 0,   0,  -1,   +1,   0], "lift":[  0, 0] },
+	{"move":[ 0,   0,  -1,    0,   2], "lift":[  0, 0] },
+	{"move":[ 0,   0,   0,   +1,   3], "lift":[  0, 0] }, // bottom platform at lever (left most)
+	{"move":[ 0,   0,  -1,   +1,   0], "lift":[  0, 0] },
+	{"move":[-6,  +5,  -1,   +1,   0], "lift":[  1, 4] },
+	{"move":[-6,  +5,  -1,   +1,   0], "lift":[  2, 2] },
+	{"move":[ 0,   0,  -1,   +1,   0], "lift":[  0, 0] },
+	{"move":[ 0,   0,  -1,    0,   4], "lift":[  0, 0] },
+	{"move":[ 0,   0,   0,   +1,   0], "lift":[  0, 0] }, // hide position
+	{"move":[-5,  +2,  -1,   +1,   0], "lift":[  1, 5] }, // bottom-left lift
+	{"move":[-5,  +1,  -1,    0,   0], "lift":[  2, 1] }, // bottom-right lift
+	{"move":[ 0,   0,   0,    0,   0], "lift":[  0, 0] }  // crush at bottom (miss)
+];
 
 // =============================================================================
 // clock state
@@ -48,20 +49,20 @@ var MoveCollide = [	{"move":[ 0,   0,   0,    0,   0], "lift":[  1, 2] }, // cru
 cementfactory.ClockMode = function(lcdgame) {
 	this.lcdgame = lcdgame;
 	this.demotimer = null;
-}
+};
 cementfactory.ClockMode.prototype = {
 	init: function(){
 		// startup clear all
 		this.lcdgame.shapesDisplayAll(false);
 
 		this.demotimer = this.lcdgame.addtimer(this, this.onTimerDemo, 1000, false);
-		
+
 		this.liftdemo = 0;
 		this.lift1 = 0;
 		this.lift2 = 0;
 		this.liftindex = 0;
 		this.mario = 0;
-		
+
 		// initialise demo static shapes
 		this.lcdgame.setShapeByName("mario_04", true);
 		this.lcdgame.setShapeByName("driver1", true);
@@ -74,7 +75,7 @@ cementfactory.ClockMode.prototype = {
 
 			this.lcdgame.setShapeByName("hatch" + i + "_2", false);
 			this.lcdgame.setShapeByName("lever" + i + "_2", false);
-		};
+		}
 
 		// initially two empty buckets
 		this.lcdgame.setShapeByName("bucket1_2", true);
@@ -87,7 +88,7 @@ cementfactory.ClockMode.prototype = {
 	update: function() {
 
 	},
-	
+
 	press: function(btn) {
 		// show highscore before starting game
 		if ( (btn == "game_a") || (btn == "game_b") ) {
@@ -99,7 +100,7 @@ cementfactory.ClockMode.prototype = {
 			// show highscore
 			var sc = this.lcdgame.highscores.getHighscore((btn == "game_a" ? 1 : 2));
 			this.lcdgame.digitsDisplay("digits", ""+sc, true);
-		};
+		}
 	},
 	release: function(btn) {
 		// start game
@@ -107,16 +108,16 @@ cementfactory.ClockMode.prototype = {
 			this.lcdgame.level = 0; // new game
 			this.lcdgame.gametype = (btn == "game_a" ? 1 : 2); // 1=game A, 2=game B
 			this.lcdgame.state.start("maingame");
-		};
+		}
 	},
-		
+
 	close: function() {
 	},
 
 	onTimerDemo: function() {
 		// update clock
 		this.updateclock();
-		
+
 		// update demo animation
 		this.updateDemo();
 	},
@@ -135,7 +136,7 @@ cementfactory.ClockMode.prototype = {
 				this.lcdgame.setShapeByName("lift1_1", true);
 				this.liftindex++;
 				this.lift1 = (this.liftindex % 2 == 0 ? 3 : 2);
-			};
+			}
 		} else {
 			this.lcdgame.sequenceShift("bucket2");
 			this.lcdgame.sequenceShift("lift2");
@@ -144,8 +145,8 @@ cementfactory.ClockMode.prototype = {
 				this.lcdgame.setShapeByName("lift2_1", true);
 				this.liftindex++;
 				this.lift2 = (this.liftindex % 2 == 0 ? 3 : 2);
-			};
-		};
+			}
+		}
 
 		// new empty buckets
 		if ((t+2) % 6 == 0) this.lcdgame.setShapeByName("bucket1_1", true);
@@ -155,14 +156,14 @@ cementfactory.ClockMode.prototype = {
 		var n = this.lcdgame.randomInteger(1, 5);
 		if (n == 1) {
 			this.mario = 1 - this.mario; // toggle 0 and 1
-			
+
 			var b = (this.mario == 0);
 			this.lcdgame.setShapeByName("mario_03", b);
 			this.lcdgame.setShapeByName("mario_04", !b);
 			this.lcdgame.setShapeByName("arm1_1", b);
-		};
+		}
 	},
-	
+
 	updateclock: function() {
 		// get time as 12h clock with PM
 		var datenow = new Date();
@@ -183,14 +184,14 @@ cementfactory.ClockMode.prototype = {
 		}
 		// format hour and minute
 		var strtime = ("  "+ihours).substr(-2) + ("00"+imin).substr(-2);
-		
+
 		// clock time colon
 		this.lcdgame.setShapeByName("time_colon", true);
 
 		// display time
 		this.lcdgame.digitsDisplay("digits", strtime, false);
 	}
-}
+};
 
 
 
@@ -207,25 +208,25 @@ cementfactory.MainGame = function(lcdgame) {
 
 	this.waittimer = null;
 	this.chancetimer = null;
-	
+
 	this.mariopos;
 	this.misses;
 	this.movebucket;
 	this.dropcement;
 	this.spillcement;
 	this.flowpoint;
-	
+
 	this.miss_overflow;
 	this.miss_count;
 
 	this.unlockstart;
 	this.unlockbonus;
-	
+
 	this.enemyspawn;
 
 	this.waitmode;  // waittimer, type of pause
 	this.chancetime;
-}
+};
 cementfactory.MainGame.prototype = {
 	init: function(){
 		// startup clear all
@@ -235,15 +236,15 @@ cementfactory.MainGame.prototype = {
 		this.bucktimer = this.lcdgame.addtimer(this, this.onTimerBucket, 400, false);
 		this.levertimer = this.lcdgame.addtimer(this, this.onTimerLever, 200, true);
 		this.warntimer = this.lcdgame.addtimer(this, this.onTimerWarning, 250, false);
-		
+
 		this.waittimer = this.lcdgame.addtimer(this, this.onTimerWait, 500, true); // fall animation, spill over animation
 		this.bonustimer = this.lcdgame.addtimer(this, this.onTimerBonus, 250, true);
 		this.chancetimer = this.lcdgame.addtimer(this, this.onTimerChance, 500);
-		
+
 		// start new game
 		this.newGame();
 	},
-	
+
 	// start a new game, reset score level etc.
 	newGame: function() {
 		// stop any other state
@@ -263,13 +264,13 @@ cementfactory.MainGame.prototype = {
 		this.valveopen = -1;
 		this.dropcement = [-1, -1, -1, -1]; // when to drop cement in hoppers, in sync with lift animation frames (top left, top right, bottom left, bottom right)
 		this.spillcement = [0, 0, 0, 0, 0, 0]; // when to spill cement from one hopper to the next
-		
+
 		// difference between game modes:
 		// GAME A has more predictable stable lift pattern, and more buckets are empty
 		// GAME B has more erratic lift pattern, and more filled buckets
 		this.liftvars = {"wait1": 0, "wait2": 0, "index1": 0, "index2": 0, "pattern": 0, "chancemax": 0, "chances": []};
 		this.bucketvars = {"bucket1": 0, "bucket2": 0, "nibble": 0, "index": 0, "count": 0, "pref": 0};
-		
+
 		// NOTE: the lifts and buckets are semi-randomised, the pattern is hard to figure out,
 		// so the algorithms here is an educated guess based on stats,
 		// an approximation of the patterns as seen on the real device, not 100% accurate
@@ -281,7 +282,7 @@ cementfactory.MainGame.prototype = {
 			// Game B, more unpredictable lift pattern
 			this.liftvars.chances = [3, 25-2-5-5, 25-2-5, 25-2, 25]; // lift-spaces probabilities GAME B
 			this.liftvars.chancemax = this.liftvars.chances[4]; // GAME B starts right away
-		};
+		}
 
 		// reset all hatch and levers
 		for (var i = 1; i <= 4 ; i++) {
@@ -290,31 +291,31 @@ cementfactory.MainGame.prototype = {
 
 			this.lcdgame.setShapeByName("hatch" + i + "_2", false);
 			this.lcdgame.setShapeByName("lever" + i + "_2", false);
-		};
+		}
 
 		// initially two empty buckets
 		this.lcdgame.setShapeByName("bucket1_2", true);
 		this.lcdgame.setShapeByName("bucket2_1", true);
-		
+
 		// start game
 		this.continueGame();
 	},
 
 	// continue at start of game, or continue after a miss
 	continueGame: function() {
-		
+
 		// reset mario
 		this.mariopos = 4;
 		this.lcdgame.sequenceClear("mario");
 		this.lcdgame.sequenceClear("arm");
 		this.lcdgame.sequenceSetPos("mario", this.mariopos, true);
-		
+
 		// reset drivers
 		this.lcdgame.setShapeByName("driver1", true);
 		this.lcdgame.setShapeByName("driver2", true);
 		this.lcdgame.setShapeByName("driver_fall1", false);
 		this.lcdgame.setShapeByName("driver_fall2", false);
-		
+
 		// reset score
 		this.scorePoints(0);
 		this.miss_overflow = 0;
@@ -328,21 +329,21 @@ cementfactory.MainGame.prototype = {
 
 	update: function() {
 	},
-	
+
 	press: function(btn, idx) {
 
 		// playing game
 		if (this.waitmode == STATE_PLAYING) {
 			if (btn == "left") {
 				this.tryMoveMario(DIR_LEFT);
-			};
+			}
 			if (btn == "right") {
 				this.tryMoveMario(DIR_RIGHT);
-			};
+			}
 			if (btn == "open") {
 				this.tryMarioLever();
-			};
-		};
+			}
+		}
 
 		// game over
 		if (this.waitmode == STATE_GAMEOVER) {
@@ -351,13 +352,13 @@ cementfactory.MainGame.prototype = {
 				// show highscore
 				var sc = this.lcdgame.highscores.getHighscore((btn == "gamea" ? 1 : 2));
 				this.lcdgame.digitsDisplay("digits", ""+sc, true);
-			};
-			
+			}
+
 			if (btn == "time") {
 				// back to clock mode
 				this.lcdgame.state.start("clock");
-			};
-		};
+			}
+		}
 	},
 
 	release: function(btn) {
@@ -367,13 +368,13 @@ cementfactory.MainGame.prototype = {
 				this.lcdgame.level = 0; // new game
 				this.lcdgame.gametype = (btn == "game_a" ? 1 : 2); // 1=game a, 2=game b
 				this.lcdgame.state.start("maingame"); //restart
-			};
-		};
+			}
+		}
 	},
-		
+
 	close: function() {
 	},
-	
+
 	refreshGameSpeed: function() {
 		// Set game speed according to current level and nr of locks remaining
 		// NOTE: on the real device the actual speed varies a lot,
@@ -392,12 +393,12 @@ cementfactory.MainGame.prototype = {
 			if (this.lcdgame.score >  20) msec = 620;
 			if (this.lcdgame.score > 120) msec = 568;
 			if (this.lcdgame.score > 360) msec = 502;
-		};
-		
+		}
+
 		// set lifts and buckets speed
 		this.lifttimer.interval = 0.5 * msec;
 		this.lifttimer.start();
-		
+
 		this.bucktimer.interval = 0.8 * msec;
 		this.bucktimer.start();
 		this.movebucket = 0; // keep bucket hatch open/close in sync with bucket movement
@@ -409,16 +410,16 @@ cementfactory.MainGame.prototype = {
 
 		if (dir == DIR_LEFT) {
 			move = MoveCollide[this.mariopos].move[2];
-		};
+		}
 		if (dir == DIR_RIGHT) {
 			move = MoveCollide[this.mariopos].move[3];
-		};
+		}
 		if (dir == DIR_UP) {
 			move = MoveCollide[this.mariopos].move[0];
-		};
+		}
 		if (dir == DIR_DOWN) {
 			move = MoveCollide[this.mariopos].move[1];
-		};
+		}
 
 		// update or not
 		if (move != 0) {
@@ -427,7 +428,7 @@ cementfactory.MainGame.prototype = {
 			if (arm > 0) {
 				this.lcdgame.setShapeByName("arm"+arm+"_1", false);
 				this.lcdgame.setShapeByName("arm"+arm+"_2", false);
-			};
+			}
 
 			// move mario
 			this.mariopos = this.mariopos + move;
@@ -437,7 +438,7 @@ cementfactory.MainGame.prototype = {
 			// move sound effect, only when moving left or right
 			if ( (dir == DIR_LEFT) || (dir == DIR_RIGHT) ) {
 				this.lcdgame.playSoundEffect("move");
-			};
+			}
 
 			// Check if Mario stepped into lift column
 			var lift = MoveCollide[this.mariopos].lift[0];
@@ -445,24 +446,24 @@ cementfactory.MainGame.prototype = {
 				// check if lift is visible
 				var liftpos = MoveCollide[this.mariopos].lift[1];
 				var frm = "lift" + lift + "_" + liftpos;
-				
+
 				// check if lift not available
 				if (!this.lcdgame.shapeVisible(frm)) {
 					// fall down
 					this.doWait(WAIT_LIFT_MISS);
 					return;
-				};
-			};
+				}
+			}
 
 			// show arm at lever
 			var arm = MoveCollide[this.mariopos].move[4];
 			if (arm > 0) {
 				this.lcdgame.setShapeByName("arm"+arm+"_1", true);
-			};
+			}
 
-		};
+		}
 	},
-	
+
 	tryMarioLever: function() {
 		// can only push one lever at once, cancel if already pushing a lever
 		if (this.levertimer.enabled) return;
@@ -484,7 +485,7 @@ cementfactory.MainGame.prototype = {
 			// open lever
 			this.lcdgame.setShapeByName("lever" + arm + "_1", false);
 			this.lcdgame.setShapeByName("lever" + arm + "_2", true);
-			
+
 			// is there cement at bottom of hopper
 			var c = this.lcdgame.shapeVisible("cement_hopper" + arm + "_3");
 			if (c) {
@@ -504,12 +505,12 @@ cementfactory.MainGame.prototype = {
 					this.scorePoints(1);
 					// open lever sound effect
 					this.lcdgame.playSoundEffect("lever");
-				};
-			};
-			
+				}
+			}
+
 			// close lever timeout
 			this.levertimer.start(1); // only once
-		};
+		}
 	},
 
 	refreshMiss: function(m) {
@@ -518,7 +519,7 @@ cementfactory.MainGame.prototype = {
 		// display misses according to counter
 		for (var i = 1; i <= 3; i++) {
 			this.lcdgame.setShapeByName("miss_"+i, (m >= i));
-		};
+		}
 	},
 
 	refreshScore: function(s) {
@@ -527,7 +528,7 @@ cementfactory.MainGame.prototype = {
 		if (s != "") s = (s % 1000);
 		this.lcdgame.digitsDisplay("digits", ""+s, true);
 	},
-	
+
 	scorePoints: function(pts) {
 		// update score
 		this.lcdgame.score = this.lcdgame.score + (this.chancetime ? pts*2 : pts);
@@ -556,13 +557,13 @@ cementfactory.MainGame.prototype = {
 		this.bucktimer.pause();
 		this.warntimer.pause();
 		this.waittimer.pause();
-		
+
 		// cancel chance time
 		if (this.chancetime) {
 			this.chancetimer.pause();
 			this.chancetime = false;
 			this.scorePoints(0);
-		};
+		}
 
 		// initiate new game state
 		switch(code) {
@@ -581,7 +582,7 @@ cementfactory.MainGame.prototype = {
 					if (this.mariopos >=  3) this.miss_count = 4; // top platform
 					if (this.mariopos >=  9) this.miss_count = 3; // bottom platform
 					if (this.mariopos >= 15) this.miss_count = 2; // bottom part
-				};
+				}
 				break;
 			case WAIT_CEMENT_MISS:
 				this.waittimer.interval = 500;
@@ -606,8 +607,8 @@ cementfactory.MainGame.prototype = {
 			case STATE_GAMEOVER:
 				this.waittimer.interval = 1000;
 				break;
-		};
-		
+		}
+
 		// save code for use in onTimerWait
 		this.waitmode = code;
 		this.waittimer.start();
@@ -634,13 +635,13 @@ cementfactory.MainGame.prototype = {
 					// move mario once place down
 					this.mariopos = this.mariopos + MoveCollide[this.mariopos].move[1];
 					this.lcdgame.sequenceSetPos("mario", this.mariopos, true);
-				};
-				
+				}
+
 				if (t == 1) {
 					// reset flows and empty both top hoppers
 					this.doResetCement();
-				};
-				
+				}
+
 				if (t < 6) {
 					// sound effect
 					this.lcdgame.playSoundEffect("miss_cont");
@@ -650,14 +651,14 @@ cementfactory.MainGame.prototype = {
 					// continue game
 					if (this.misses < 3) {
 						this.continueGame();
-					};
+					}
 				} else {
 					// NOTE: highscore pop-up will pause any update/sound so wait a short while between miss refresh and high score check
 					if (this.misses >= 3) {
 						// no move lives, game over
 						this.doGameOver();
-					};
-				};
+					}
+				}
 				break;
 
 			case WAIT_CEMENT_MISS:
@@ -667,17 +668,17 @@ cementfactory.MainGame.prototype = {
 				// move overflow spill
 				if (t <= 1) {
 					this.lcdgame.sequenceShift("overflow" + this.miss_overflow);
-				};
+				}
 				// remove driver
 				if (t == 1) {
 					this.lcdgame.setShapeByName("driver" + this.miss_overflow, false);
 					// reset flows and empty both top hoppers
 					this.doResetCement();
-				};
+				}
 				// driver on floor, blink on/off
 				if (t >= 1) {
 					this.lcdgame.setShapeByName("driver_fall" + this.miss_overflow, ((t % 2) != 0));
-				};
+				}
 
 				// sound effect or continue game
 				if (t < 8) {
@@ -689,14 +690,14 @@ cementfactory.MainGame.prototype = {
 					// continue game
 					if (this.misses < 3) {
 						this.continueGame();
-					};
+					}
 				} else if (t > 9) { // wait driver falls=visible
 					// NOTE: highscore pop-up will pause any update/sound so wait a short while between miss refresh and high score check
 					if (this.misses >= 3) {
 						// no move lives, game over
 						this.doGameOver();
-					};
-				};				
+					}
+				}
 
 				break;
 			case STATE_GAMEOVER:
@@ -706,11 +707,11 @@ cementfactory.MainGame.prototype = {
 				} else {
 					// game over due to fall from lift
 					this.lcdgame.sequenceSetPos("mario", this.mariopos, (t % 2 == 0));
-				};
+				}
 				break;
-		};
+		}
 	},
-	
+
 	doSpillCement: function(buck) {
 		this.lcdgame.setShapeByName("cement_flow_" + buck, true);
 		var i = this.spillcement[buck-1];
@@ -722,19 +723,19 @@ cementfactory.MainGame.prototype = {
 		for (var i=1; i <= 6; i++) {
 			this.lcdgame.setShapeByName("cement_flow_" + i, false);
 			this.spillcement[i-1] = 0;
-		};
+		}
 		// empty both top hoppers
 		this.lcdgame.sequenceClear("cement_hopper1");
 		this.lcdgame.sequenceClear("cement_hopper2");
 	},
 
 	onTimerBonus: function(tmr) {
-	
+
 		// short pause when getting 300 points bonus
 		// blink misses (if any), beep and then continue
 		var m = (tmr.counter % 2 == 0 ? this.misses : 0);
 		this.refreshMiss(m);
-		
+
 		// play sound
 		this.lcdgame.playSoundEffect("bonus");
 
@@ -747,29 +748,29 @@ cementfactory.MainGame.prototype = {
 			if (this.misses == 0) {
 				this.chancetime = true;
 				this.chancetimer.start();
-			};
+			}
 
 			// continue game
 			this.waitmode = STATE_PLAYING;
 			this.refreshGameSpeed();
-			this.checkFullWarning();		
-		};
+			this.checkFullWarning();
+		}
 	},
-	
+
 	onTimerChance: function(tmr) {
 		// blink score while playing
 		var s = (tmr.counter % 2 == 0 ? this.lcdgame.score : "");
 		this.refreshScore(s);
 	},
 
-		
+
 	onTimerLift: function() {
 		// update lifts
 		var t = this.lifttimer.counter-1;
 
 		var n = this.lcdgame.randomInteger(0, 2);
 		var onlift = MoveCollide[this.mariopos].lift[0];
-						
+
 		// move lifts, RIGHT SIDE going down
 		if (t % 4 == 0) {
 			// move lift and sound effect
@@ -777,8 +778,8 @@ cementfactory.MainGame.prototype = {
 			this.lcdgame.playSoundEffect("lift");
 
 			// if mario on this lift
-			if (onlift == 1) {this.tryMoveMario(DIR_DOWN)};
-			
+			if (onlift == 1) {this.tryMoveMario(DIR_DOWN);}
+
 			// wait period for next lift platform
 			this.liftvars.wait1--;
 			if (this.liftvars.wait1 <= 0) {
@@ -790,15 +791,15 @@ cementfactory.MainGame.prototype = {
 				if (this.liftvars.pattern == 1) this.liftvars.wait1 = 3;
 				if (this.liftvars.pattern == 3) this.liftvars.wait1 = 2;
 				if (this.liftvars.pattern == 4) this.liftvars.wait1 = 4;
-		
+
 				if (this.liftvars.pattern == 0) this.liftvars.index1++;
 
 				// close semi random lift patern, back to normal pattern
 				if (this.liftvars.pattern != 0) {
 					this.liftvars.pattern = 0;
-				};
-			};
-		};
+				}
+			}
+		}
 
 		// move lifts, LEFT SIDE going up
 		if ((t+2) % 4 == 0) {
@@ -807,8 +808,8 @@ cementfactory.MainGame.prototype = {
 			this.lcdgame.playSoundEffect("lift");
 
 			// if mario on this lift
-			if (onlift == 2) {this.tryMoveMario(DIR_UP)};
-			
+			if (onlift == 2) {this.tryMoveMario(DIR_UP);}
+
 			// wait period for next lift platform
 			this.liftvars.wait2--;
 			if (this.liftvars.wait2 <= 0) {
@@ -819,14 +820,14 @@ cementfactory.MainGame.prototype = {
 					// Game A starts with more 4-spaces-on-left and then goes to sort of regular pattern
 					if (this.lcdgame.gametype == 1) {
 						if (this.liftvars.index2 >= 10) this.liftvars.chancemax = this.liftvars.chances[4];
-					};
+					}
 					// semi random lift patern, NOTE: rhythm of left and right lifts is connected somehow
 					var r = this.lcdgame.randomInteger(1, this.liftvars.chancemax);
 					if (r < this.liftvars.chances[0]) this.liftvars.pattern = 4; // left lift  -> 4 spaces
 					if (r > this.liftvars.chances[1]) this.liftvars.pattern = 1; // left lift  -> 3 spaces
 					if (r > this.liftvars.chances[2]) this.liftvars.pattern = 2; // right lift -> 3 spaces
 					if (r > this.liftvars.chances[3]) this.liftvars.pattern = 3; // right lift -> 4 spaces
-				};
+				}
 
 				// normal (pattern == 0 or 2)
 				this.liftvars.wait2 = (this.liftvars.index2 % 2 == 0 ? 2 : 3);
@@ -836,8 +837,8 @@ cementfactory.MainGame.prototype = {
 				if (this.liftvars.pattern == 4) this.liftvars.wait2 = 2;
 
 				if (this.liftvars.pattern == 0) this.liftvars.index2++;
-			};
-		};
+			}
+		}
 
 		// check all hoppers
 		for (var h = 1; h <= 4; h++) {
@@ -853,18 +854,18 @@ cementfactory.MainGame.prototype = {
 					if ( (this.lcdgame.shapeVisible(shp3) == false) && (this.lcdgame.shapeVisible(shp2) == true) ) {
 						// drop down
 						this.lcdgame.setShapeByName(shp3, true);
-						this.lcdgame.setShapeByName(shp2, false);						
+						this.lcdgame.setShapeByName(shp2, false);
 						// stop animation?
 						if (s < 3) b = false;
-					};
-				};
+					}
+				}
 				// reset animation counter
 				if (b) {
 					this.dropcement[h-1] = -1;
-				};
-			};
-		};
-		
+				}
+			}
+		}
+
 		// check all spills
 		for (var s = 1; s <= 6; s++) {
 			// drop cement animation
@@ -885,15 +886,15 @@ cementfactory.MainGame.prototype = {
 					// miss because cement overflow
 					this.miss_overflow = s;
 					this.doWait(WAIT_CEMENT_MISS);
-				};
-			};
+				}
+			}
 
 			// remove spill or spill stays visible because of extra spill
 			var shp = "cement_flow_" + s;
 			this.lcdgame.setShapeByName(shp, (i != 0));
 
 			this.spillcement[s-1] = i;
-		};
+		}
 
 		// different pulse sound when on top screen
 		//var pls = ((t % 2 == 0) && (this.mariopos > 19) ? "pulse2" : "pulse1");
@@ -903,9 +904,9 @@ cementfactory.MainGame.prototype = {
 		if ( (this.mariopos == 0) || (this.mariopos == 18) ) {
 			this.doWait(WAIT_LIFT_MISS);
 			return;
-		};
+		}
 	},
-	
+
 	checkFullWarning: function() {
 		// check all spills
 		var full1 = this.lcdgame.sequenceAllVisible("cement_hopper1", true);
@@ -918,7 +919,7 @@ cementfactory.MainGame.prototype = {
 		} else {
 			// disable warning sound
 			if (this.warntimer.enabled) this.warntimer.pause();
-		};
+		}
 	},
 
 	onTimerBucket: function() {
@@ -930,7 +931,7 @@ cementfactory.MainGame.prototype = {
 			// toggle between 1 or 2
 			this.movebucket = (this.movebucket + 1) % 6;
 			var b = 2 - (this.movebucket % 2);
-			
+
 			// move buckets 1 or 2
 			this.lcdgame.sequenceShift("bucket" + b);
 			this.lcdgame.sequenceShift("bucket_fill" + b);
@@ -949,14 +950,14 @@ cementfactory.MainGame.prototype = {
 
 					// fiddle a bit with the chances to get it close to original
 					this.bucketvars.nibble = this.lcdgame.randomInteger(1, 15);
-					
+
 					// GAME B fiddle a bit with the chances to get it close to original
 					if (this.lcdgame.gametype == 2) {
 						if (this.bucketvars.nibble <=  2) this.bucketvars.nibble = 15;
 						if (this.bucketvars.nibble <=  7) this.bucketvars.nibble = 11;
 						if (this.bucketvars.nibble ==  9) this.bucketvars.nibble = 11;
 						if (this.bucketvars.nibble == 13) this.bucketvars.nibble = 8;
-					};
+					}
 					// 'mirror' the nibble, so that most buckets are on the left side
 					if (this.bucketvars.nibble ==  1) this.bucketvars.nibble = 2;
 					if (this.bucketvars.nibble ==  4) this.bucketvars.nibble = 8;
@@ -964,8 +965,8 @@ cementfactory.MainGame.prototype = {
 					if (this.bucketvars.nibble == 13) this.bucketvars.nibble = 14;
 
 					this.bucketvars.index = 4;
-				};
-				
+				}
+
 				var full = 0;
 				if ( (this.bucketvars.index == 2) || (this.bucketvars.index == 4)) {
 					// bucket 1
@@ -977,18 +978,18 @@ cementfactory.MainGame.prototype = {
 					this.bucketvars.bucket2 = ((this.bucketvars.nibble >> (this.bucketvars.index-1+this.bucketvars.pref)) & 1);
 					full = this.bucketvars.bucket2;
 					this.bucketvars.count = this.bucketvars.count - this.bucketvars.bucket2;
-				};
+				}
 
 				// set full or empty
 				this.lcdgame.sequenceSetFirst("bucket_fill" + b, (full != 0));
-				
+
 				// preference full bucket shifts over time from left to right
 				if (this.bucketvars.count <= 0) {
 					this.bucketvars.pref = 1 - this.bucketvars.pref; // toggle between 0 and 1
 					this.bucketvars.count = this.lcdgame.randomInteger(16, 32);
-				};
-			};
-		};
+				}
+			}
+		}
 
 		// dump cement animation
 		var b = 0;
@@ -1010,17 +1011,17 @@ cementfactory.MainGame.prototype = {
 
 				// spill cement to next hopper
 				this.doSpillCement(b);
-			};
-		};
+			}
+		}
 	},
-	
+
 	onTimerLever: function() {
 		// reset any arm
 		var arm = MoveCollide[this.mariopos].move[4];
 		if (arm > 0) {
 			this.lcdgame.setShapeByName("arm"+arm+"_1", true);
 			this.lcdgame.setShapeByName("arm"+arm+"_2", false);
-		};
+		}
 
 		// close hatch
 		this.lcdgame.setShapeByName("hatch" + this.valveopen + "_1", true);
@@ -1029,16 +1030,16 @@ cementfactory.MainGame.prototype = {
 		// close lever
 		this.lcdgame.setShapeByName("lever" + this.valveopen + "_1", true);
 		this.lcdgame.setShapeByName("lever" + this.valveopen + "_2", false);
-		
+
 		// score point and sound, only if cement flows
 		if (this.flowpoint > 0) {
 			this.scorePoints(1);
 			this.flowpoint = 0;
 			// close lever sound effect
 			this.lcdgame.playSoundEffect("lever");
-		};
+		}
 	},
-	
+
 	onTimerWarning: function() {
 		this.lcdgame.playSoundEffect("lever");
 	},
@@ -1050,4 +1051,4 @@ cementfactory.MainGame.prototype = {
 		// NOTE: highscore pop-up will pause any update/sound so wait a short while between game over sound and high score check
 		this.doWait(STATE_GAMEOVER);
 	}
-}
+};

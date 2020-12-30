@@ -14,7 +14,7 @@ var STATE_GAMEOVER = 2;
 tomsadventure.BootMode = function(lcdgame) {
 	this.lcdgame = lcdgame;
 	this.boottimer;
-}
+};
 tomsadventure.BootMode.prototype = {
 	init: function(){
 		// startup clear all
@@ -24,14 +24,14 @@ tomsadventure.BootMode.prototype = {
 
 	update: function() {
 	},
-	
+
 	press: function(btn) {
 	},
 
 	release: function(btn) {
 		// nothing
 	},
-		
+
 	close: function() {
 	},
 
@@ -39,9 +39,9 @@ tomsadventure.BootMode.prototype = {
 		this.lcdgame.shapesDisplayAll(true);
 		if (this.boottimer.counter > 5) {
 			this.lcdgame.state.start("demo");
-		};
+		}
 	}
-}
+};
 
 // =============================================================================
 // demo state
@@ -51,19 +51,19 @@ tomsadventure.DemoMode = function(lcdgame) {
 	this.demotimer = null;
 	this.democount;
 	this.demostate; // 0=demo, 1=g1, 2=g2
-}
+};
 tomsadventure.DemoMode.prototype = {
 	init: function(){
 		// startup clear all
 		this.lcdgame.shapesDisplayAll(false);
 		this.democount = 0;
 		this.demostate = 0;
-		
+
 		// start demo mode, always reset to melody-on
 		this.lcdgame.soundmute = false;
 
 		this.demotimer = this.lcdgame.addtimer(this, this.onTimerDemo, 1250, false);
-		
+
 		// show sound icon
 		this.lcdgame.setShapeByName("sound", !this.lcdgame.soundmute);
 
@@ -73,7 +73,7 @@ tomsadventure.DemoMode.prototype = {
 
 	update: function() {
 	},
-	
+
 	press: function(btn) {
 		// game select
 		if (btn == "select") {
@@ -94,7 +94,7 @@ tomsadventure.DemoMode.prototype = {
 				this.lcdgame.setShapeByName("game_1", (this.demostate == 1));
 				this.lcdgame.setShapeByName("game_2", (this.demostate == 2));
 			}
-		};
+		}
 
 		// only when selecting a game
 		if (this.demostate != 0) {
@@ -104,20 +104,20 @@ tomsadventure.DemoMode.prototype = {
 				// toggle melody on/off
 				this.lcdgame.setShapeByName("sound", !snd);
 				this.lcdgame.setSoundMute(snd);
-			};
+			}
 			// start game
 			if (btn == "start") {
 				this.lcdgame.level = 0; // new game
 				this.lcdgame.gametype = this.demostate; // 1=G1, 2=G2
 				this.lcdgame.state.start("maingame");
-			};
-		};
+			}
+		}
 
 	},
 	release: function(btn) {
 		// nothing
 	},
-		
+
 	close: function() {
 	},
 
@@ -133,7 +133,7 @@ tomsadventure.DemoMode.prototype = {
 		if ((this.demotimer.counter-3) % 7 == 0) this.lcdgame.setShapeByName("thief_1", true);
 		if ((this.demotimer.counter-4) % 7 == 0) this.lcdgame.setShapeByName("dragon_1", true);
 	}
-}
+};
 
 // =============================================================================
 // game state
@@ -141,7 +141,7 @@ tomsadventure.DemoMode.prototype = {
 tomsadventure.MainGame = function(lcdgame) {
 	this.lcdgame = lcdgame;
 	this.gametimer = null;
-	
+
 	this.tompos;
 	this.tomwait; // wait interval after moving
 	this.thiefpos;
@@ -150,7 +150,7 @@ tomsadventure.MainGame = function(lcdgame) {
 	this.newchest; // count down to new chest appears
 	this.lives;
 	this.gamestate;
-	
+
 	// dragons and rocks appear alternating, in pattern:
 	// cycle 1: dragon 3x, rock 2x
 	// cycle 2: dragon 2x, rock 4x
@@ -161,7 +161,7 @@ tomsadventure.MainGame = function(lcdgame) {
 	this.dragidx; // index in rockdrag array
 	this.dragcount; // dragon/rocks counter
 	this.dragstep; // current dragon/rocks step in sequence
-}
+};
 tomsadventure.MainGame.prototype = {
 	init: function(){
 		// timers
@@ -171,10 +171,10 @@ tomsadventure.MainGame.prototype = {
 		// start new game
 		this.newGame();
 	},
-	
+
 	// start a new game, reset score level etc.
 	newGame: function() {
-		
+
 		// reset variables
 		this.lcdgame.gameReset(this.lcdgame.gametype);
 
@@ -193,7 +193,7 @@ tomsadventure.MainGame.prototype = {
 		this.waittimer.start();
 		this.gamestate = STATE_WAIT;
 	},
-	
+
 	// continue game, at start or after death
 	continueGame: function() {
 		// start/continue game clear all
@@ -214,7 +214,7 @@ tomsadventure.MainGame.prototype = {
 		this.dooropen = 1;
 		this.haschest = 0;
 		this.newchest = 5; // new chest, 5 ticks from now
- 
+
 
 		this.lcdgame.sequenceClear("tom");
 		this.lcdgame.setShapeByName("tom_2", true);
@@ -240,7 +240,7 @@ tomsadventure.MainGame.prototype = {
 		// lose a live
 		this.lives--;
 		this.lcdgame.digitsDisplay("digits", ""+this.lives+" ", true);
-		
+
 		// continue or game over
 		if (this.lives > 0) {
 			// play lose melody
@@ -250,7 +250,7 @@ tomsadventure.MainGame.prototype = {
 			// play game over melody
 			this.lcdgame.playSoundEffect("end");
 			this.waittimer.interval = 3000;
-		};
+		}
 
 		// short pause before continuing
 		this.waittimer.start();
@@ -258,23 +258,23 @@ tomsadventure.MainGame.prototype = {
 
 	update: function() {
 	},
-	
+
 	press: function(btn, idx) {
 		// playing the game
 		if (this.gamestate == STATE_PLAYING) {
 			if (btn == "left") {
 				this.tryMoveTom(-1);
-			};
+			}
 			if (btn == "right") {
 				this.tryMoveTom(+1);
-			};
-		};
-		
+			}
+		}
+
 		// game over, press select to select new game
 		if (this.gamestate == STATE_GAMEOVER) {
 			if (btn == "start") {
 				this.lcdgame.state.start("maingame");
-			};
+			}
 			if (btn == "select") {
 				if (this.lcdgame.gametype == 2) {
 					this.lcdgame.state.start("demo");
@@ -282,23 +282,23 @@ tomsadventure.MainGame.prototype = {
 					this.lcdgame.gametype = 2;
 					this.lcdgame.setShapeByName("game_1", false);
 					this.lcdgame.setShapeByName("game_2", true);
-				};
-			};
+				}
+			}
 			if (btn == "melody") {
 				// toggle sound, and show sound icon
 				this.lcdgame.soundmute = !this.lcdgame.soundmute;
 				this.lcdgame.setShapeByName("sound", !this.lcdgame.soundmute);
-			};
-		};
+			}
+		}
 	},
-		
+
 	close: function() {
 	},
-	
+
 	tryMoveTom: function(dir) {
 		// valid moves
-		if ( (dir < 0) && (this.tompos == 0) ) {dir = 0}; // cannot move further left
-		if ( (dir > 0) && (this.tompos == 4) ) {dir = 0}; // cannot move further right
+		if ( (dir < 0) && (this.tompos == 0) ) {dir = 0;} // cannot move further left
+		if ( (dir > 0) && (this.tompos == 4) ) {dir = 0;} // cannot move further right
 
 		// valid move
 		if (dir != 0) {
@@ -315,7 +315,7 @@ tomsadventure.MainGame.prototype = {
 				var ch = (5 - this.tompos);
 				this.lcdgame.sequenceClear("chest");
 				this.lcdgame.sequenceSetPos("chest", ch, true);
-			};
+			}
 
 			// check if thief steals chest, dragon hit, rock hit etc.
 			this.thiefGrabChest();
@@ -325,24 +325,24 @@ tomsadventure.MainGame.prototype = {
 			if (this.tompos == 2) {
 				if (this.lcdgame.shapeVisible("bear") == true) {
 					this.onPlayerDies();
-				};
+				}
 			} else {
 				this.updateBear();
-			};
+			}
 
 			// move offset, wait 2 intervals before checking chest grab/throw
 			// for example, if player moved at interval 1, then check only at 3
 			this.tomwait = (this.gametimer.counter + 1) % 4;
-		};
+		}
 	},
-	
+
 	thiefGrabChest: function() {
 		// check if thief steals treasure
 		if (this.haschest > 0) {
 			if ( (this.tompos == 4) && (this.thiefpos == 1) ) this.haschest = -1; // at center
 			if ( (this.tompos == 2) && (this.thiefpos == 2) ) this.haschest = -1; // on path
 			if ( (this.tompos == 0) && (this.thiefpos == 3) ) this.haschest = -1; // at door
-		};
+		}
 	},
 
 	moveDragonRock: function() {
@@ -354,30 +354,30 @@ tomsadventure.MainGame.prototype = {
 				this.dragidx = (this.dragidx + 1) % this.dragrock.length;
 				this.dragcount = this.dragrock[this.dragidx];
 				this.dragmax = (this.dragidx % 2 ? 3 : 4);
-			};
+			}
 			this.dragstep = 0;
-		};
-		
+		}
+
 		// set or move, dragon or rock
 		this.lcdgame.sequenceClear("rock");
 		this.lcdgame.sequenceClear("dragon");
 		var str = (this.dragidx % 2 ? "rock" : "dragon");
 		this.lcdgame.sequenceSetPos(str, this.dragstep, true);
-		
+
 		// exception; first rock doesn't fall down it's like a warning
 		if ( (this.dragidx % 2) && (this.dragstep == 1) && (this.dragcount == this.dragrock[this.dragidx]) ) {
 			// debugger;
 			this.lcdgame.sequenceClear("rock");
-		};
+		}
 	},
 
 	checkDragonRock: function() {
 		if ( (this.tompos == 3) && (this.lcdgame.shapeVisible("dragon_3") == true) ) {
 			this.onPlayerDies();
-		};
+		}
 		if ( (this.tompos == 1) && (this.lcdgame.shapeVisible("rock_2") == true) ) {
 			this.onPlayerDies();
-		};
+		}
 	},
 
 	updateBear: function() {
@@ -386,23 +386,23 @@ tomsadventure.MainGame.prototype = {
 			// bear appears
 			if ( ( (this.thiefpos==0) || (this.thiefpos==4) ) && this.tompos != 2) {
 				this.lcdgame.setShapeByName("bear", true);
-			};
+			}
 			// bear disappears
 			if ( (this.thiefpos == 1) || (this.thiefpos==5) ) {
 				this.lcdgame.setShapeByName("bear", false);
-			};
-		};
+			}
+		}
 	},
 
 	scorePoints: function(pts) {
 		// update score
 		this.lcdgame.score = this.lcdgame.score + pts;
-		
+
 		// pass 1000,2000,3000 etc for bonus, 100 points + extra life
 		if ( (this.lcdgame.score > 0) && (this.lcdgame.score % 1000 == 0) ) {
 			this.lcdgame.score = this.lcdgame.score + 100;
 			this.lives++;
-		};
+		}
 
 		// display
 		this.lcdgame.digitsDisplay("digits", "000"+this.lcdgame.score, true);
@@ -421,13 +421,13 @@ tomsadventure.MainGame.prototype = {
 			this.scorePoints(0);
 			this.gamestate = STATE_GAMEOVER;
 			this.lcdgame.highscores.checkScore();
-		};
+		}
 	},
-		
+
 	onTimerGame: function() {
 		// update moving enemies
 		var t = this.gametimer.counter - 1;
-		
+
 		// move the thief
 		if ((t % 4) == 0) {
 			// move thief position
@@ -435,7 +435,7 @@ tomsadventure.MainGame.prototype = {
 				this.thiefpos = 0;
 			} else {
 				this.thiefpos++;
-			};
+			}
 
 			// clear
 			this.lcdgame.sequenceClear("thief");
@@ -446,7 +446,7 @@ tomsadventure.MainGame.prototype = {
 					this.haschest = 0;
 					this.lcdgame.sequenceClear("chest");
 					this.newchest = 9; // new chest, 9 ticks from now, so when (this.thiefpos == 1)
-				};
+				}
 			} else {
 				this.lcdgame.sequenceSetPos("thief", this.thiefpos, true);
 				this.thiefGrabChest();
@@ -457,7 +457,7 @@ tomsadventure.MainGame.prototype = {
 					this.lcdgame.sequenceClear("chest");
 					this.lcdgame.sequenceSetPos("chest", ch, true);
 				}
-			};
+			}
 			// open and close door, door pattern is continously; 5 ticks closed, 3 ticks opened
 			this.dooropen++;
 			 // door opens
@@ -467,18 +467,18 @@ tomsadventure.MainGame.prototype = {
 				this.lcdgame.setShapeByName("door", false);
 				// reset countdown to next door open
 				this.dooropen = 0;
-			};
-			
+			}
+
 			// exception; rock falls down quicker
 			if ( (this.dragidx % 2) && (this.dragstep == 1) && (this.dragcount != this.dragrock[this.dragidx]) ) {
 				this.moveDragonRock();
 				// check if hits tom
 				this.checkDragonRock();
-			};
+			}
 
 			// bear appears in sync with thief moves
 			this.updateBear();
-		};
+		}
 
 		// a new chest appears
 		if (this.newchest > 0) {
@@ -486,8 +486,8 @@ tomsadventure.MainGame.prototype = {
 			if (this.newchest <= 0) {
 				this.lcdgame.sequenceClear("chest");
 				this.lcdgame.sequenceSetFirst("chest", true);
-			};
-		};
+			}
+		}
 
 		if ((t % 4) == 1) {
 			// next dragon or rock
@@ -495,15 +495,15 @@ tomsadventure.MainGame.prototype = {
 
 			// check if hits tom
 			this.checkDragonRock();
-		};
+		}
 		// dragon and rock dissapear slightly sooner
 		if ((t % 4) == 2) {
 			// dragon and rock disappear slightly sooner
 			if (this.dragstep == (this.dragidx % 2 ? 1 : 2)) { // last index; rock=1, dragon=2
 				this.lcdgame.sequenceClear("rock");
 				this.lcdgame.sequenceClear("dragon");
-			};
-		};
+			}
+		}
 
 		if ((t % 4) == this.tomwait) {
 			// check if grabbing chest
@@ -517,8 +517,8 @@ tomsadventure.MainGame.prototype = {
 					this.haschest = +1;
 					// check if thief immediately steals chest
 					this.thiefGrabChest();
-				};
-			};
+				}
+			}
 			// check if throwing chest through door
 			if ( (this.tompos == 0) && (this.haschest > 0) && (this.dooropen >= 4) ) {
 				// play sound
@@ -529,9 +529,9 @@ tomsadventure.MainGame.prototype = {
 				this.haschest = 0;
 				this.scorePoints(20);
 				this.newchest = 2; // new chest, 2 ticks from now
-			};
+			}
 			// move offset, reset when not moving
 			this.tomwait = 0;
-		};
+		}
 	}
-}
+};

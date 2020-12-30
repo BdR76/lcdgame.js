@@ -1,0 +1,10 @@
+# EditorConfig is awesome: https://EditorConfig.org
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+end_of_line = lf
+indent_size = 4
+indent_style = tab
+insert_final_newline = false
+trim_trailing_whitespace = true
