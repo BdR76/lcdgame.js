@@ -196,7 +196,7 @@ eaglechicken.ClockMode.prototype = {
 		this.lcdgame.sequenceSetPos("chicken", this.chickenpos, true);
 
 		// move big eagle
-		this.lcdgame.sequenceResetAll("eaglebig");
+		this.lcdgame.sequenceClear("eaglebig");
 		this.lcdgame.sequenceSetPos("eaglebig", this.eaglepos, true);
 
 		// drop random eagles from big eagle
@@ -290,7 +290,7 @@ eaglechicken.GameMode1.prototype = {
 		this.winghits = [0, 0, 0, 0];
 
 		// move big eagle
-		this.lcdgame.sequenceResetAll("eaglebig");
+		this.lcdgame.sequenceClear("eaglebig");
 		this.lcdgame.sequenceClear("chicken");
 		this.lcdgame.sequenceSetPos("eaglebig", this.eaglepos, true);
 		this.lcdgame.sequenceSetPos("chicken",  this.chickenpos, true);
@@ -353,7 +353,7 @@ eaglechicken.GameMode1.prototype = {
 		this.eaglepos = (this.eaglepos + 1) % 4; // 0..3
 
 		// move big eagle
-		this.lcdgame.sequenceResetAll("eaglebig");
+		this.lcdgame.sequenceClear("eaglebig");
 		this.lcdgame.sequenceSetPos("eaglebig", this.eaglepos, true);
 
 		// at pos=0, determine new random drop points
@@ -659,7 +659,7 @@ eaglechicken.GameMode2.prototype = {
 		this.eaglepos = (this.eaglepos + 1) % 4; // 0..3
 
 		// move big eagle
-		this.lcdgame.sequenceResetAll("eaglebig");
+		this.lcdgame.sequenceClear("eaglebig");
 		this.lcdgame.sequenceSetPos("eaglebig", this.eaglepos, true);
 
 		// at pos=0, determine new random drop points

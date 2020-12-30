@@ -1,1 +1,5 @@
 node_modules
+
+# Compiled files
+bin/lcdgame.min.js
+bin/lcdgame.min.js.map

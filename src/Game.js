@@ -2,16 +2,27 @@
 // Bas de Reuver (c)2018
 
 import { LCDGAME_VERSION } from './System';
-import { MENU_HTML, displayInfobox } from './Menu';
+import { displayInfobox, fetchMetadata } from './Menu';
 import HighScores, { SCORE_HTML } from './Highscores';
 import AnimationFrame from './AnimationFrame';
+import Sounds from './Sounds';
 import StateManager from './StateManager';
 import Timer from './Timer';
+import { randomInteger, request } from './utils';
+
+const CONTAINER_HTML =
+	'<div id="container" class="container">' +
+	'	<canvas id="mycanvas" class="gamecvs"></canvas>' +
+	'	<div class="menu">' +
+	'		<a class="mybutton" onclick="LCDGame.displayScorebox();">highscores</a>' +
+	'		<a class="mybutton" onclick="LCDGame.displayInfobox();">help</a>' +
+	'	</div>' +
+	'</div>';
 
 // -------------------------------------
 // game object
 // -------------------------------------
-const Game = function (configfile, metadatafile) {
+const Game = function (configfile, metadatafile = "metadata/gameinfo.json") {
 
 	this.gamedata = [];
 	this.imageBackground = null;
@@ -62,13 +73,12 @@ const Game = function (configfile, metadatafile) {
 
 	// create canvas element and add to document
 	var str =
-		MENU_HTML +
+		CONTAINER_HTML +
 		SCORE_HTML;
 
 	document.write(str);
 
 	this.canvas = document.getElementById("mycanvas");
-	this.infobox = document.getElementById("infobox");
 	this.scorebox = document.getElementById("scorebox");
 	this.infocontent = document.getElementById("infocontent");
 	this.scorecontent = document.getElementById("scorecontent");
@@ -86,7 +96,6 @@ const Game = function (configfile, metadatafile) {
 
 	// add gamedata and populate by loading json
 	this.loadConfig(configfile);
-	metadatafile = (metadatafile || "metadata/gameinfo.json");
 	this.loadMetadata(metadatafile);
 
 	// mouse or touch input
@@ -117,24 +126,14 @@ Game.prototype = {
 	// -------------------------------------
 	// load a game configuration file
 	// -------------------------------------
-	loadConfig: function(path) {
-
-		var xhrCallback = function()
-		{
-			if (xhr.readyState === XMLHttpRequest.DONE) {
-				if ((xhr.status === 200) || (xhr.status === 0)) {
-					this.onConfigLoad(JSON.parse(xhr.responseText));
-				} else {
-					this.onConfigError(xhr);
-				}
-			}
-		};
-
-		var xhr = new XMLHttpRequest();
-		xhr.onreadystatechange = xhrCallback.bind(this);
-
-		xhr.open("GET", path, true);
-		xhr.send();
+	loadConfig: async function(path) {
+		try {
+			const data = await request(path);
+			this.onConfigLoad(data);
+		} catch (error) {
+			console.log("** ERROR ** lcdgame.js - onConfigError: error loading json file");
+			console.error(error);
+		}
 	},
 
 	// -------------------------------------
@@ -295,77 +294,16 @@ Game.prototype = {
 		}
 	},
 
-	onConfigError: function(xhr) {
-		console.log("** ERROR ** lcdgame.js - onConfigError: error loading json file");
-		console.error(xhr);
-	},
-
 	// -------------------------------------
 	// load a metadata file
 	// -------------------------------------
-	loadMetadata: function(path) {
-		var xhrCallback = function()
-		{
-			if (xhr.readyState === XMLHttpRequest.DONE) {
-				if ((xhr.status === 200) || (xhr.status === 0)) {
-					this.onMetadataLoad(JSON.parse(xhr.responseText));
-				} else {
-					this.onMetadataError(xhr);
-				}
-			}
-		};
-
-		var xhr = new XMLHttpRequest();
-		xhr.onreadystatechange = xhrCallback.bind(this);
-
-		xhr.open("GET", path, true);
-		xhr.send();
-	},
-
-	tinyMarkDown: function(str) {
-		// \n => <br/>
-		str = str.replace(/\n/gi, "<br/>");
-
-		// *bold* => <b>bold</b>
-		str = str.replace(/\*.*?\*/g, function(foo){
-			return "<b>"+foo.slice(1, -1)+"</b>";
-		});
-
-		// _italic_ => <i>italic</i>
-		str = str.replace(/_.*?_/g, function(foo){
-			return "<i>"+foo.slice(1, -1)+"</i>";
-		});
-
-		// [button] => <btn>button</btn>
-		str = str.replace(/\[(?:(?!\[).)*?\](?!\()/g, function(foo){
-			return "<btn>"+foo.slice(1, -1)+"</btn>";
-		});
-
-		// hyperlinks [url text](www.test.com) => <a href="http://www.test.com">url text</a>
-		str = str.replace(/(\[(?:(?!\[).)*?\])(\((?:(?!\().)*?\))/g, function(all, fst, sec, pos){
-			var url = sec.slice(1, -1);
-			if (url.indexOf("http") != 0) url = "http://" + url;
-			var txt = fst.slice(1, -1);
-			return '<a href="' + url + '">' + txt + '</a>';
-		});
-
-		return str;
-	},
-
-	// -------------------------------------
-	// metadata load JSON file
-	// -------------------------------------
-	onMetadataLoad: function(data) {
-		// load all from JSON data
-		this.metadata = data;
-
-		// infobox content
-		var instr = this.tinyMarkDown(data.gameinfo.instructions.en);
-		this.infocontent.innerHTML = "<h1>How to play</h1><br/>" + instr;
+	loadMetadata: async function(path) {
+		const data = await fetchMetadata(path);
 
 		// get info from metadata
 		var title = data.gameinfo.device.title;
 		var gametypes = data.gameinfo.gametypes;
+
 		this.gametype = (typeof gametypes === "undefined" ? 0 : 1);
 
 		// highscores
@@ -373,13 +311,7 @@ Game.prototype = {
 		this.highscores.init(this.gametype);
 	},
 
-	onMetadataError: function(xhr) {
-		console.log("** ERROR ** lcdgame.js - onMetadataError: error loading json file");
-		console.error(xhr);
-	},
-
 	resizeCanvas: function() {
-
 		// determine which is limiting factor for current window/frame size; width or height
 		var scrratio = window.innerWidth / window.innerHeight;
 		var imgratio = this.canvas.width / this.canvas.height;
@@ -393,67 +325,17 @@ Game.prototype = {
 			w = window.innerWidth;
 			this.scaleFactor = w / this.canvas.width;
 			h = this.canvas.height * this.scaleFactor;
-
-			// set margins for full height
-			var ymargin = (window.innerHeight - h) / 2;
-			this.canvas.style["margin-top"] = ymargin+"px";
-			this.canvas.style["margin-bottom"] = -ymargin+"px";
-			this.canvas.style["margin-left"] = "0px";
 		} else {
 			// height of image should take entire height of screen
 			h = window.innerHeight;
 			this.scaleFactor = h / this.canvas.height;
 			w = this.canvas.width * this.scaleFactor;
-
-			// set margins for full height
-			var xmargin = (window.innerWidth - w) / 2;
-			this.canvas.style["margin-left"] = xmargin+"px";
-			this.canvas.style["margin-right"] = -xmargin+"px";
-			this.canvas.style["margin-top"] = "0px";
 		}
 
 		// set canvas size
 		this.canvas.style.width = w+"px";
 		this.canvas.style.height = h+"px";
-
-		// set canvas properties
-		this.canvas.style.display = "block";
-		this.canvas.style["touch-action"] = "none"; // no text select on touch
-		this.canvas.style["user-select"] = "none"; // no text select on touch
-		this.canvas.style["-webkit-tap-highlight-color"] = "rgba(0, 0, 0, 0)"; // not sure what this does
-
-		// center infobox
-		this.resizeInfobox(this.infobox);
-		this.resizeInfobox(this.scorebox);
 	},
-
-	resizeInfobox: function(box) {
-
-		// set visible, else width height doesn't work
-		box.style.display = "inherit";
-
-		// determine screen/frame size
-		var w = box.offsetWidth;
-		var h = box.offsetHeight;
-		var rect = box.getBoundingClientRect();
-		if (rect) {
-			w = rect.width;
-			h = rect.height;
-		}
-
-		var xmargin = (window.innerWidth - w) / 2;
-		var ymargin = (window.innerHeight - h) / 2;
-
-		// set margins for full height
-		box.style["margin-left"] = xmargin+"px";
-		box.style["margin-right"] = -xmargin+"px";
-		box.style["margin-top"] = ymargin+"px";
-		box.style["margin-bottom"] = -ymargin+"px";
-
-		// reset visibility
-		box.style.display = "none";
-	},
-
 	// -------------------------------------
 	// start the specific game
 	// -------------------------------------
@@ -469,11 +351,7 @@ Game.prototype = {
 		this.context2d.drawImage(this.imageBackground, 0, 0);
 
 		// prepare sounds
-		for (var i=0; i < this.gamedata.sounds.length; i++) {
-			var strfile = this.gamedata.sounds[i].filename;
-			this.gamedata.sounds[i].audio = new Audio(strfile);
-			this.gamedata.sounds[i].audio.load();
-		}
+		this.sounds = new Sounds(this.gamedata.sounds);
 
 		// mouse or touch input
 		//if (window.navigator.msPointerEnabled || window.navigator.pointerEnabled)
@@ -577,60 +455,40 @@ Game.prototype = {
 	// -------------------------------------
 	// sound effects
 	// -------------------------------------
-	loadSoundEffects: function() {
-		// handle error
-		console.log("loadSoundEffects - TODO load sound effects");
-	},
 
+	/**
+	 * Toggle all sounds.
+	 *
+	 * @param {boolean} value
+	 */
 	setSoundMute: function (value) {
-		this.soundmute = value;
+		this.sounds.mute(value);
 	},
 
-	soundIndexByName: function (name) {
-		var idx = 0;
-		for (var i = 0; i < this.gamedata.sounds.length; i++) {
-			if (this.gamedata.sounds[i].name == name) {
-				return i;
-			}
-		}
-		return -1;
-	},
-
+	/**
+	 * Play Sound.
+	 *
+	 * @param {string} name
+	 */
 	playSoundEffect: function (name) {
-
-		// device sound is not muted
-		if (!this.soundmute) {
-			// get sound index from name
-			var idx = this.soundIndexByName(name);
-
-			// if sound exists
-			if (idx >= 0) {
-				// if sound is playing then stop it now
-				if (this.gamedata.sounds[idx].audio.paused == false) {
-					this.gamedata.sounds[idx].audio.pause();
-					// fix for IE11
-					if (!isNaN(this.gamedata.sounds[idx].audio.duration)) {
-						this.gamedata.sounds[idx].audio.currentTime = 0;
-					}
-				}
-				// start playing sound
-				this.gamedata.sounds[idx].audio.play();
-			}
-		}
+		this.sounds.play(name);
 	},
 
 	// -------------------------------------
 	// random integer
 	// -------------------------------------
-	randomInteger: function(min, max) {
-		max = max - min + 1;
-		var r = Math.floor(Math.random() * max) + min;
-		return r;
-	},
+	randomInteger: randomInteger,
 
 	// -------------------------------------
 	// function for shapes and sequences
 	// -------------------------------------
+	/**
+	 * Get index of Shape by it's name.
+	 *
+	 * @private
+	 * @param {string} name
+	 * @returns {number}
+	 */
 	shapeIndexByName: function(name) {
 		for (var i = 0; i < this.gamedata.frames.length; i++) {
 			if (this.gamedata.frames[i].filename == name)
@@ -657,12 +515,27 @@ Game.prototype = {
 		return false;
 	},
 
+	/**
+	 * Set value of Shape by Index.
+	 *
+	 * @private
+	 * @param {number} idx
+	 * @param {boolean} value
+	 * @returns {boolean}
+	 */
 	setShapeByIdx: function(idx, value) {
 		this.gamedata.frames[idx].value = value;
 		this._refresh = true;
 		return true;
 	},
 
+	/**
+	 * Get index of sequence by name.
+	 *
+	 * @private
+	 * @param {string} name
+	 * @returns {number}
+	 */
 	sequenceIndexByName: function(name) {
 		if (this.gamedata.sequences) {
 			for (var i = 0; i < this.gamedata.sequences.length; i++) {
@@ -676,10 +549,12 @@ Game.prototype = {
 		return -1;
 	},
 
-	sequenceResetAll: function(name, value) {
-		// value position is optional, default false
-		if (typeof value === "undefined") value = false;
-
+	/**
+	 *
+	 * @param {string} name
+	 * @param {boolean} [value=false]
+	 */
+	sequenceClear: function(name, value = false) {
 		// get sequence index of name
 		var seqidx = this.sequenceIndexByName(name);
 
@@ -692,11 +567,6 @@ Game.prototype = {
 		}
 		// refresh display
 		this._refresh = true;
-	},
-
-	sequenceClear: function(name) {
-		// reset sequence to false
-		this.sequenceResetAll(name);
 	},
 
 	sequenceShift: function(name, max) {
@@ -771,6 +641,13 @@ Game.prototype = {
 		this._refresh = true;
 	},
 
+	/**
+	 * Set position of Sequence.
+	 *
+	 * @param {string} name
+	 * @param {number} pos
+	 * @param {boolean} value
+	 */
 	sequenceSetPos: function(name, pos, value) {
 		if (this.gamedata.sequences) {
 			// get sequence
@@ -791,6 +668,12 @@ Game.prototype = {
 		}
 	},
 
+	/**
+	 * Check if a Frame is visible.
+	 *
+	 * @param {string} name
+	 * @returns {boolean}
+	 */
 	shapeVisible: function(name) {
 		// find shape
 		for (var i = 0; i < this.gamedata.frames.length; i++) {
@@ -803,6 +686,13 @@ Game.prototype = {
 		return false;
 	},
 
+	/**
+	 * Check if a Sequence is visible.
+	 *
+	 * @param {string} name
+	 * @param {number} pos
+	 * @returns {boolean}
+	 */
 	sequenceShapeVisible: function(name, pos) {
 		// get sequence
 		var seqidx = this.sequenceIndexByName(name);
@@ -833,6 +723,13 @@ Game.prototype = {
 		return false;
 	},
 
+	/**
+	 * Check if all Frames of a Sequence are visible.
+	 *
+	 * @param {string} name
+	 * @param {boolean} value
+	 * @returns {boolean}
+	 */
 	sequenceAllVisible: function(name, value) {
 		// get sequence
 		var seqidx = this.sequenceIndexByName(name);
@@ -848,6 +745,11 @@ Game.prototype = {
 		return true;
 	},
 
+	/**
+	 * Hide / show all shapes
+	 *
+	 * @param {boolean} value
+	 */
 	shapesDisplayAll: function(value) {
 
 		if (this.gamedata.frames) {
@@ -1310,19 +1212,6 @@ Game.prototype = {
 		this.context2d.fillStyle = color;
 		this.context2d.rect(xpos, ypos, w, h);
 		this.context2d.stroke();
-	},
-
-	// -------------------------------------
-	// check if touch device
-	// -------------------------------------
-	is_touch_device: function() {
-		var el = document.createElement("div");
-		el.setAttribute("lcdgame.js - ongesturestart", "return;");
-		if(typeof el.ongesturestart === "function"){
-			return true;
-		}else {
-			return false;
-		}
 	}
 };
 

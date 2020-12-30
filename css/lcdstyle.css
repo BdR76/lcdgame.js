@@ -1,22 +1,40 @@
 body {
 	font-family: Arial;
+	margin: 0;
+	padding: 0;
 }
-table{
+
+h1,
+p {
+	margin: 0 0 20px;
+}
+
+p {
+	line-height: 140%;
+}
+
+p:last-child {
+	margin-bottom: 20px;
+}
+
+table {
 	width: 100%;
-	border-collapse: collapse; 
+	border-collapse: collapse;
 }
 
 tr:nth-child(1) {
 	font-weight: bold;
-	border-bottom:1pt solid black;
+	border-bottom: 1pt solid black;
 }
 
 td:nth-child(1) {
 	width: 10%;
 }
+
 td:nth-child(2) {
 	width: 50%;
 }
+
 td:nth-child(3) {
 	width: 40%;
 	text-align: right;
@@ -29,79 +47,81 @@ btn {
 	font-family: Arial,"Helvetica Neue",Helvetica,sans-serif;
 	line-height: 1.4;
 	color: #242729;
-	text-shadow: 0 1px 0 #FFF;
+	text-shadow: 0 1px 0 #fff;
 	background-color: #e1e3e5;
 	border: 1px solid #adb3b9;
 	border-radius: 3px;
-	box-shadow: 0 1px 0 rgba(12,13,14,0.2), 0 0 0 2px #FFF inset;
+	box-shadow: 0 1px 0 rgba(12, 13, 14, 0.2), 0 0 0 2px #fff inset;
 	white-space: nowrap;
 }
 
 .container {
+	align-items: center;
+	display: flex;
+	height: 100vh;
+	justify-content: center;
+	width: 100vw;
 }
 
+.menu {
+	padding: 10px 10px 0 0;
+	position: fixed;
+	right: 0;
+	top: 0;
+}
+
+/* <canvas /> */
 .gamecvs {
-	position: absolute;
+	position: relative;
+	touch-action: none;
+	user-select: none;
 }
 
-.infobox{
+.infobox {
 	position: absolute;
 	background: #fff;
 	color: #000;
 	width: 480px;
-	
-	margin: 50px -200px -50px 200px;
 	padding: 15px 15px 15px 15px;
 	box-sizing: border-box;
-
 	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+	max-height: calc(100% - 20px);
+	max-width: calc(100% - 20px);
+	overflow: auto;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
 }
 
 .mybutton {
-	float: right;
-	display: block;
-
-	color: #FFF;
-	background: #5DC8CD;
-
+	display: inline-block;
+	color: #fff;
+	background: #5dc8cd;
 	width: 120px;
 	font-weight: 600;
 	text-align: center;
 	line-height: 40px;
 	border-radius: 5px;
+	position: relative;
 	transition: all 0.2s;
 }
 
 .mybutton:hover {
-	background: #01939A;
+	background: #01939a;
 }
 
-.filter {
-	float: right;
-	display: block;
+.mybutton + .mybutton {
+	margin-left: 10px;
+}
 
-	color: #FFF;
-	background: #5DC8CD;
-
+.mybutton-small {
 	width: 100px;
-	font-weight: 600;
-	text-align: center;
 	line-height: 30px;
-	border-radius: 5px;
-	transition: all 0.2s;
-}
-
-.filter:hover {
-	background: #01939A;
-}
-
-.btnmenu {
-	position: relative;
 }
 
 .btnpop {
 	display: inline-block;
-	margin:0 auto;
+	margin: 0 auto;
 }
 
 .btnnext {
@@ -115,4 +135,10 @@ btn {
 	float: right;
 	width: 80px;
 	line-height: 30px;
+}
+
+/* Highscores */
+.scorecontent {
+	margin-bottom: 10px;
+	margin-top: 10px;
 }

@@ -4,6 +4,10 @@
 // -------------------------------------
 // the state manager
 // -------------------------------------
+
+/**
+ * @param {LCDGame.Game} lcdgame
+ */
 const StateManager = function (lcdgame) {
 	this.lcdgame = lcdgame;
 	this._currentState = "";

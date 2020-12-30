@@ -2,20 +2,9 @@
 // Bas de Reuver (c)2018
 
 import { hideScorebox } from './Highscores';
+import { request, tinyMarkDown } from './utils';
 
-export const MENU_HTML =
-		'<div class="container">' +
-		'  <canvas id="mycanvas" class="gamecvs"></canvas>' +
-		'  <a class="mybutton btnmenu" onclick="LCDGame.displayInfobox();">help</a>' +
-		'  <a class="mybutton btnmenu" onclick="LCDGame.displayScorebox();">highscores</a>' +
-		'  <div class="infobox" id="infobox">' +
-		'    <div id="infocontent">' +
-		'      instructions' +
-		'    </div>' +
-		'    <a class="mybutton btnpop" onclick="LCDGame.hideInfobox();">Ok</a>' +
-		'  </div>' +
-		'</div>';
-
+export const INFOBOX_ID = 'infobox';
 
 export function displayInfobox() {
 	hideScorebox();
@@ -31,12 +20,29 @@ export function hideInfobox() {
 	//}
 }
 
-// -------------------------------------
-// menu overlay object
-// -------------------------------------
-const Menu = function (lcdgame, name) {
-	// save reference to game object
-	this.lcdgame = lcdgame;
-};
+function renderInfoBox(data) {
+	const instr = tinyMarkDown(data.gameinfo.instructions.en);
 
-export default Menu;
+	const infobox = document.createElement('div');
+	infobox.setAttribute('id', INFOBOX_ID);
+	infobox.setAttribute('class', INFOBOX_ID);
+
+	infobox.innerHTML =
+		'<div id="infocontent">' +
+		'	<h1>How to play</h1>' + instr +
+		'</div>' +
+		'<a class="mybutton btnpop" onclick="LCDGame.hideInfobox();">Ok</a>';
+
+	document.body.appendChild(infobox);
+}
+
+export async function fetchMetadata(path) {
+	try {
+		const data = await request(path);
+		renderInfoBox(data);
+		return data;
+	} catch (error) {
+		console.log("** ERROR ** lcdgame.js - onMetadataError: error loading json file");
+		console.error(error);
+	}
+}

@@ -97,7 +97,7 @@ junglekong.ClockMode.prototype = {
 		this.updateDemo();
 
 		// show all bridge parts
-		this.lcdgame.sequenceResetAll("bridge", true);
+		this.lcdgame.sequenceClear("bridge", true);
 
 		this.lcdgame.setShapeByName("gorilla_1", true);
 		this.lcdgame.setShapeByName("gorilla_arm1_1", true);
@@ -155,7 +155,7 @@ junglekong.SelectMode.prototype = {
 		this.lcdgame.shapesDisplayAll(false);
 
 		// show all bridge parts
-		this.lcdgame.sequenceResetAll("bridge", true);
+		this.lcdgame.sequenceClear("bridge", true);
 
 		// always start with these barrels
 		this.lcdgame.setShapeByName("barrel_02", true);
@@ -166,7 +166,7 @@ junglekong.SelectMode.prototype = {
 		this.lcdgame.setShapeByName("gorilla_arm2_2", true);
 
 		// show all lives
-		this.lcdgame.sequenceResetAll("lives", true);
+		this.lcdgame.sequenceClear("lives", true);
 
 		this.lcdgame.digitsDisplay("digits", "0", true);
 
@@ -373,7 +373,7 @@ junglekong.MainGame.prototype = {
 		this.refreshGorilla();
 
 		// reset guy pos
-		this.lcdgame.sequenceResetAll("guy");
+		this.lcdgame.sequenceClear("guy");
 		if (this.guypos == 0) {
 			// off screen
 			this.pushtimer.start(1);
@@ -735,8 +735,8 @@ junglekong.MainGame.prototype = {
 					this.scorePoints(10);
 
 					// remove gorilla and bridge
-					this.lcdgame.sequenceResetAll("bridge");
-					this.lcdgame.sequenceResetAll("gorilla");
+					this.lcdgame.sequenceClear("bridge");
+					this.lcdgame.sequenceClear("gorilla");
 
 					this.blinkshape = "gorilla_3";
 					this.blinktimer.start();
@@ -808,7 +808,7 @@ junglekong.MainGame.prototype = {
 			}
 
 			// move bird visible
-			this.lcdgame.sequenceResetAll("bird");
+			this.lcdgame.sequenceClear("bird");
 			if (this.birdpos < 4) {
 				var frm = "bird_" + (this.birdpos + 1);
 				this.lcdgame.setShapeByName(frm, true);
