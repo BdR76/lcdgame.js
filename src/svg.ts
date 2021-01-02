@@ -1,4 +1,4 @@
-import { Button, ButtonType, Frame, GameConfig } from "./@types";
+import { Button, ButtonType, DigitGroup, Frame, GameConfig } from "./@types";
 
 export const BUTTON_CLASSNAME = 'svgButton';
 const SHAPE_CLASSNAME = 'svgShape';
@@ -21,6 +21,10 @@ function fetchImage(url:string):Promise<HTMLImageElement> {
 	});
 }
 
+function getButtonFrameNames(buttons:Button[]):string[] {
+	return buttons.map(button => button.frames).flat();
+}
+
 function getButtonDirection(name:string):string {
 	return name.substring(name.lastIndexOf('_') + 1);
 }
@@ -29,19 +33,33 @@ function getClipPathId(name:string):string {
 	return `svg-clippath-${name}`;
 }
 
-function getFrameId(name:string):string {
-	return `svg-fame-${name}`;
+function getDigitFrameId(groupName:string, positionIndex:number|string, value:string):string {
+	return `svg-frame-${groupName}-${positionIndex.toString()}-${value}`;
 }
 
-function isButton(frame: Frame):boolean {
-	return frame.filename.startsWith('btn') || frame.filename.includes('dpad');
+function getDigitFrameNames(digits:DigitGroup[]):string[] {
+	return digits.map(digit => [...digit.frames, ...digit.locations]).flat();
+}
+
+const framesMap:Map<string, Frame> = new Map();
+function getFramesMap(frames: Frame[]): Map<string, Frame> {
+	if (framesMap.size === 0) {
+		frames.forEach(frame => {
+			framesMap.set(frame.filename, frame);
+		});
+	}
+	return framesMap;
+}
+
+function getFrameId(name:string):string {
+	return `svg-frame-${name}`;
 }
 
 function renderAttributes(attributes:AttributesObject):string {
 	return Object
 		.entries(attributes)
 		.map(([key, value]) => `${key}="${value}"`)
-		.join('\n');
+		.join(' ');
 }
 
 function renderButtons(frames:Frame[], spriteImage:HTMLImageElement, buttons: Button[]) {
@@ -59,10 +77,10 @@ function renderButtons(frames:Frame[], spriteImage:HTMLImageElement, buttons: Bu
 
 		const attributes = {
 			// @WARNING This uses the _button name_, not the _shape name_ as an ID.
+			// The game files use this as an ID.
 			'id': getFrameId(button.name),
 			'class': `${BUTTON_CLASSNAME} ${SHAPE_CLASSNAME}`,
 			'data-name': button.name,
-			'data-type': button.type
 		};
 
 		return `
@@ -85,6 +103,38 @@ function renderClipPath(frame:Frame):string {
 			/>
 		</clipPath>
 	`;
+}
+
+function renderDigitGroups(config:GameConfig, spriteImage: HTMLImageElement):string {
+	const map = getFramesMap(config.frames);
+
+	return config.digits.map(digitGroup => {
+		return digitGroup.locations.map((locationDigitName, locationIndex) => {
+			const locationFrame = map.get(locationDigitName);
+
+			if (!locationFrame) {
+				return '';
+			}
+
+			return digitGroup.frames.map(digitFrameName => {
+				const digitFrame = map.get(digitFrameName);
+				const digitFrameValue = digitFrameName.substring(digitFrameName.lastIndexOf('_') + 1);
+
+				if (!digitFrame) {
+					return '';
+				}
+
+				return renderImage(digitFrame, spriteImage, {
+					'id': getDigitFrameId(digitGroup.name, locationIndex, digitFrameValue),
+					'class': SHAPE_CLASSNAME,
+					'data-digit-group': digitGroup.name,
+					'data-digit-position': locationIndex,
+					'data-digit-value': digitFrameValue,
+					'transform': `translate(${locationFrame.spriteSourceSize.x - digitFrame.frame.x},${locationFrame.spriteSourceSize.y - digitFrame.frame.y})`,
+				});
+			});
+		});
+	}).flat(3).join('\n');
 }
 
 function renderHitBox(frame:Frame, type:ButtonType):string {
@@ -129,40 +179,49 @@ function renderHitBox(frame:Frame, type:ButtonType):string {
 	return `<rect x="0" y="0" width="${width}" height="${height}" transform="translate(${offsetX}, ${offsetY})" />`;
 }
 
-function renderImage(frame:Frame, spriteImage:HTMLImageElement, attributes?: AttributesObject):string {
-	return `
-		<image
-			${attributes ? renderAttributes(attributes) : ''}
-			clip-path="url(#${getClipPathId(frame.filename)})"
-			height="${spriteImage.height}"
-			href="${spriteImage.src}"
-			transform="translate(${frame.spriteSourceSize.x - frame.frame.x},${frame.spriteSourceSize.y - frame.frame.y})"
-			width="${spriteImage.width}"
-			x="0"
-			y="0"
-		/>
-	`;
+function renderImage(frame: Frame, spriteImage: HTMLImageElement, attributes = {} as AttributesObject):string {
+	const attr = {
+		'clip-path': `url(#${getClipPathId(frame.filename)})`,
+		'height': spriteImage.height,
+		'href': spriteImage.src,
+		'transform': `translate(${frame.spriteSourceSize.x - frame.frame.x},${frame.spriteSourceSize.y - frame.frame.y})`,
+		'width': spriteImage.width,
+		'x': "0",
+		'y': "0",
+		...attributes,
+	};
+
+	return `<image ${renderAttributes(attr)} />`;
 }
 
 async function render(config:GameConfig):Promise<string> {
 	const backgroundImage = await fetchImage(config.imgback);
 	const spriteImage = await fetchImage(config.imgshapes);
-	// filter out non-position digit frames
-	const frames = config.frames.filter(frame => {
-		return !frame.filename.startsWith('dig') || frame.filename.includes('pos_');
+
+	const buttonFrameNames = getButtonFrameNames(config.buttons);
+	const digitaFrameNames = getDigitFrameNames(config.digits);
+
+	const buttons:Frame[] = [];
+	const images:Frame[] = [];
+
+	config.frames.forEach(frame => {
+		const { filename } = frame;
+		if (buttonFrameNames.includes(filename)) {
+			buttons.push(frame);
+		} else if (!digitaFrameNames.includes(filename)) {
+			images.push(frame);
+		}
 	});
 
-	const buttons = frames.filter(frame => isButton(frame));
-	const images = frames.filter(frame => !isButton(frame));
-
 	const string = `
-		<svg id="svgElement" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${backgroundImage.width} ${backgroundImage.height}" preserveAspectRatio="xMidYMid meet" version="2.0">
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${backgroundImage.width} ${backgroundImage.height}" preserveAspectRatio="xMidYMid meet" version="2.0">
 			<defs>
 				${config.frames.map(renderClipPath).join('')}
 			</defs>
-			<image class="svgBackground" width="${backgroundImage.width}" height="${backgroundImage.height}" href="${backgroundImage.src}" x="0" y="0" />
+			<image width="${backgroundImage.width}" height="${backgroundImage.height}" href="${backgroundImage.src}" x="0" y="0" />
 			${images.map((frame) => renderImage(frame, spriteImage, { id: getFrameId(frame.filename), class: SHAPE_CLASSNAME })).join('')}
 			${renderButtons(buttons, spriteImage, config.buttons)}
+			${renderDigitGroups(config, spriteImage)}
 		</svg>
 	`;
 
@@ -179,8 +238,7 @@ export async function addSVG(config:GameConfig):Promise<void> {
 	}
 }
 
-export function setShapeVisibility(name:string, isVisible:boolean):void {
-	const id = getFrameId(name);
+function setElementVisibility(id:string, isVisible:boolean):void {
 	const element = document.getElementById(id);
 
 	if (!element) {
@@ -191,4 +249,28 @@ export function setShapeVisibility(name:string, isVisible:boolean):void {
 	} else {
 		element.classList.remove(VISIBLE_SHAPE_CLASSNAME);
 	}
+}
+
+export function setShapeVisibility(name:string, isVisible:boolean):void {
+	const id = getFrameId(name);
+	setElementVisibility(id, isVisible);
+}
+
+export function setShapesVisibility(isVisible:boolean):void {
+	document.querySelectorAll(`.${SHAPE_CLASSNAME}`).forEach(element => {
+		if (isVisible) {
+			element.classList.add(VISIBLE_SHAPE_CLASSNAME);
+		} else {
+			element.classList.remove(VISIBLE_SHAPE_CLASSNAME);
+		}
+	});
+}
+
+export function setDigitVisibility(groupName:string, position: number, value:string, isVisible: boolean):void {
+	const id = getDigitFrameId(groupName, position, value);
+	// hide previously visible digit
+	document.querySelectorAll(`.${SHAPE_CLASSNAME}.${VISIBLE_SHAPE_CLASSNAME}[data-digit-group="${groupName}"][data-digit-position="${position.toString()}"]:not([data-digit-value="${value}"])`).forEach(element => {
+		element.classList.remove(VISIBLE_SHAPE_CLASSNAME);
+	});
+	setElementVisibility(id, isVisible);
 }

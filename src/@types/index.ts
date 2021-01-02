@@ -25,7 +25,7 @@ export interface Sequence {
 	name: string;
 }
 
-export interface Digit {
+export interface DigitGroup {
 	frames: string[];
 	locations: string[];
 	max: string;
@@ -67,7 +67,7 @@ export interface Meta {
 
 export interface GameConfig {
 	buttons: Button[];
-	digits: Digit[];
+	digits: DigitGroup[];
 	frames: Frame[];
 	imgback: string;
 	imgshapes: string;

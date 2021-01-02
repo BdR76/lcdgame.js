@@ -9,7 +9,7 @@ import Sounds from './Sounds';
 import StateManager from './StateManager';
 import Timer from './Timer';
 import { randomInteger, request } from './utils';
-import { addSVG, BUTTON_CLASSNAME, setShapeVisibility } from './svg';
+import { addSVG, BUTTON_CLASSNAME, setDigitVisibility, setShapeVisibility, setShapesVisibility } from './svg';
 import { getKeyMapping, normalizeButtons } from './buttons';
 
 const CONTAINER_HTML =
@@ -82,6 +82,9 @@ const Game = function (configfile, metadatafile = "metadata/gameinfo.json") {
 	this.raf = new AnimationFrame(this);
 
 	this.timers = [];
+
+	// digits
+	this.digitMap = {};
 
 	// add gamedata and populate by loading json
 	this.loadConfig(configfile);
@@ -164,6 +167,10 @@ Game.prototype = {
 			// shape indexes
 			this.gamedata.digits[d].ids = [];
 			this.gamedata.digits[d].locids = [];
+
+			// populate digitMap
+			const digitGroup = data.digits[d];
+			this.digitMap[digitGroup.name] = digitGroup;
 
 			// find all digit frames indexes
 			for (let f = 0; f < this.gamedata.digits[d].frames.length; f++) {
@@ -635,6 +642,7 @@ Game.prototype = {
 	 * @param {boolean} value - shape visibility.
 	 */
 	shapesDisplayAll: function(value) {
+		setShapesVisibility(value);
 
 		if (this.gamedata.frames) {
 			// all shapes
@@ -661,13 +669,34 @@ Game.prototype = {
 
 	/**
 	 *
-	 * @param {string} name - frame.filename prefix. prefix + 'pos' is the actual position
+	 * @param {string} name - DigitGroup name.
 	 * @param {string} str - value. e.g. score (200), time (12:34)
 	 * @param {boolean} [rightalign=false]
 	 */
 	digitsDisplay: function(name, str, rightalign = false) {
 		// not loaded yet
 		if (!this.gamedata.digits) return;
+
+		const digitGroup = this.digitMap[name];
+		const digitGroupLength = digitGroup.locations.length;
+		if (!digitGroup) {
+			console.log("** ERROR ** digitsDisplay('"+name+"') - digits not found.");
+			throw "lcdgames.js - digitsDisplay, no digits with name '" + name + "'";
+		}
+
+		// some games (e.g. tomsadventure) prepend more characters than the group has. fix this here.
+		if (str.length > digitGroupLength) {
+			str = str.substring(str.length - digitGroupLength);
+		}
+
+		if (rightalign) {
+			str = str.padStart(digitGroupLength, ' ');
+		}
+
+		str.split('').forEach((character, index) => {
+			const isVisible = character !== '';
+			setDigitVisibility(name, index, character, isVisible);
+		});
 
 		// get sequence
 		var digidx = -1;

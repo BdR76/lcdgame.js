@@ -2,7 +2,6 @@
 	"imgback": "img/highway_back.jpg",
 	"imgshapes": "img/highway_shapes.png",
 	"frames": [
-		{"filename":"digit_place5","frame":{"x":280,"y":118,"w":44,"h":58},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":631,"y":181,"w":44,"h":58},"sourceSize":{"w":44,"h":58}},
 		{"filename":"dog1","frame":{"x":246,"y":455,"w":10,"h":16},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":621,"y":343,"w":10,"h":16},"sourceSize":{"w":10,"h":16}},
 		{"filename":"dog2","frame":{"x":210,"y":177,"w":18,"h":25},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":595,"y":370,"w":18,"h":25},"sourceSize":{"w":18,"h":25}},
 		{"filename":"dog3","frame":{"x":269,"y":415,"w":24,"h":35},"rotated":false,"trimmed":false,"spriteSourceSize":{"x":565,"y":401,"w":24,"h":35},"sourceSize":{"w":24,"h":35}},
