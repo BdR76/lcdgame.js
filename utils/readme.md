@@ -3,7 +3,7 @@ Utilities for lcdgame.js
 
 Creating photos
 ---------------
-See some example photos here: [high resolution GIMP images](https://drive.google.com/drive/folders/0B414aIL7Bhz-aFlLNDVhUWVrNVE?usp=sharing)
+All original asset photos are here: [high resolution GIMP images](https://drive.google.com/drive/folders/0B414aIL7Bhz-aFlLNDVhUWVrNVE?usp=sharing)
 
 Note that taking high-resolution photos of an LCD device will require some work
 and effort. It is recommended to use a tripod instead of holding the camera in
