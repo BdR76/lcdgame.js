@@ -8,13 +8,12 @@ import AnimationFrame from './AnimationFrame';
 import Sounds from './Sounds';
 import StateManager from './StateManager';
 import Timer from './Timer';
-import { randomInteger, request } from './utils';
+import { isTouchDevice, randomInteger, request } from './utils';
 import { addSVG, BUTTON_CLASSNAME, setDigitVisibility, setShapeVisibility, setShapesVisibility } from './svg';
 import { getKeyMapping, normalizeButtons } from './buttons';
 
 const CONTAINER_HTML =
 	'<div id="container" class="container">' +
-	'	<canvas id="mycanvas" class="gamecvs"></canvas>' +
 	'	<div id="svg" class="svgContainer"></div>' +
 	'	<div class="menu">' +
 	'		<a class="mybutton" onclick="LCDGame.displayScorebox();">highscores</a>' +
@@ -28,8 +27,6 @@ const CONTAINER_HTML =
 const Game = function (configfile, metadatafile = "metadata/gameinfo.json") {
 
 	this.gamedata = {};
-	this.imageBackground = null;
-	this.imageShapes = null;
 	this.score = 0;
 	this.gametype = 0;
 	this.level = 0;
@@ -47,33 +44,16 @@ const Game = function (configfile, metadatafile = "metadata/gameinfo.json") {
 		console.log('%c To play LCD game simulations, please visit: http://www.bdrgames.nl/lcdgames/', 'background: #000; color: #0f0'); // cool hax0r colors ;)
 		return;
 	};
-*/
+	*/
 
-	// initialise object
-	this.countimages = 0;
-	this.scaleFactor = 1.0;
-
-	this.imageBackground = new Image();
-	this.imageShapes = new Image();
-
-	// events after loading image
-	this.imageBackground.addEventListener("load", this.onImageLoaded.bind(this));
-	this.imageBackground.addEventListener("error", this.onImageError.bind(this));
-	this.imageShapes.addEventListener("load", this.onImageLoaded.bind(this));
-	this.imageShapes.addEventListener("error", this.onImageError.bind(this));
-
-	// create canvas element and add to document
+	// create elements and add to document
 	var str =
 		CONTAINER_HTML +
 		SCORE_HTML;
 
 	document.write(str);
 
-	this.canvas = document.getElementById("mycanvas");
 	this.scorecontent = document.getElementById("scorecontent");
-
-	// get context of canvas element
-	this.context2d = this.canvas.getContext("2d");
 
 	// state manager
 	this.state = new StateManager(this);
@@ -81,36 +61,17 @@ const Game = function (configfile, metadatafile = "metadata/gameinfo.json") {
 	// request animation frame
 	this.raf = new AnimationFrame(this);
 
+	this.digitMap = new Map();
+	// @NOTE: change this object to add / remove custom key bindings
+	this.keyMap = {};
 	this.timers = [];
 
-	// digits
-	this.digitMap = {};
-
-	// add gamedata and populate by loading json
-	this.loadConfig(configfile);
-	this.loadMetadata(metadatafile);
+	this.initGame(configfile, metadatafile);
 
 	return this;
 };
 
 Game.prototype = {
-	// -------------------------------------
-	// background ans shapes images loaded
-	// -------------------------------------
-	onImageLoaded: function() {
-		// max two images
-		this.countimages++;
-		// check if both background and shapes images were loaded
-		if (this.countimages >= 2) {
-			this.initGame();
-		}
-	},
-
-	onImageError: function() {
-		// handle error
-		console.log("** ERROR ** lcdgame.js - onImageError.");
-	},
-
 	// -------------------------------------
 	// load a game configuration file
 	// -------------------------------------
@@ -133,10 +94,6 @@ Game.prototype = {
 		this.gamedata = data;
 
 		await addSVG(data);
-
-		// set images locations will trigger event onImageLoaded
-		this.imageBackground.src = data.imgback;
-		this.imageShapes.src = data.imgshapes;
 
 		// add custom lcdgame.js properties for use throughout the library
 		for (var i = 0; i < this.gamedata.frames.length; i++) {
@@ -164,41 +121,12 @@ Game.prototype = {
 
 		// prepare digits
 		for (var d = 0; d < this.gamedata.digits.length; d++) {
-			// shape indexes
-			this.gamedata.digits[d].ids = [];
-			this.gamedata.digits[d].locids = [];
-
-			// populate digitMap
 			const digitGroup = data.digits[d];
-			this.digitMap[digitGroup.name] = digitGroup;
-
-			// find all digit frames indexes
-			for (let f = 0; f < this.gamedata.digits[d].frames.length; f++) {
-				const filename = this.gamedata.digits[d].frames[f];
-				const idx = this.shapeIndexByName(filename);
-				this.gamedata.digits[d].ids.push(idx);
-				// set shape types
-				if (idx != -1) {
-					this.gamedata.frames[idx].type = "digit";
-				}
-			}
-
-			// find all digit locations
-			for (var l = 0; l < this.gamedata.digits[d].locations.length; l++) {
-				const filename = this.gamedata.digits[d].locations[l];
-				const idx = this.shapeIndexByName(filename);
-				this.gamedata.digits[d].locids.push(idx);
-			}
-			// set max
-			var str = this.gamedata.digits[d].max || "";
-			if (str == "") {
-				for (var c = 0; c < this.gamedata.digits[d].locids.length; c++) { str += "8";} // for example "8888"
-				this.gamedata.digits[d].max = str;
-			}
+			this.digitMap.set(digitGroup.name, digitGroup);
 		}
 
 		// prepare buttons keycodes
-		this.keyMapping = getKeyMapping(data.buttons);
+		this.keyMap = getKeyMapping(data.buttons);
 	},
 
 	// -------------------------------------
@@ -224,43 +152,12 @@ Game.prototype = {
 		}
 	},
 
-	resizeCanvas: function() {
-		// determine which is limiting factor for current window/frame size; width or height
-		var scrratio = window.innerWidth / window.innerHeight;
-		var imgratio = this.canvas.width / this.canvas.height;
-
-		// determine screen/frame size
-		var w = this.canvas.width;
-		var h = this.canvas.height;
-
-		if (imgratio > scrratio) {
-			// width of image should take entire width of screen
-			w = window.innerWidth;
-			this.scaleFactor = w / this.canvas.width;
-			h = this.canvas.height * this.scaleFactor;
-		} else {
-			// height of image should take entire height of screen
-			h = window.innerHeight;
-			this.scaleFactor = h / this.canvas.height;
-			w = this.canvas.width * this.scaleFactor;
-		}
-
-		// set canvas size
-		this.canvas.style.width = w+"px";
-		this.canvas.style.height = h+"px";
-	},
 	// -------------------------------------
 	// start the specific game
 	// -------------------------------------
-	initGame: function() {
-		// no scrollbars
-		document.body.scrollTop = 0;
-
-		// initialise canvas
-		this.canvas.width = this.imageBackground.width;
-		this.canvas.height = this.imageBackground.height;
-
-		this.context2d.drawImage(this.imageBackground, 0, 0);
+	initGame: async function(configfile, metadatafile) {
+		await this.loadConfig(configfile);
+		await this.loadMetadata(metadatafile);
 
 		// prepare sounds
 		this.sounds = new Sounds(this.gamedata.sounds);
@@ -270,7 +167,7 @@ Game.prototype = {
 			element.addEventListener("mousedown", this.onmousedown.bind(this), false);
 			element.addEventListener("mouseup", this.onmouseup.bind(this), false);
 
-			if (this.isTouchDevice()) {
+			if (isTouchDevice()) {
 				element.addEventListener("touchstart", this.ontouchstart.bind(this), false);
 				element.addEventListener("touchend", this.ontouchend.bind(this), false);
 			}
@@ -279,12 +176,6 @@ Game.prototype = {
 		// keyboard
 		document.addEventListener("keydown", this.onkeydown.bind(this), false);
 		document.addEventListener("keyup",   this.onkeyup.bind(this), false);
-
-		// real time resize
-		window.addEventListener("resize", this.resizeCanvas.bind(this), false);
-
-		// center position
-		this.resizeCanvas();
 
 		displayInfobox();
 
@@ -296,12 +187,11 @@ Game.prototype = {
 	// -------------------------------------
 	// timers and game loop
 	// -------------------------------------
-	addtimer: function(context, callback, ms, waitfirst) {
+	addtimer: function(context, callback, ms, waitfirst = true) {
 
 		// after .start() do instantly start callbacks (true), or wait the first time (false), so:
 		// true  => .start() [callback] ..wait ms.. [callback] ..wait ms.. etc.
 		// false => .start() ..wait ms.. [callback] ..wait ms.. [callback] etc.
-		if (typeof waitfirst === "undefined") waitfirst = true;
 
 		// add new timer object
 		var tim = new Timer(context, callback, ms, waitfirst);
@@ -321,22 +211,15 @@ Game.prototype = {
 	},
 
 	updateloop: function(timestamp) {
-
 		// check all timers
 		for (var t=0; t < this.timers.length; t++) {
 			if (this.timers[t].enabled) {
 				this.timers[t].update(timestamp);
 			}
 		}
-
-		// any shapes updates
-		if (this._refresh) {
-			this.shapesRefresh();
-			this._refresh = false;
-		}
 	},
 
-	gameReset: function(gametype) {
+	gameReset: function(gametype = this.gametype) {
 		// new game reset variables
 		this.score = 0;
 		this.level = 0;
@@ -368,12 +251,7 @@ Game.prototype = {
 	},
 
 	// -------------------------------------
-	// random integer
-	// -------------------------------------
-	randomInteger: randomInteger,
-
-	// -------------------------------------
-	// function for shapes and sequences
+	// function for shapes
 	// -------------------------------------
 	/**
 	 * Get index of Shape by it's name.
@@ -395,12 +273,13 @@ Game.prototype = {
 	/**
 	 * Toggle shape visibility by its name.
 	 *
-	 * @param {string} filename
+	 * @param {[string | number ]} filename - index or name of Shape.
 	 * @param {boolean} value
 	 */
 	setShapeByName: function(filename, value) {
 		let name = filename;
 		let frame;
+		// Some code still uses indexes. Kept for compatibility.
 		if (typeof filename === 'number') {
 			frame = this.gamedata.frames[filename];
 			name = frame.filename;
@@ -413,6 +292,9 @@ Game.prototype = {
 		setShapeVisibility(name, value);
 	},
 
+	// -------------------------------------
+	// function for sequences
+	// -------------------------------------
 	/**
 	 * Get index of sequence by name.
 	 *
@@ -445,9 +327,6 @@ Game.prototype = {
 		this.gamedata.sequences[seqidx].frames.forEach(frameName => {
 			this.setShapeByName(frameName, value);
 		});
-
-		// refresh display
-		this._refresh = true;
 	},
 
 	/**
@@ -486,9 +365,6 @@ Game.prototype = {
 		var shape1 = this.gamedata.sequences[seqidx].ids[0];
 		this.setShapeByName(this.gamedata.frames[shape1].filename, false);
 
-		// refresh display
-		this._refresh = true;
-
 		// return value, was the last value that was "shifted-out" true or false
 		return ret;
 	},
@@ -512,8 +388,6 @@ Game.prototype = {
 		// set last value to blank; default value false
 		var shape1 = this.gamedata.sequences[seqidx].ids[i];
 		this.setShapeByName(this.gamedata.frames[shape1].filename, false);
-		// refresh display
-		this._refresh = true;
 	},
 
 	/**
@@ -528,8 +402,6 @@ Game.prototype = {
 		// set value for first shape in sequence
 		var shape1 = this.gamedata.sequences[seqidx].ids[0];
 		this.setShapeByName(this.gamedata.frames[shape1].filename, value);
-		// refresh display
-		this._refresh = true;
 	},
 
 	/**
@@ -552,9 +424,6 @@ Game.prototype = {
 				// set value for position shape in sequence
 				var shape1 = this.gamedata.sequences[seqidx].ids[pos];
 				this.setShapeByName(shape1, value);
-
-				// refresh display
-				this._refresh = true;
 			}
 		}
 	},
@@ -641,27 +510,7 @@ Game.prototype = {
 	 *
 	 * @param {boolean} value - shape visibility.
 	 */
-	shapesDisplayAll: function(value) {
-		setShapesVisibility(value);
-
-		if (this.gamedata.frames) {
-			// all shapes
-			for (let i = 0; i < this.gamedata.frames.length; i++) {
-				// print out current values of sequence
-				if ( (this.gamedata.frames[i].type == "shape") || (this.gamedata.frames[i].type == "digitpos") ) {
-					this.setShapeByName(i, value);
-				}
-			}
-			// all digits
-			if (value == true) {
-				for (let i = 0; i < this.gamedata.digits.length; i++) {
-					this.digitsDisplay(this.gamedata.digits[i].name, this.gamedata.digits[i].max);
-				}
-			}
-			// refresh display
-			this._refresh = true;
-		}
-	},
+	shapesDisplayAll: setShapesVisibility,
 
 	// -------------------------------------
 	// function for digits
@@ -675,14 +524,17 @@ Game.prototype = {
 	 */
 	digitsDisplay: function(name, str, rightalign = false) {
 		// not loaded yet
-		if (!this.gamedata.digits) return;
+		if (this.digitMap.size === 0) {
+			return;
+		}
 
-		const digitGroup = this.digitMap[name];
-		const digitGroupLength = digitGroup.locations.length;
+		const digitGroup = this.digitMap.get(name);
 		if (!digitGroup) {
 			console.log("** ERROR ** digitsDisplay('"+name+"') - digits not found.");
 			throw "lcdgames.js - digitsDisplay, no digits with name '" + name + "'";
 		}
+
+		const digitGroupLength = digitGroup.locations.length;
 
 		// some games (e.g. tomsadventure) prepend more characters than the group has. fix this here.
 		if (str.length > digitGroupLength) {
@@ -694,123 +546,9 @@ Game.prototype = {
 		}
 
 		str.split('').forEach((character, index) => {
-			const isVisible = character !== '';
+			const isVisible = character !== ' ';
 			setDigitVisibility(name, index, character, isVisible);
 		});
-
-		// get sequence
-		var digidx = -1;
-		for (let i = 0; i < this.gamedata.digits.length; i++) {
-			if (this.gamedata.digits[i].name == name) {
-				digidx = i;
-				break;
-			}
-		}
-
-		if (digidx == -1) {
-			console.log("** ERROR ** digitsDisplay('"+name+"') - digits not found.");
-			// if not found return -1
-			throw "lcdgames.js - digitsDisplay, no digits with name '" + name + "'";
-		} else {
-
-			// align right parameter is optional, set default value
-			//if (rightalign === "undefined") {rightalign = false};
-
-			// set value for first shape in sequence
-			var chridx = 0; // index of character in str
-			var firstid = 0; // index of id in shape ids
-
-			// exception for right-align
-			if (rightalign == true) {
-				firstid = this.gamedata.digits[digidx].locids.length - str.length;
-				// if too many digits
-				if (firstid < 0) {
-					chridx = Math.abs(firstid); // skip left-most digit(s) of str
-					firstid = 0;
-				}
-			}
-
-			// example
-			// placeholders [ ] [ ] [ ] [ ] [ ]
-			// str " 456"   [ ] [4] [5] [6]
-			// outcome should be
-			// placeholders [.] [4] [5] [6] [.]  (.=empty/invisible)
-			// firstid = index 1-^
-
-			// adjust all shapes of digitplaceholders to display correct digits, and force them to refresh
-			for (let i=0; i < this.gamedata.digits[digidx].locids.length; i++) {
-				// shape of digitplaceholder
-				var locidx = this.gamedata.digits[digidx].locids[i];
-
-				// make non-used digit placeholders invisible
-				if ( (i < firstid) || (chridx >= str.length) ) {
-					// make non-used digit placeholders invisible
-					this.setShapeByName(locidx, false);
-				} else {
-					// 48 = ascii code for "0"
-					var digit = str.charCodeAt(chridx) - 48;
-
-					// check if valid digit
-					if ( (digit >= 0) && (digit < this.gamedata.digits[digidx].ids.length) ) {
-						var digitshape = this.gamedata.digits[digidx].ids[digit]; // shape of digit
-
-						// change the "from" part of the placeholder so it will draw the desired digit shape
-						this.gamedata.frames[locidx].frame.x = this.gamedata.frames[digitshape].frame.x;
-						this.gamedata.frames[locidx].frame.y = this.gamedata.frames[digitshape].frame.y;
-
-						// make sure the placeholder (with new digit) gets re-drawn
-						this.setShapeByName(locidx, true);
-					} else {
-						// non-digit, example space (' ')
-						this.setShapeByName(locidx, false);
-					}
-					// next character in str
-					chridx = chridx + 1;
-				}
-			}
-
-			// refresh display
-			this._refresh = true;
-		}
-	},
-
-	// -------------------------------------
-	// function for drawing and redrawing shapes
-	// -------------------------------------
-	shapesRefresh: function() {
-
-		// TODO: implement dirty rectangles?
-		// FOR NOW: simply redraw everything
-
-		if (this.gamedata.frames) {
-			// redraw entire background (=inefficient)
-			this.context2d.drawImage(this.imageBackground, 0, 0);
-
-			// add current/previous values to all shape objects
-			for (var i = 0; i < this.gamedata.frames.length; i++) {
-				if (this.gamedata.frames[i].value == true) {
-					this.shapeDraw(i);
-				}
-			}
-		}
-		// display was refreshed
-		this._refresh = false;
-
-	},
-
-	shapeDraw: function(index) {
-		// draw shape
-		this.context2d.drawImage(
-			this.imageShapes,
-			this.gamedata.frames[index].frame.x, // from
-			this.gamedata.frames[index].frame.y,
-			this.gamedata.frames[index].frame.w,
-			this.gamedata.frames[index].frame.h,
-			this.gamedata.frames[index].spriteSourceSize.x, // to
-			this.gamedata.frames[index].spriteSourceSize.y,
-			this.gamedata.frames[index].spriteSourceSize.w,
-			this.gamedata.frames[index].spriteSourceSize.h
-		);
 	},
 
 	// -------------------------------------
@@ -875,7 +613,7 @@ Game.prototype = {
 	 * @param {Event} evt
 	 */
 	onkeydown: function(evt) {
-		const buttonName = this.keyMapping[evt.key];
+		const buttonName = this.keyMap[evt.key];
 		if (buttonName) {
 			this.onButtonDown(buttonName);
 		}
@@ -887,7 +625,7 @@ Game.prototype = {
 	 * @param {Event} evt
 	 */
 	onkeyup: function(evt) {
-		const buttonName = this.keyMapping[evt.key];
+		const buttonName = this.keyMap[evt.key];
 
 		if (buttonName) {
 			this.onButtonUp(buttonName);
@@ -929,9 +667,10 @@ Game.prototype = {
 		}
 	},
 
-	isTouchDevice: function() {
-		return 'ontouchstart' in document.documentElement || (window.navigator.maxTouchPoints && window.navigator.maxTouchPoints >= 1);
-	}
+	// -------------------------------------
+	// Public helper functions
+	// -------------------------------------
+	randomInteger: randomInteger
 };
 
 export default Game;

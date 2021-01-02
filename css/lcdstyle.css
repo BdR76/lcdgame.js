@@ -166,7 +166,6 @@ btn {
 	opacity: 0;
 }
 
-.svgShape:active,
 .svgShape.on {
 	opacity: 1;
 }

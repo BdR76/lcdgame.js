@@ -11,10 +11,6 @@ export const LCDGAME_VERSION = "0.3.4";
  * @namespace LCDGame
  */
 const LCDGame = window.LCDGame || {
-	loadsounds: null,
-	countimages: 0,
-	// scale factor
-	scaleFactor: 1.0,
 	/**
 	* Keep score on global variable for highscore
 	*
@@ -50,12 +46,6 @@ const LCDGame = window.LCDGame || {
 	* Start time of a gameplay session for highscore heuristics
 	*/
 	playtimestart: null,
-	// events
-	onImageLoaded: null,
-	onImageError: null,
-	canvas: null,
-	context2d: null,
-	debugtxt: null,
 
 	// Methods
 	displayScorebox,

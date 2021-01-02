@@ -565,5 +565,4 @@ HighScores.prototype = {
 	}
 };
 
-//LCDGame.HighScores.prototype.constructor = LCDGame.HighScores;
 export default HighScores;
