@@ -749,6 +749,8 @@ cementfactory.MainGame.prototype = {
 				this.chancetime = true;
 				this.chancetimer.start();
 			}
+			// reset misses to 0
+			this.misses = 0;
 
 			// continue game
 			this.waitmode = STATE_PLAYING;
