@@ -20,4 +20,9 @@ type Shape.js >> ..\bin\lcdgame.js
 type Button.js >> ..\bin\lcdgame.js
 type Timer.js >> ..\bin\lcdgame.js
 
+
 REM // then js compress using https://jscompress.com/
+
+echo You still have to manually compress resulting js file using https://jscompress.com/
+
+pause
