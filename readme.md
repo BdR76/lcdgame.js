@@ -21,6 +21,11 @@ additional game devices, so in that sense it remains work in progress.
 [Eagle n Chicken](http://bdrgames.nl/lcdgames/games/eaglenchicken/) :: 
 [Cement Factory](http://bdrgames.nl/lcdgames/games/cementfactory/)
 
+<p align="center">
+<b>Support the lcdgames.js project by buying the developer a coffee!</b><br>
+<a href="https://www.buymeacoffee.com/bdr76" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+</p>
+
 What are LCD games
 ------------------
 LCD games are electronic toys introduced in the 1980s. Nintendo first released
@@ -89,12 +94,13 @@ typically use a wide range of 4-bit microprocessors (MCU) of which there isn't
 much information. Also, the ROMs in these devices are usually embedded in the
 MCU, meaning they need to be
 ["decapped"](https://arstechnica.com/gaming/2017/07/mame-devs-are-cracking-open-arcade-chips-to-get-around-drm/)
-to extract the code and data. This involves taking a microscope image and
-visually decoding the zeros and ones. Although feasible, this process is very
-time consuming and expensive, especially considering the sheer amount and
-variety of different LCD games. Therefor it is more practical to create
-simulations instead of emulators. Also, a simulator can recreate the entire
-device, including buttons and artwork, and not just the screen.
+to extract the code and data. This also involves taking a microscope image
+and visually decoding the zeros and ones. This is feasible, but considering
+the sheer amount and variety of different LCD games this is very time
+consuming and expensive, not to mention it destroys the MCU in the process.
+Therefor it is more practical to create simulations instead of emulators.
+Also, a simulator can recreate the entire device, including buttons and
+artwork, and not just the screen.
 
 History
 -------
