@@ -223,7 +223,9 @@ mariobros.MainGame.prototype = {
 			this.dropcase[c].falling = false;
 			this.dropcase[c].frame = 0;
 		}
-
+		// resets positions
+		this.mariopos = 1;
+		this.luigipos = 0;
 		this.continueGame();
 	},
 
